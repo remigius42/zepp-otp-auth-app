@@ -1,0 +1,87 @@
+version: "0.2"
+ignorePaths:
+  - "node_modules"
+  - "/.git"
+  - "/.gitignore"
+  - "/.husky"
+  - "/.markdownlint.yaml" # spellchecker: disable-line
+  - "/.prettierrc.yaml"
+  - "/.vscode"
+  - "/build"
+  - "/coverage"
+words:
+  - aegis
+  - amazfit
+  - amgtotp
+  - amoled
+  - andi
+  - andreas
+  - binarypoetry
+  - cbor
+  - ciphertext
+  - codacy
+  - commitlint
+  - cubimon
+  - exfiltrates
+  - fitbit
+  - gadgetbridge
+  - galulex
+  - gettext
+  - getUserMedia
+  - gitea
+  - hmac
+  - inspectable
+  - janky
+  - jsQR
+  - kiezelpay
+  - leen
+  - lisoveliy
+  - localStorage
+  - manujedi
+  - markdownlint
+  - msgid
+  - msgstr
+  - notebookcheck
+  - ontick
+  - otpauth
+  - oxlint
+  - prerendered
+  - rasterizer
+  - reimplementation
+  - remigius
+  - retarget
+  - rgba
+  - settingsStorage
+  - sideload
+  - sideloaded
+  - sideloading
+  - tachanka
+  - timeboxed
+  - totp
+  - totpfit
+  - totps
+  - tsgolint
+  - unauditable
+  - undercount
+  - upstreaming
+  - vitest
+  - watchfaces
+  - zepp
+  - zeppos
+  - zeus
+  - zml
+  - zolark
+  - zos
+ignoreWords:
+  - aquasecurity
+  - binarize
+  - conventionalcommits
+  - nuintun
+  - prioritises
+  - qrcode
+  - rseidelsohn
+  - stylelintignore
+  - tsdoc
+  - tsgo
+flagWords:
+  - topt # spellchecker: disable-line — common transposition of "totp"
