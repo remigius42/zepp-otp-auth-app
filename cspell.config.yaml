@@ -9,6 +9,17 @@ ignorePaths:
   - "/.vscode"
   - "/build"
   - "/coverage"
+  - "/src/setting/licenses.js"
+  - "/cspell.dictionary_swiss-german_project.txt"
+dictionaryDefinitions:
+  [
+    {
+      name: "de-ch-project",
+      path: "./cspell.dictionary_swiss-german_project.txt"
+    }
+  ]
+dictionaries: ["!de-ch"]
+import: ["@cspell/dict-de-ch/cspell-ext.json"]
 words:
   - aegis
   - amazfit
@@ -44,9 +55,11 @@ words:
   - notebookcheck
   - ontick
   - otpauth
+  - outbase
   - oxlint
   - prerendered
   - rasterizer
+  - recompiles
   - reimplementation
   - remigius
   - retarget
@@ -78,10 +91,15 @@ ignoreWords:
   - conventionalcommits
   - nuintun
   - prioritises
+  - qjsc
   - qrcode
   - rseidelsohn
   - stylelintignore
   - tsdoc
   - tsgo
+  - tytydraco
 flagWords:
   - topt # spellchecker: disable-line — common transposition of "totp"
+overrides:
+  - filename: "**/i18n/de-DE.po"
+    dictionaries: ["!!de-ch", "de-ch-project"]

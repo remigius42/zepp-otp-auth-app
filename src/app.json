@@ -1,0 +1,53 @@
+{
+  "configVersion": "v3",
+  "app": {
+    "appId": 1000001,
+    "appName": "OTP Auth",
+    "appType": "app",
+    "version": {
+      "code": 1,
+      "name": "0.1.0"
+    },
+    "icon": "icon.png",
+    "vender": "binary poetry gmbh",
+    "description": "Time-based one-time passwords on your wrist"
+  },
+  "permissions": ["device:os.local_storage"],
+  "runtime": {
+    "apiVersion": {
+      "compatible": "4.0",
+      "target": "4.2",
+      "minVersion": "3.6"
+    }
+  },
+  "targets": {
+    "default": {
+      "module": {
+        "page": {
+          "pages": ["page/index"]
+        },
+        "app-side": {
+          "path": "app-side/index"
+        },
+        "setting": {
+          "path": "setting/index"
+        }
+      },
+      "platforms": [
+        {
+          "st": "r",
+          "dw": 466
+        }
+      ]
+    }
+  },
+  "i18n": {
+    "en-US": {
+      "appName": "OTP Auth"
+    },
+    "de-DE": {
+      "appName": "OTP Auth"
+    }
+  },
+  "defaultLanguage": "en-US"
+}

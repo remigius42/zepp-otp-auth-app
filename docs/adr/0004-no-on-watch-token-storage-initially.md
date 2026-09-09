@@ -22,7 +22,7 @@ isolation plus permissions: each Mini Program gets its own `/data` root, isolate
 from other Mini Programs, and `localStorage` sits behind
 `device:os.local_storage`. Nothing in the documentation claims at-rest
 encryption. This is the same posture Fitbit had, so persisting would not be a
-*regression* — but it is also no better, and "no better" is a poor reason to
+_regression_ — but it is also no better, and "no better" is a poor reason to
 copy a feature we can defer.
 
 **The phone is genuinely the safer place.** Secrets live in phone-side settings
@@ -33,7 +33,7 @@ matches none of that reliably.
 **Distribution makes this sharper here.** The app is sideloaded via Zepp
 developer mode rather than shipped through a curated store. Whether developer
 mode broadens on-watch file access is unverified, and it is the one way this
-port's security posture could end up *worse* than the Fitbit app's rather than
+port's security posture could end up _worse_ than the Fitbit app's rather than
 equal.
 
 ## Considered and rejected

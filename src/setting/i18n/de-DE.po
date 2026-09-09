@@ -1,0 +1,94 @@
+# spellchecker:words tokenalgorithmus, tokenansicht, uhrenfehler
+
+msgid "Add token"
+msgstr "Token hinzufügen"
+
+msgid "Add token manually"
+msgstr "Token manuell hinzufügen"
+
+msgid "Add token via QR tag"
+msgstr "Token via QR-Tag hinzufügen"
+
+msgid "Algorithm"
+msgstr "Algorithmus"
+
+msgid "Color scheme"
+msgstr "Farbschema"
+
+msgid "Compensate clock drift"
+msgstr "Uhrenfehler kompensieren"
+
+msgid "Current QR tag image."
+msgstr "Aktuelles QR-Tag Bild."
+
+msgid "Display name"
+msgstr "Anzeigename"
+
+msgid "Enlarge token information"
+msgstr "Vergrösserte Tokenansicht"
+
+msgid "Import new QR tag"
+msgstr "Neues QR-Tag importieren"
+
+msgid "Import QR tag from an image"
+msgstr "QR-Tag via Bild importieren"
+
+msgid "Introduction"
+msgstr "Einführung"
+
+msgid "Issuer"
+msgstr "Aussteller"
+
+msgid "Label"
+msgstr "Bezeichnung"
+
+msgid "License information"
+msgstr "Lizenzinformationen"
+
+msgid "Licensed under GPL version 3.0 or later."
+msgstr "Lizenziert unter GPL Version 3.0 oder neuer."
+
+msgid "No connection to device message"
+msgstr "Die App auf der Smartwatch ist aktuell nicht verbunden. Die Einstellungen werden zur Smartwatch übertragen, sobald wieder eine Verbindung besteht. Sie können versuchen die Verbindung herzustellen, indem Sie die App auf der Smartwatch nochmals starten."
+
+msgid "Number of digits"
+msgstr "Anzahl Ziffern"
+
+msgid "Period in seconds"
+msgstr "Gültigkeitsdauer in Sekunden"
+
+msgid "Please help support this app by donating a coffee"
+msgstr "Bitte unterstützen Sie diese App mit einem Kaffee"
+
+msgid "Reset to defaults"
+msgstr "Zurücksetzen auf Standardwerte"
+
+msgid "Secret in Base32"
+msgstr "Schlüssel in Base32"
+
+msgid "Select number of digits"
+msgstr "Anzahl Ziffern auswählen"
+
+msgid "Select token algorithm"
+msgstr "Tokenalgorithmus auswählen"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Store tokens on device"
+msgstr "Tokens auf Smartwatch speichern"
+
+msgid "Third-party licenses"
+msgstr "Lizenzen von Drittanbietern"
+
+msgid "Tokens"
+msgid "Token"
+
+msgid "Tokens section description"
+msgstr "Sie können Anzeigenamen für die Token festlegen, indem Sie auf die Listeneinträge klicken. Um die Token auf die ursprüngliche Bezeichnung und Aussteller zurückzusetzen, klicken Sie auf den Eintrag, löschen sie den Anzeigenamen und speichern Sie."
+
+msgid "User documentation"
+msgstr "Benutzerdokumentation"
+
+msgid "Welcome to the OTP Auth App!"
+msgstr "Willkommen zur OTP Auth App!"

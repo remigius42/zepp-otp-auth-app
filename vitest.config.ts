@@ -1,0 +1,40 @@
+import { defineConfig } from "vitest/config"
+
+export default defineConfig({
+  test: {
+    globals: true,
+    include: ["src/**/__tests__/**/*.spec.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.ts"],
+      excludeAfterRemap: true,
+      exclude: [
+        "src/**/__tests__/**",
+        // Imperative @zos/ui widget construction and Settings App render
+        // functions have no test seam on this platform. Excluded explicitly so
+        // the untestable surface stays visible in review rather than being
+        // averaged away — see docs/ZEPP_OS_PORTING_ANALYSIS.md §6.3.
+        "src/page/**",
+        "src/setting/**",
+        // Entry-point shims. These only register a lifecycle object with a Zepp
+        // global, so there is nothing to assert. Keep them shims: anything
+        // worth testing belongs in a module under src/shared/ instead.
+        "src/app.ts",
+        "src/app-side/index.ts",
+        // Type-only modules. They emit no runtime code, so v8 reports 0/0
+        // statements as 0% and trips the per-file threshold.
+        "src/shared/AppSettings.ts",
+        "src/shared/PeerMessage.ts",
+        "src/shared/TotpConfig.ts",
+        "src/global.d.ts"
+      ],
+      thresholds: {
+        perFile: true,
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80
+      }
+    }
+  }
+})

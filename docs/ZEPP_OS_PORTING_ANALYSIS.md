@@ -13,16 +13,16 @@ touches `document`/SVG views, `peerSocket`, `fs`/CBOR, and the Fitbit settings
 components has to be rebuilt against Zepp OS APIs.
 
 **QR Enrollment survives — as a file import, not a picker.** Zepp OS has no
-`ImagePicker` equivalent and the watch has no camera, but a mini program *can*
+`ImagePicker` equivalent and the watch has no camera, but a mini program _can_
 receive a file: ZML's Side Service exposes an `inputFile` event alongside
 `readFile`, and a shipped store app uses it. The decoder ports too —
 `@nuintun/qrcode`'s `Decoder.decode()` is DOM-free; only its ~25-line `scan()`
 wrapper is browser-bound (§4.2).
 
-What is genuinely lost is the *one-tap picker*, itself an abuse of Fitbit's
+What is genuinely lost is the _one-tap picker_, itself an abuse of Fitbit's
 clock-face `ImagePicker`. The replacement is: pick a file → decode locally →
 done. Nothing leaves the phone, so §4.4's trust objections — which are about
-*hosting* a scanner, not about QR — do not apply.
+_hosting_ a scanner, not about QR — do not apply.
 
 Estimated effort: **45–60 h** for feature parity (§5), with Enrollment shipping
 as manual key entry plus `otpauth://` URI paste. File-based import is **not** in
@@ -31,16 +31,16 @@ further ~4–6 h (option F), both scheduled after parity.
 
 ## 2. What the current app is made of
 
-| Layer | Files | LOC (prod) | Fate |
-| --- | --- | --- | --- |
-| TOTP core | `app/totp.ts`, `app/base16codec.ts` | ~160 | **Reuse ~verbatim** |
-| Key URI / token model / validation | `companion/keyUri.ts`, `common/*`, `companion/tokens.ts` (validation half) | ~200 | **Reuse, minus settings I/O** |
-| Token state & persistence | `app/TokenManager.ts`, `app/SettingsManager.ts` | ~350 | Reuse structure; **Token persistence dropped** (ADR-0004), settings persistence swaps `fs`+CBOR for `localStorage` |
-| Device UI | `app/ui/*`, `resources/*.view`, `resources/styles.css`, `widget.defs` | ~250 + views | **Rewrite** |
-| Peer messaging | `common/PeerMessage.ts`, `companion/peerMessaging.ts`, `app/app.ts` | ~180 | Rewrite transport, keep protocol |
-| Settings page | `settings/*.tsx`, `companion/ui/*` | ~350 | **Rewrite** (similar shape, different components) |
-| Companion glue | `companion/companion.ts`, `companion/settings.ts` | ~150 | Rewrite as Side Service |
-| Tests | `**/__tests__` | ~3 700 | Pure-logic tests reusable; UI tests lost |
+| Layer                              | Files                                                                      | LOC (prod)   | Fate                                                                                                               |
+| ---------------------------------- | -------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------ |
+| TOTP core                          | `app/totp.ts`, `app/base16codec.ts`                                        | ~160         | **Reuse ~verbatim**                                                                                                |
+| Key URI / token model / validation | `companion/keyUri.ts`, `common/*`, `companion/tokens.ts` (validation half) | ~200         | **Reuse, minus settings I/O**                                                                                      |
+| Token state & persistence          | `app/TokenManager.ts`, `app/SettingsManager.ts`                            | ~350         | Reuse structure; **Token persistence dropped** (ADR-0004), settings persistence swaps `fs`+CBOR for `localStorage` |
+| Device UI                          | `app/ui/*`, `resources/*.view`, `resources/styles.css`, `widget.defs`      | ~250 + views | **Rewrite**                                                                                                        |
+| Peer messaging                     | `common/PeerMessage.ts`, `companion/peerMessaging.ts`, `app/app.ts`        | ~180         | Rewrite transport, keep protocol                                                                                   |
+| Settings page                      | `settings/*.tsx`, `companion/ui/*`                                         | ~350         | **Rewrite** (similar shape, different components)                                                                  |
+| Companion glue                     | `companion/companion.ts`, `companion/settings.ts`                          | ~150         | Rewrite as Side Service                                                                                            |
+| Tests                              | `**/__tests__`                                                             | ~3 700       | Pure-logic tests reusable; UI tests lost                                                                           |
 
 Notable Fitbit-specific constructs with no direct counterpart:
 
@@ -57,32 +57,71 @@ model is a 1.32″ round AMOLED (`page/round/...` layout path) and has shipped
 Zepp OS 4 and, more recently, Zepp OS 5. Distribution is via the Zepp Mini App
 store (curated review) or developer mode + QR sideload for private use.
 
-| Fitbit SDK | Zepp OS equivalent | Friction |
-| --- | --- | --- |
-| App (device) JS + SVG views | Device App, `@zos/ui` `createWidget()` — **no SVG, no CSS, no DOM** | High: all layout becomes imperative widget construction with absolute coordinates |
-| `VirtualTileList` | `widget.SCROLL_LIST` with `data_type_config` / `item_click_func` | **High, revised up** — see §3.5. `SCROLL_LIST` items support `text_view` and `image_view` children **only; there is no arc child**, so the per-row progress arc has no direct equivalent |
-| `clock.ontick` | `setInterval(…, 1000)` + page `onResume`/`onHide` lifecycle | Low |
-| `fs` + `"cbor"` | `@zos/storage` `localStorage` (§3.4) | Low, but **no CBOR** → use JSON. Only settings are persisted |
-| `messaging.peerSocket` | `@zeppos/zml` `call`/`onCall` (API level ≥ 3.6 since ZML 0.0.28); `@zos/ble` as the fallback | **Low** — ZML chunks and serializes for you (§3.2), so the start/token/end fragmentation protocol is no longer needed for size. Was rated Medium before reading ZML's source |
-| Companion | Side Service (runs in Zepp app, `fetch` available, no UI) | Low conceptually |
-| `settingsStorage` + `change` listener | Settings App `props.settingsStorage` + Side Service Settings API, same key/value + change-listener model | Low |
-| Settings page JSX (`Section`, `TextInput`, `Toggle`, `Select`, `Button`) | Zepp Settings App JSX-ish `RenderFunc` components: `Section`, `TextInput`, `Toggle`, `Select`, `Slider`, `Button`, `Link`, `Text`, `Image`, `TextImageRow`, `Toast`, `View`, `Auth/OAUTH` | Medium: comparable, but **no `AdditiveList`** and **no `ImagePicker`** |
-| `.po` i18n via `gettext` | `@zos/i18n` `getText` on the **device only**; the Settings App and Side Service have no i18n API at all | **Medium** (§3.7) — the format is the same, but ~40 of ~45 strings live on the phone side, where the mechanism has to be hand-rolled |
-| Color schemes via CSS classes | Per-widget color props set in JS | Medium: needs a small theming helper applied at widget creation. **Reduced from six schemes to three** (§3.3), and `ColorSelect` has no Zepp counterpart — the swatch grid becomes a plain `Select` |
-| `crypto-js`, `base32-decode` | Plain npm deps, bundled by the Zeus CLI | Low — existing Zepp TOTP apps prove HMAC-SHA1/256/512 in JS works on-watch |
+| Fitbit SDK                                                               | Zepp OS equivalent                                                                                                                                                                        | Friction                                                                                                                                                                                            |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App (device) JS + SVG views                                              | Device App, `@zos/ui` `createWidget()` — **no SVG, no CSS, no DOM**                                                                                                                       | High: all layout becomes imperative widget construction with absolute coordinates                                                                                                                   |
+| `VirtualTileList`                                                        | `widget.SCROLL_LIST` with `data_type_config` / `item_click_func`                                                                                                                          | **High, revised up** — see §3.5. `SCROLL_LIST` items support `text_view` and `image_view` children **only; there is no arc child**, so the per-row progress arc has no direct equivalent            |
+| `clock.ontick`                                                           | `setInterval(…, 1000)` + page `onResume`/`onHide` lifecycle                                                                                                                               | Low                                                                                                                                                                                                 |
+| `fs` + `"cbor"`                                                          | `@zos/storage` `localStorage` (§3.4)                                                                                                                                                      | Low, but **no CBOR** → use JSON. Only settings are persisted                                                                                                                                        |
+| `messaging.peerSocket`                                                   | `@zeppos/zml` `call`/`onCall` (API level ≥ 3.6 since ZML 0.0.28); `@zos/ble` as the fallback                                                                                              | **Low** — ZML chunks and serializes for you (§3.2), so the start/token/end fragmentation protocol is no longer needed for size. Was rated Medium before reading ZML's source                        |
+| Companion                                                                | Side Service (runs in Zepp app, `fetch` available, no UI)                                                                                                                                 | Low conceptually                                                                                                                                                                                    |
+| `settingsStorage` + `change` listener                                    | Settings App `props.settingsStorage` + Side Service Settings API, same key/value + change-listener model                                                                                  | Low                                                                                                                                                                                                 |
+| Settings page JSX (`Section`, `TextInput`, `Toggle`, `Select`, `Button`) | Zepp Settings App JSX-ish `RenderFunc` components: `Section`, `TextInput`, `Toggle`, `Select`, `Slider`, `Button`, `Link`, `Text`, `Image`, `TextImageRow`, `Toast`, `View`, `Auth/OAUTH` | Medium: comparable, but **no `AdditiveList`** and **no `ImagePicker`**                                                                                                                              |
+| `.po` i18n via `gettext`                                                 | `@zos/i18n` `getText` on the device; `gettext` from `'i18n'` on the Settings App and Side Service — **the same import this repo already uses**                                            | Low (§3.7) — six `.po` files move to three renamed directories                                                                                                                                      |
+| Color schemes via CSS classes                                            | Per-widget color props set in JS                                                                                                                                                          | Medium: needs a small theming helper applied at widget creation. **Reduced from six schemes to three** (§3.3), and `ColorSelect` has no Zepp counterpart — the swatch grid becomes a plain `Select` |
+| `crypto-js`, `base32-decode`                                             | Plain npm deps, bundled by the Zeus CLI                                                                                                                                                   | Low — existing Zepp TOTP apps prove HMAC-SHA1/256/512 in JS works on-watch                                                                                                                          |
+
+### 3.0 Project layout
+
+From the Zeus CLI's bundled `os4.0/app` template (read out of
+`@zeppos/zeus-cli` rather than by running the interactive `zeus create`):
+
+| Path                             | Role                                                                    | Comes from                    |
+| -------------------------------- | ----------------------------------------------------------------------- | ----------------------------- |
+| `app.js`                         | app lifecycle (`App({ onCreate, onDestroy })`)                          | —                             |
+| `page/index.js`                  | device page (`Page({ build() })`)                                       | `app/ui/*`                    |
+| `page/index.[r\|s\|b].layout.js` | **per-platform layout constants**                                       | `resources/*.view`            |
+| `page/i18n/*.po`                 | device strings                                                          | `app/i18n/*.po`               |
+| `app-side/index.js`              | Side Service (`AppSideService({ onInit, onRun, onDestroy })`)           | `companion/*`                 |
+| `app-side/i18n/*.po`             | Side Service strings                                                    | `companion/i18n/*.po`         |
+| `setting/index.js`               | Settings App (`AppSettingsPage({ build() })`)                           | `settings/*`                  |
+| `setting/i18n/*.po`              | Settings App strings                                                    | `settings/i18n/*.po`          |
+| `assets/default.[r\|s\|b]/`      | per-platform images                                                     | `resources/icon.png`          |
+| `app.json`                       | manifest: `appId`, permissions, `runtime.apiVersion`, `targets`, `i18n` | `package.json` `fitbit` block |
+
+**Layout is a first-class platform idiom, not something to hand-roll.** The
+device page imports
+`import * as Styles from 'zosLoader:./index.[pf].layout.js'`, where `[pf]` is
+substituted per platform at build time, and coordinates are written with `px()`
+from `@zos/utils`. That is a better answer than §11 Q2's "centralize the
+constants ourselves": adding a second screen geometry later means adding one
+`*.layout.js` file, with no change to page code. The single-target decision
+stands, but the mechanism for widening it is already provided.
+
+**`targets.platforms` is a design width, not a device filter [build].** A single
+`{ st: "r", dw: 466 }` entry produced **six** per-device `.zpk` builds inside one
+`.zab` — 360×360, 416×416, 454×454, 466×466 and two 480×480 (NXP and ZPS
+silicon). `st` selects the screen _type_ and `dw` sets the design width that
+`px()` scales from; it does not restrict which devices are built.
+
+This retires §11 Q2 as a question for round screens: **there is no "one device
+versus a family" trade-off to make** — targeting round gets them all, scaled
+automatically, and that is why §8.1's "first layout is nearly free reach for five
+devices" understated it. What remains a genuine second layout is the square
+class (`st: "s"`), which needs its own `index.s.layout.js`.
 
 ### 3.1 On-device JavaScript runtime
 
 The two platforms differ in engine and language level, and this is visible in
 the current source: several constructs exist purely to appease Fitbit's engine.
 
-| | Fitbit OS | Zepp OS |
-| --- | --- | --- |
-| Engine | **JerryScript** — interpreter, no JIT; descended from Pebble's Rocky.js bindings | Not publicly documented. Documented ES6 support rules out a stock JerryScript build; a QuickJS-class engine is community inference, not confirmed |
-| Language level | Build emits a **single ES5.1 bundle** per target (TS → rollup) | ES6 features documented as supported (classes, modules) |
-| Dynamic code | Allowed | **`eval` and `new Function` prohibited**, with one carve-out: `new Function('return this')` — evidently present so bundled npm libs can locate the global object |
-| Timers | `setTimeout`, `clock.ontick` with `granularity` | `setTimeout` / `setInterval` (since 2.x, replacing the 1.0 timer widget), plus `@zos/timer` `createSysTimer` for service / screen-off timing |
-| Memory model | JerryScript's compressed 16-bit pointers → 512 KB heap ceiling, ~64K live objects; per-app budgets tight | Roomier, still embedded-constrained |
+|                | Fitbit OS                                                                                                | Zepp OS                                                                                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engine         | **JerryScript** — interpreter, no JIT; descended from Pebble's Rocky.js bindings                         | **QuickJS — confirmed [build].** `@zeppos/zpm` ships `qjsc` bytecode-compiler binaries for four host platforms and runs them over every emitted file; this was previously recorded as community inference |
+| Language level | Build emits a **single ES5.1 bundle** per target (TS → rollup)                                           | **ES2020 [build]** — `zpm` configures `rollup-plugin-esbuild` with `target: "ES2020"` for the device bundle, which is more specific than the docs' "ES6 supported"                                        |
+| Dynamic code   | Allowed                                                                                                  | **`eval` and `new Function` prohibited**, with one carve-out: `new Function('return this')` — evidently present so bundled npm libs can locate the global object                                          |
+| Timers         | `setTimeout`, `clock.ontick` with `granularity`                                                          | `setTimeout` / `setInterval` (since 2.x, replacing the 1.0 timer widget), plus `@zos/timer` `createSysTimer` for service / screen-off timing                                                              |
+| Memory model   | JerryScript's compressed 16-bit pointers → 512 KB heap ceiling, ~64K live objects; per-app budgets tight | Roomier, still embedded-constrained                                                                                                                                                                       |
 
 **Documented ambiguity — resolved from ZML's source, 2026-09-09.** The Zepp OS
 JavaScript-support page lists **`Promise`, generator functions and timers as
@@ -92,10 +131,10 @@ engine; the framework layer supplies the rest. `@zeppos/zml` 0.0.41 makes this
 explicit by shipping per-platform shims selected by rollup aliases at build time
 (`rollup.config.mjs`):
 
-| Shim | 1.0 / 2.0 build | 3.0+ device build |
-| --- | --- | --- |
-| `promise.js` | `promise-2.0.js` → `globalThis.Promise = es6Promise` (polyfill) | `promise-3.0.js` → `export const Promise = globalThis.Promise` (pass-through) |
-| `setTimeout.js` | `device-setTimeout-2.0.js` | `device-setTimeout-3.0.js` → re-exports `@zos/timer`'s `setTimeout`/`clearTimeout` |
+| Shim            | 1.0 / 2.0 build                                                 | 3.0+ device build                                                                  |
+| --------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `promise.js`    | `promise-2.0.js` → `globalThis.Promise = es6Promise` (polyfill) | `promise-3.0.js` → `export const Promise = globalThis.Promise` (pass-through)      |
+| `setTimeout.js` | `device-setTimeout-2.0.js`                                      | `device-setTimeout-3.0.js` → re-exports `@zos/timer`'s `setTimeout`/`clearTimeout` |
 
 So on an API 3.0+ device build **ZML assumes a native `globalThis.Promise` and
 would break outright if there weren't one** — strong evidence that Promises are
@@ -111,7 +150,7 @@ Consequences for the port:
 - **Some ES5 workarounds become unnecessary.** `padStartWithZeros` in
   `app/totp.ts`, and the "`Map` … is not available" comment driving
   `TokenPasswordCache`'s nested `Record<string, Record<string, Record<number,
-  string>>>`, exist only for JerryScript. Recommendation: port them unchanged
+string>>>`, exist only for JerryScript. Recommendation: port them unchanged
   first — the existing tests come along for free — then simplify deliberately as
   a separate step.
 - **The device-side `async` code largely evaporates.** Zepp navigation (`push`)
@@ -134,22 +173,22 @@ answers all of it.
 
 **What the transport has to provide**, derived from `companion/peerMessaging.ts`
 and `app/app.ts`: `open`/`close` connection events (they drive both the
-send-on-connect trigger *and* the settings-page connection indicator);
+send-on-connect trigger _and_ the settings-page connection indicator);
 fire-and-forget send of a structured object; unidirectional push, phone →
 watch, always phone-initiated; a `readyState` guard. Not required:
 request/response, watch-initiated calls, `fetch` proxying, file transfer.
 
-| | `@zos/ble` | `@zeppos/zml` 0.0.41 |
-| --- | --- | --- |
-| Level | platform primitive | Zepp-maintained wrapper over the Messaging API |
-| Push side-service → device | Messaging API `peerSocket.send(buffer)` | `this.call({ method, params })` → device `onCall(data)` — exactly this app's shape |
-| Payload type | **binary only** — "developers need to convert the data structure themselves" **[docs]** | plain objects; ZML does `JSON.stringify`/`parse` in `src/shared/data.js` |
-| Chunking | **yours** | **handled.** `MESSAGE_SIZE = 3600`, `MESSAGE_HEADER = 16`, `HM_MESSAGE_PROTO_HEADER = 66` → ~3 518 B usable per chunk; splits, tags each chunk with a `seqId`, sorts on receipt, validates total length and throws on mismatch |
-| Out-of-order delivery | yours | handled by the `seqId` sort |
-| Connection state, device side | `connectStatus()`, `addListener`/`removeListener` | `onBleChanged(cb)` / `offOnBleChanged(cb)` |
-| Connection state, **phone side** | — | **absent** — see below |
-| Settings storage + change events | — | `settingsLib` (`getItem`/`setItem`/`removeItem`/`clear`/`getAll`) and `onSettingsChange({key, newValue, oldValue})` on `base-side` — a direct analogue of Fitbit's `settingsStorage` + `change` listener |
-| API_LEVEL floor | ~2.0 | 3.0 for the library; **3.6 since 0.0.28**. Moot on a 4.x target |
+|                                  | `@zos/ble`                                                                              | `@zeppos/zml` 0.0.41                                                                                                                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Level                            | platform primitive                                                                      | Zepp-maintained wrapper over the Messaging API                                                                                                                                                                                 |
+| Push side-service → device       | Messaging API `peerSocket.send(buffer)`                                                 | `this.call({ method, params })` → device `onCall(data)` — exactly this app's shape                                                                                                                                             |
+| Payload type                     | **binary only** — "developers need to convert the data structure themselves" **[docs]** | plain objects; ZML does `JSON.stringify`/`parse` in `src/shared/data.js`                                                                                                                                                       |
+| Chunking                         | **yours**                                                                               | **handled.** `MESSAGE_SIZE = 3600`, `MESSAGE_HEADER = 16`, `HM_MESSAGE_PROTO_HEADER = 66` → ~3 518 B usable per chunk; splits, tags each chunk with a `seqId`, sorts on receipt, validates total length and throws on mismatch |
+| Out-of-order delivery            | yours                                                                                   | handled by the `seqId` sort                                                                                                                                                                                                    |
+| Connection state, device side    | `connectStatus()`, `addListener`/`removeListener`                                       | `onBleChanged(cb)` / `offOnBleChanged(cb)`                                                                                                                                                                                     |
+| Connection state, **phone side** | —                                                                                       | **absent** — see below                                                                                                                                                                                                         |
+| Settings storage + change events | —                                                                                       | `settingsLib` (`getItem`/`setItem`/`removeItem`/`clear`/`getAll`) and `onSettingsChange({key, newValue, oldValue})` on `base-side` — a direct analogue of Fitbit's `settingsStorage` + `change` listener                       |
+| API_LEVEL floor                  | ~2.0                                                                                    | 3.0 for the library; **3.6 since 0.0.28**. Moot on a 4.x target                                                                                                                                                                |
 
 **Recommendation: ZML.** It removes the two things the analysis had costed as
 risk — manual chunking and manual serialization — and its `call`/`onCall` pair
@@ -184,11 +223,11 @@ Six schemes ship today; three of them (`fb-aqua`, `fb-mint`, `fb-pink`) are
 Fitbit's brand palette and have no reason to exist on an Amazfit device. The
 Zepp app keeps:
 
-| Scheme | Primary | Secondary | Background |
-| --- | --- | --- | --- |
-| **binary poetry** (default) | `#ffd502` CRT amber | `#704d00` | black |
-| **white** | `#ffffff` | `#555555` dark grey | black |
-| **black** | `#000000` | `#999999` light grey | white |
+| Scheme                      | Primary             | Secondary            | Background |
+| --------------------------- | ------------------- | -------------------- | ---------- |
+| **binary poetry** (default) | `#ffd502` CRT amber | `#704d00`            | black      |
+| **white**                   | `#ffffff`           | `#555555` dark grey  | black      |
+| **black**                   | `#000000`           | `#999999` light grey | white      |
 
 `common/ColorSchemes.ts` ports directly with the three Fitbit entries deleted.
 This also softens the loss of `ColorSelect`: a three-item `Select` reads fine as
@@ -221,13 +260,13 @@ This matters because the current design mutates a real arc per row every second:
 `app/ui/tokens.ts` sets `startAngle`/`sweepAngle` on a per-tile `ArcElement`
 from the elapsed fraction of that Token's Period. Options, none free:
 
-| | Approach | Cost | Notes |
-| --- | --- | --- | --- |
-| **a** | `image_view` cycling pre-rendered arc frames | asset script + bundle size | Visually identical to today. ~30 frames per color scheme; no runtime tinting, so frames multiply by scheme |
-| **b** | Text countdown (`23s`) in the row | trivial | Honest and legible; loses the at-a-glance analog read |
-| **c** | Block-glyph progress bar in a `text_view` | trivial | Depends on font glyph coverage — verify before committing |
-| **d** | One global countdown instead of per-row | trivial | **Wrong by construction** — Periods are per-Token (see `CONTEXT.md`), so a single countdown lies for any Token not on 30 s |
-| **e** | Abandon `SCROLL_LIST`; hand-build the list from absolute-positioned `TEXT` + `ARC` widgets with our own recycling | large | Preserves the design exactly, but this is the 10 h line turning into something much bigger |
+|       | Approach                                                                                                          | Cost                       | Notes                                                                                                                      |
+| ----- | ----------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **a** | `image_view` cycling pre-rendered arc frames                                                                      | asset script + bundle size | Visually identical to today. ~30 frames per color scheme; no runtime tinting, so frames multiply by scheme                 |
+| **b** | Text countdown (`23s`) in the row                                                                                 | trivial                    | Honest and legible; loses the at-a-glance analog read                                                                      |
+| **c** | Block-glyph progress bar in a `text_view`                                                                         | trivial                    | Depends on font glyph coverage — verify before committing                                                                  |
+| **d** | One global countdown instead of per-row                                                                           | trivial                    | **Wrong by construction** — Periods are per-Token (see `CONTEXT.md`), so a single countdown lies for any Token not on 30 s |
+| **e** | Abandon `SCROLL_LIST`; hand-build the list from absolute-positioned `TEXT` + `ARC` widgets with our own recycling | large                      | Preserves the design exactly, but this is the 10 h line turning into something much bigger                                 |
 
 **Decision: (a), with (b) as the fallback** — ADR-0005.
 
@@ -247,15 +286,15 @@ hardware and expensive to discover halfway through the UI build.
 The Settings App was costed at 11 h on the assumption that it is a rewrite. Read
 component by component, most of it is not:
 
-| Component | Uses | Fate |
-| --- | --- | --- |
-| `SectionIntroduction` | `Section`, `Text`, `Link` | **1:1** |
-| `SectionLicenses` | `Section`, `Text` | **1:1**, plus retargeting `bin/generate_licenses_data.sh` |
-| `ValidationMessage` | `Text` | **1:1** |
-| `SectionAddTokenManually` | `TextInput`, `Select`, `Button`, `Text` | **~1:1** — every control exists on Zepp |
-| `SectionSettings` | `Toggle`, `Text`, `ColorSelect` | 1:1 except the swatch grid, which becomes a `Select` of three names (§3.3) |
-| `ConnectionStatus` | — | **deleted** (ADR-0003) |
-| **`SectionTokens`** | **`AdditiveList`** | **the only genuine rewrite** |
+| Component                 | Uses                                    | Fate                                                                       |
+| ------------------------- | --------------------------------------- | -------------------------------------------------------------------------- |
+| `SectionIntroduction`     | `Section`, `Text`, `Link`               | **1:1**                                                                    |
+| `SectionLicenses`         | `Section`, `Text`                       | **1:1**, plus retargeting `bin/generate_licenses_data.sh`                  |
+| `ValidationMessage`       | `Text`                                  | **1:1**                                                                    |
+| `SectionAddTokenManually` | `TextInput`, `Select`, `Button`, `Text` | **~1:1** — every control exists on Zepp                                    |
+| `SectionSettings`         | `Toggle`, `Text`, `ColorSelect`         | 1:1 except the swatch grid, which becomes a `Select` of three names (§3.3) |
+| `ConnectionStatus`        | —                                       | **deleted** (ADR-0003)                                                     |
+| **`SectionTokens`**       | **`AdditiveList`**                      | **the only genuine rewrite**                                               |
 
 The structural change is uniform and mechanical: Fitbit passes `settingsStorage`
 down as a prop to each section, whereas Zepp uses `AppSettingsPage({ state,
@@ -270,7 +309,7 @@ simplest thing that works.
 
 **Fallback, if a specific risk materializes:** a `Select` listing the Tokens plus
 a single set of controls acting on the selection — constant size, controls never
-move. The risk in question is that the settings page re-runs `build()` on *every*
+move. The risk in question is that the settings page re-runs `build()` on _every_
 settings-storage write, so tapping `↑` on the eighth Token rebuilds the whole
 page. If that resets scroll position, reordering degrades into scroll-tap-hunt.
 The fallback is immune because its controls sit at a fixed position.
@@ -290,44 +329,38 @@ against the device's system language, available since API_LEVEL 2.0.
 Additionally, `app.json` carries its own `i18n` block for the Mini Program's
 title in the app list — new, but a few lines.
 
-**On the phone, there is no i18n API.** `@zos/i18n` is a Device App module. The
-Settings App and Side Service run in the Zepp app's JavaScript environment,
-which does not provide it. That inverts the difficulty, because of where the
-strings actually are:
+**The phone side has i18n too, and it is byte-identical to Fitbit's.** The
+official `os4.0/app` project template ships `setting/i18n/en-US.po` and
+`app-side/i18n/en-US.po`, and both entry points open with
+`import { gettext } from 'i18n'` — the same module specifier and the same
+function name this repo already uses. The per-surface `.po` directory layout
+also matches one-for-one:
 
-| Surface | Strings | Mechanism on Zepp |
-| --- | --- | --- |
-| `app/i18n/*.po` → device | ~5 | `@zos/i18n` `getText` — **ports directly** |
-| `companion/i18n/*.po` → Side Service | ~10 | **hand-rolled** |
-| `settings/i18n/*.po` → Settings App | ~30 | **hand-rolled** |
+| Fitbit                | Zepp                 | Import                                  | Strings |
+| --------------------- | -------------------- | --------------------------------------- | ------- |
+| `app/i18n/*.po`       | `page/i18n/*.po`     | `getText` from `@zos/i18n`              | ~5      |
+| `companion/i18n/*.po` | `app-side/i18n/*.po` | `gettext` from `'i18n'` — **unchanged** | ~10     |
+| `settings/i18n/*.po`  | `setting/i18n/*.po`  | `gettext` from `'i18n'` — **unchanged** | ~30     |
 
-So roughly **40 of 45 strings** are on the side where the mechanism has to be
-built. What is reusable everywhere is the *content* — the `.po` files
-themselves, and the German translations in particular, which are the expensive
-part to reproduce.
+So the migration is: copy six `.po` files into three renamed directories, and
+change `gettext(` to `getText(` in device code only. No build step, no
+`gettext-parser`, no hand-rolled lookup. **Estimate stays at the original 3 h**,
+and §3's original "Low — files largely reusable" rating was correct.
 
-**Recommended approach: keep `.po` as the single source of truth, compile it.**
-A small build step parses the `.po` files (via `gettext-parser` as a
-devDependency) and emits a plain JS module of key → string per language for the
-phone-side surfaces, alongside a five-line `getText` equivalent that selects the
-language and looks up the key. The device side keeps using `@zos/i18n` and the
-same `.po` files unchanged.
-
-This preserves one authoring format across all three surfaces, keeps the
-existing translations usable verbatim, and keeps the cspell German-dictionary
-override in `.po` files working the way it does today. Estimated **~2 h** on top
-of copying the files.
+> **How this was gotten wrong twice.** An earlier revision of this section
+> claimed the phone side had no i18n API and costed a `.po` → JS compiler at
+> +2 h. That came from a search-engine summary asserting `@zos/i18n` is
+> device-only and that "the common workaround is a plain JS key/value map" —
+> which is true of `@zos/i18n` specifically and irrelevant, because the phone
+> side uses a different module named `i18n`. The correction came from reading the
+> CLI's bundled project template. Same lesson as §4.2, applied one section too
+> late: **read the artifact, not the prose about it.**
 
 **Behavioral difference worth knowing before it surprises someone:** on Zepp the
 watch language and the phone language are set independently — the watch's is
 under Zepp app → Profile → device → Watch settings → System Language, while the
 Settings App follows the phone's locale. So the device UI and the settings UI can
 legitimately end up in different languages. Fitbit did not have this split.
-
-**Open question for the spike:** how the Settings App determines the phone
-locale. Reading it directly is undocumented; the fallback is to have the Device
-App report `getLanguage()` into settings storage and key off that, which works
-but only after a first Sync.
 
 **Rejected: `@silver-zepp/polyglot`.** A third-party toolkit offering dynamic
 language switching, an in-app language picker, and `.po` → Excel migration. It
@@ -345,7 +378,9 @@ intended purpose is letting a user pick a photo for a clock face background:
 ```tsx
 <ImagePicker
   settingsKey={NewTokenButton.addTokenViaQrTag}
-  imageWidth={300} imageHeight={300} />
+  imageWidth={300}
+  imageHeight={300}
+/>
 ```
 
 The picker writes `{"imageUri": "..."}` into settings storage. The companion
@@ -354,7 +389,7 @@ The picker writes `{"imageUri": "..."}` into settings storage. The companion
 
 ```ts
 const qrcode = new Decoder().setOptions({ canOverwriteImage: true })
-const { data: otpUri } = await qrcode.scan(imageUri)   // @nuintun/qrcode
+const { data: otpUri } = await qrcode.scan(imageUri) // @nuintun/qrcode
 const tokenConfig = totpConfigFromUri(otpUri)
 ```
 
@@ -395,19 +430,19 @@ children).
 **The QR decoder itself ports.** `@nuintun/qrcode` 3.3.0 — already pinned in the
 Fitbit app — has two entry points, and only one needs a browser:
 
-| Method | Depends on | Ports? |
-| --- | --- | --- |
-| `Decoder.decode(data: Uint8ClampedArray, width, height)` | nothing — `binarize()` then `scan()`, pure computation | **yes, unchanged** |
-| `Decoder.scan(src: string)` | `new Image()`, `document.createElement('canvas')`, `getContext('2d')`, `getImageData()` | no — but it is a ~25-line wrapper ending in `this.decode(data, width, height)` |
+| Method                                                   | Depends on                                                                              | Ports?                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `Decoder.decode(data: Uint8ClampedArray, width, height)` | nothing — `binarize()` then `scan()`, pure computation                                  | **yes, unchanged**                                                             |
+| `Decoder.scan(src: string)`                              | `new Image()`, `document.createElement('canvas')`, `getContext('2d')`, `getImageData()` | no — but it is a ~25-line wrapper ending in `this.decode(data, width, height)` |
 
-`companion/tokens.ts:36` calls `scan()`, which is what makes the decoder *look*
+`companion/tokens.ts:36` calls `scan()`, which is what makes the decoder _look_
 browser-bound. The decoding logic underneath is portable as-is.
 
 So the only genuinely missing piece is **rasterization**: uploaded file bytes →
 RGBA array. That needs a pure-JS PNG decoder plus an inflate; PNG is what phone
 screenshots are on both Android and iOS, so PNG alone likely suffices.
 `image.convert({ filePath, targetFilePath })` does not help — it is file-path
-based and produces a watch-display-format *file*, not pixel data. Estimate for
+based and produces a watch-display-format _file_, not pixel data. Estimate for
 full image QR import: **~4–6 h**, ordinary testable logic, no platform risk.
 `test/qr_codes/generateQrCodes.mjs` ports too, since it uses the same package's
 `Encoder`.
@@ -426,14 +461,14 @@ of a UI, not a verified claim.
 
 ### 4.3 Replacement options, ranked
 
-| # | Approach | Effort | Risk | Notes |
-| --- | --- | --- | --- | --- |
-| **A** | **Paste `otpauth://` URI into a `TextInput`**, run existing `totpConfigFromUri` + validation | ~2 h | Low | Ships. Reuses `keyUri.ts` and all its tests verbatim. Secret transits the clipboard — worth an explicit warning in the UI. |
-| **B** | **Manual field entry** (label/issuer/secret/algorithm/digits/period) | ~4 h | Low | You already have this (`SectionAddTokenManually` + `validateConfig`); it becomes the primary path instead of the fallback. |
-| **C** | **Webview QR scanner**: `Link` or the `Auth/OAUTH` component opens a self-hosted page that scans via `getUserMedia` + jsQR and returns the URI through the OAuth `code` / `onReturn` callback | — | **Rejected** | See §4.4. Unacceptable trust regression, and probably technically blocked anyway. |
-| **D** | **Companion-side URL import**: side-service `fetch` pulls an encrypted export blob from a URL/short code the user generates elsewhere | 8 h + backend | Medium | Moves the problem to a service you'd have to run. Contradicts the app's current zero-backend property. Same trust objection as C, if milder. |
-| **E** | **Local file import, text formats** — `onInputFile` → `readFile` → parse `otpauth-migration://`, Aegis / 2FAS / Proton exports | ~3–4 h | Low | No rasterizer needed. Covers the common bulk-export formats, which are text. Folds into the Bulk Import work already scheduled after parity (§7.3) |
-| **F** | **Local file import, images** — E plus pure-JS PNG decode → RGBA → `Decoder.decode()` | +4–6 h | Low–Medium | Restores "screenshot the QR and import it". Reuses `@nuintun/qrcode`'s DOM-free `decode()` unchanged (§4.2); only rasterization is new. Risk is Side Service bundle size, not feasibility. **No trust objection — everything stays local** |
+| #     | Approach                                                                                                                                                                                      | Effort        | Risk         | Notes                                                                                                                                                                                                                                      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A** | **Paste `otpauth://` URI into a `TextInput`**, run existing `totpConfigFromUri` + validation                                                                                                  | ~2 h          | Low          | Ships. Reuses `keyUri.ts` and all its tests verbatim. Secret transits the clipboard — worth an explicit warning in the UI.                                                                                                                 |
+| **B** | **Manual field entry** (label/issuer/secret/algorithm/digits/period)                                                                                                                          | ~4 h          | Low          | You already have this (`SectionAddTokenManually` + `validateConfig`); it becomes the primary path instead of the fallback.                                                                                                                 |
+| **C** | **Webview QR scanner**: `Link` or the `Auth/OAUTH` component opens a self-hosted page that scans via `getUserMedia` + jsQR and returns the URI through the OAuth `code` / `onReturn` callback | —             | **Rejected** | See §4.4. Unacceptable trust regression, and probably technically blocked anyway.                                                                                                                                                          |
+| **D** | **Companion-side URL import**: side-service `fetch` pulls an encrypted export blob from a URL/short code the user generates elsewhere                                                         | 8 h + backend | Medium       | Moves the problem to a service you'd have to run. Contradicts the app's current zero-backend property. Same trust objection as C, if milder.                                                                                               |
+| **E** | **Local file import, text formats** — `onInputFile` → `readFile` → parse `otpauth-migration://`, Aegis / 2FAS / Proton exports                                                                | ~3–4 h        | Low          | No rasterizer needed. Covers the common bulk-export formats, which are text. Folds into the Bulk Import work already scheduled after parity (§7.3)                                                                                         |
+| **F** | **Local file import, images** — E plus pure-JS PNG decode → RGBA → `Decoder.decode()`                                                                                                         | +4–6 h        | Low–Medium   | Restores "screenshot the QR and import it". Reuses `@nuintun/qrcode`'s DOM-free `decode()` unchanged (§4.2); only rasterization is new. Risk is Side Service bundle size, not feasibility. **No trust objection — everything stays local** |
 
 **Recommendation:** ship **A + B** first — they are what the effort estimate is
 built on and what makes the app usable at all. Then **E**, folded into the Bulk
@@ -441,7 +476,7 @@ Import work already scheduled after parity. Then **F**, which is the only option
 that meaningfully restores the one-tap flow.
 
 C and D stay rejected; §4.4 explains why. Note the distinction, though, because
-it is easy to miss: **§4.4's objections are to *hosting*, not to QR.** E and F
+it is easy to miss: **§4.4's objections are to _hosting_, not to QR.** E and F
 keep everything on the phone and raise none of them.
 
 ### 4.4 Why the webview scanner (option C) is rejected
@@ -459,7 +494,7 @@ generous. Reasons to drop it outright:
 2. **The secret would travel in a URL.** OAuth redirects carry the payload in a
    query string — webview/browser history, possible referrer leakage, and any
    log on the path. A faithful OAuth implementation exchanges the code
-   *server-side*, i.e. it would put the TOTP shared secret on a server by design.
+   _server-side_, i.e. it would put the TOTP shared secret on a server by design.
 3. **Domain expiry or takeover** is a permanent tail risk for a security app
    that may outlive the maintainer's interest in hosting anything.
 
@@ -504,24 +539,24 @@ What users will actually do, and what the docs should recommend:
 
 ## 5. Effort estimate
 
-Hours below are *my* working hours (writing, iterating, testing code), assuming
+Hours below are _my_ working hours (writing, iterating, testing code), assuming
 you are available for on-device verification and design calls. They exclude your
 time.
 
-| Work item | Hours |
-| --- | --- |
-| Scaffolding: Zeus CLI project, `app.json` targets, TS/ESLint/Jest/Prettier setup mirroring current toolchain | 3 |
-| Port pure logic + tests: `totp`, `base16codec`, `keyUri`, `formatTokens`, `validateConfig` | 3 |
-| Persistence: app **settings** only via `@zos/storage` `localStorage`, JSON instead of CBOR — **Tokens are not persisted** (ADR-0004) | 1 |
-| Side Service + ZML messaging: `call`/`onCall`, clock-drift compensation, connection-status replacement (§3.2) — **revised down from 6 h**, since ZML removes the chunking and serialization work | 4 |
-| Settings App: hand-rolled token list (§3.6) — the only real rewrite. Introduction, licenses, validation messages, manual-entry form, toggles and color select all port near-verbatim | 7 |
-| Device UI: `SCROLL_LIST` token list, progress arc, enlarged view, three color schemes as JS theming, no-tokens view, clock-sync message | 10 |
-| Round-screen (466 px) layout tuning and ergonomics | 3 |
-| Simulator + on-device iteration, debugging BLE and rendering quirks | 6 |
-| i18n: copy `.po` files, plus a `.po` → JS build step for the phone side (§3.7); docs/README updates | 5 |
-| Contingency (~15 %) | 7 |
-| **Total (feature parity minus QR)** | **~49 h** — plan **45–60 h** |
-| Optional: additional Amazfit targets (square Active 2, Balance, T-Rex 3) | +6–10 h |
+| Work item                                                                                                                                                                                        | Hours                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Scaffolding: Zeus CLI project, `app.json` targets, TS/ESLint/Jest/Prettier setup mirroring current toolchain                                                                                     | 3                            |
+| Port pure logic + tests: `totp`, `base16codec`, `keyUri`, `formatTokens`, `validateConfig`                                                                                                       | 3                            |
+| Persistence: app **settings** only via `@zos/storage` `localStorage`, JSON instead of CBOR — **Tokens are not persisted** (ADR-0004)                                                             | 1                            |
+| Side Service + ZML messaging: `call`/`onCall`, clock-drift compensation, connection-status replacement (§3.2) — **revised down from 6 h**, since ZML removes the chunking and serialization work | 4                            |
+| Settings App: hand-rolled token list (§3.6) — the only real rewrite. Introduction, licenses, validation messages, manual-entry form, toggles and color select all port near-verbatim             | 7                            |
+| Device UI: `SCROLL_LIST` token list, progress arc, enlarged view, three color schemes as JS theming, no-tokens view, clock-sync message                                                          | 10                           |
+| Round-screen (466 px) layout tuning and ergonomics                                                                                                                                               | 3                            |
+| Simulator + on-device iteration, debugging BLE and rendering quirks                                                                                                                              | 6                            |
+| i18n (`.po` files copied into `page/`, `app-side/`, `setting/`, §3.7), docs/README updates, store-submission prep                                                                                | 3                            |
+| Contingency (~15 %)                                                                                                                                                                              | 7                            |
+| **Total (feature parity minus QR)**                                                                                                                                                              | **~47 h** — plan **45–60 h** |
+| Optional: additional Amazfit targets (square Active 2, Balance, T-Rex 3)                                                                                                                         | +6–10 h                      |
 
 No QR-replacement line item: option C is rejected (§4.4) and the remaining
 options are either already inside the settings-app estimate (A, B) or out of
@@ -540,22 +575,22 @@ what cannot follow the app to Zepp OS, and what was never there.
 
 ### 6.1 Outdated — independent of any port
 
-| Tool | Here | Current | Why it matters |
-| --- | --- | --- | --- |
-| ESLint | 8.33 | 10.x | v8 is EOL (Oct 2024). v9+ **requires flat config** — `.eslintrc.js` and `.eslintignore` are no longer read. Unavoidable *if staying on ESLint*; §6.4 recommends replacing it instead |
-| `@typescript-eslint/*` | 5.51 | 8.x | v5 predates flat config and TS 5.x support |
-| TypeScript | **not declared** | 5.x | No explicit devDependency; resolves transitively to **4.9.5** via `@fitbit/sdk`. The compiler version is an accident of the dependency tree |
-| Jest | 29.4 | 30.x | Routine |
-| Prettier | 2.8.3 | 3.x | v3 changed default formatting → expect one mechanical reformat commit |
-| Husky | 8 | 9 | v9 dropped the `_/husky.sh` shim lines that both hooks still carry |
-| lint-staged | 13 | 17 | Routine |
-| commitlint | 17 | 21 | Routine |
-| Stylelint | 14 | 17 | Moot for the port (§6.2). `stylelint-config-prettier` is **deprecated** — obsolete since Stylelint 15 removed formatting rules |
-| markdownlint-cli2 | 0.6 | 0.23 | Routine |
-| cspell | 6 | 10 | Routine |
-| conventional-changelog-cli | 2 | 5 | Routine |
-| license-checker-rseidelsohn | 4 | 5 | Routine |
-| Node | 18 (`.nvmrc` + CI) | 22/24 LTS | **Node 18 is EOL (April 2025)** |
+| Tool                        | Here               | Current   | Why it matters                                                                                                                                                                       |
+| --------------------------- | ------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ESLint                      | 8.33               | 10.x      | v8 is EOL (Oct 2024). v9+ **requires flat config** — `.eslintrc.js` and `.eslintignore` are no longer read. Unavoidable _if staying on ESLint_; §6.4 recommends replacing it instead |
+| `@typescript-eslint/*`      | 5.51               | 8.x       | v5 predates flat config and TS 5.x support                                                                                                                                           |
+| TypeScript                  | **not declared**   | 5.x       | No explicit devDependency; resolves transitively to **4.9.5** via `@fitbit/sdk`. The compiler version is an accident of the dependency tree                                          |
+| Jest                        | 29.4               | 30.x      | Routine                                                                                                                                                                              |
+| Prettier                    | 2.8.3              | 3.x       | v3 changed default formatting → expect one mechanical reformat commit                                                                                                                |
+| Husky                       | 8                  | 9         | v9 dropped the `_/husky.sh` shim lines that both hooks still carry                                                                                                                   |
+| lint-staged                 | 13                 | 17        | Routine                                                                                                                                                                              |
+| commitlint                  | 17                 | 21        | Routine                                                                                                                                                                              |
+| Stylelint                   | 14                 | 17        | Moot for the port (§6.2). `stylelint-config-prettier` is **deprecated** — obsolete since Stylelint 15 removed formatting rules                                                       |
+| markdownlint-cli2           | 0.6                | 0.23      | Routine                                                                                                                                                                              |
+| cspell                      | 6                  | 10        | Routine                                                                                                                                                                              |
+| conventional-changelog-cli  | 2                  | 5         | Routine                                                                                                                                                                              |
+| license-checker-rseidelsohn | 4                  | 5         | Routine                                                                                                                                                                              |
+| Node                        | 18 (`.nvmrc` + CI) | 22/24 LTS | **Node 18 is EOL (April 2025)**                                                                                                                                                      |
 
 CI-specific rot in `.github/workflows/node.js.yml`:
 
@@ -579,18 +614,18 @@ the port.
 
 ### 6.2 Does not carry over to Zepp OS
 
-| Item | Disposition |
-| --- | --- |
-| `stylelint` + `stylelint-config-standard` + `stylelint-config-prettier` + `stylelint-no-indistinguishable-colors`, `.stylelintrc.yaml`, `.stylelintignore`, the CI lint step, the lint-staged `**/*.css` entry | **Delete.** Zepp OS has no CSS. The BEM selector pattern and the Fitbit `font-family` exception go with it |
-| `@fitbit/sdk`, `@fitbit/sdk-cli`, `fitbit-sdk-types` | → `@zeppos/zeus-cli` (1.9.3), `@zeppos/device-types` (4.0.0), optionally `@zeppos/zml`. Note the typings track **API level 4** while Active 2 may run Zepp OS 5 — expect gaps |
-| Root `tsconfig.json` extending `./node_modules/@fitbit/sdk/sdk-tsconfig.json` | No vendor tsconfig exists on Zepp — write your own. Target can be ES2015+ given §3.1, instead of the Fitbit ES5.1 output |
-| Four per-folder tsconfigs (`app`, `common`, `companion`, `settings`) and the matching ESLint `overrides[].parserOptions.project` entries | Remap to Zepp's layout (`page/`, `app-side/`, `setting/`, `shared/`, `app.js`) |
-| `app/__mocks__/document.ts` (94 lines) and `app/__mocks__/fs.ts` | Rewrite as `@zos/*` mocks; add a jest `moduleNameMapper` for the `@zos/…` specifiers |
-| `npm run build` → `fitbit-build`; `npm run debug` → `fitbit` shell; `build/app.fba` + `.sig` | → `zeus build` / `zeus preview`; artifact becomes a `.zab` bundle. CI artifact path changes |
-| `jest.config.ts` `collectCoverageFrom` globs (`{app,common,companion,resources,settings}`) | Remap to the new folders |
-| cspell dictionary | Add `zepp`, `zeus`, `zos`, `amazfit`, `zab`; drop `nuintun`/`qrcode`/`cbor` when those dependencies go |
-| `bin/generate_licenses_data.sh` → `settings/licenses.js` | Keep, retarget the output path to the Zepp settings app |
-| Jekyll docs job + html-proofer, Codacy coverage upload | Keep unchanged |
+| Item                                                                                                                                                                                                           | Disposition                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stylelint` + `stylelint-config-standard` + `stylelint-config-prettier` + `stylelint-no-indistinguishable-colors`, `.stylelintrc.yaml`, `.stylelintignore`, the CI lint step, the lint-staged `**/*.css` entry | **Delete.** Zepp OS has no CSS. The BEM selector pattern and the Fitbit `font-family` exception go with it                                                                    |
+| `@fitbit/sdk`, `@fitbit/sdk-cli`, `fitbit-sdk-types`                                                                                                                                                           | → `@zeppos/zeus-cli` (1.9.3), `@zeppos/device-types` (4.0.0), optionally `@zeppos/zml`. Note the typings track **API level 4** while Active 2 may run Zepp OS 5 — expect gaps |
+| Root `tsconfig.json` extending `./node_modules/@fitbit/sdk/sdk-tsconfig.json`                                                                                                                                  | No vendor tsconfig exists on Zepp — write your own. Target can be ES2015+ given §3.1, instead of the Fitbit ES5.1 output                                                      |
+| Four per-folder tsconfigs (`app`, `common`, `companion`, `settings`) and the matching ESLint `overrides[].parserOptions.project` entries                                                                       | Remap to Zepp's layout (`page/`, `app-side/`, `setting/`, `shared/`, `app.js`)                                                                                                |
+| `app/__mocks__/document.ts` (94 lines) and `app/__mocks__/fs.ts`                                                                                                                                               | Rewrite as `@zos/*` mocks; add a jest `moduleNameMapper` for the `@zos/…` specifiers                                                                                          |
+| `npm run build` → `fitbit-build`; `npm run debug` → `fitbit` shell; `build/app.fba` + `.sig`                                                                                                                   | → `zeus build` / `zeus preview`; artifact becomes a `.zab` bundle. CI artifact path changes                                                                                   |
+| `jest.config.ts` `collectCoverageFrom` globs (`{app,common,companion,resources,settings}`)                                                                                                                     | Remap to the new folders                                                                                                                                                      |
+| cspell dictionary                                                                                                                                                                                              | Add `zepp`, `zeus`, `zos`, `amazfit`, `zab`; drop `nuintun`/`qrcode`/`cbor` when those dependencies go                                                                        |
+| `bin/generate_licenses_data.sh` → `settings/licenses.js`                                                                                                                                                       | Keep, retarget the output path to the Zepp settings app                                                                                                                       |
+| Jekyll docs job + html-proofer, Codacy coverage upload                                                                                                                                                         | Keep unchanged                                                                                                                                                                |
 
 ### 6.3 Missing — gaps that exist today and hurt more after the port
 
@@ -644,11 +679,11 @@ rule).
 
 Trade-offs:
 
-| | For | Against |
-| --- | --- | --- |
-| **oxlint** | Skips the flat-config migration entirely; collapses six devDependencies (`eslint`, `@typescript-eslint/*`, `eslint-config-prettier`, `eslint-plugin-jest`, `eslint-plugin-tsdoc`) into one or two; `--type-check` overlaps the §6.3 gap; config is simpler on the JS-first Zepp side | **Loses `eslint-plugin-tsdoc`.** TSDoc syntax is used deliberately across this codebase and `tsdoc/syntax` is currently an `error`. No tsdoc equivalent — oxlint has jsdoc rules only |
-| **ESLint 10** | Keeps every current rule including tsdoc; most conservative | Flat-config migration of `.eslintrc.js` + `.eslintignore` + four project overrides; keeps the plugin sprawl |
-| **Biome** | One tool for lint + format | Type inference is a ground-up reimplementation at ~75 % of typescript-eslint's catch rate, and the 2026 roadmap prioritises Vue/Svelte/HTML and YAML over deepening inference. Also wants to own formatting, displacing a Prettier pass that covers Markdown, YAML and JSON tree-wide from a three-line config. Largest blast radius, weakest fit |
+|               | For                                                                                                                                                                                                                                                                                  | Against                                                                                                                                                                                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **oxlint**    | Skips the flat-config migration entirely; collapses six devDependencies (`eslint`, `@typescript-eslint/*`, `eslint-config-prettier`, `eslint-plugin-jest`, `eslint-plugin-tsdoc`) into one or two; `--type-check` overlaps the §6.3 gap; config is simpler on the JS-first Zepp side | **Loses `eslint-plugin-tsdoc`.** TSDoc syntax is used deliberately across this codebase and `tsdoc/syntax` is currently an `error`. No tsdoc equivalent — oxlint has jsdoc rules only                                                                                                                                                             |
+| **ESLint 10** | Keeps every current rule including tsdoc; most conservative                                                                                                                                                                                                                          | Flat-config migration of `.eslintrc.js` + `.eslintignore` + four project overrides; keeps the plugin sprawl                                                                                                                                                                                                                                       |
+| **Biome**     | One tool for lint + format                                                                                                                                                                                                                                                           | Type inference is a ground-up reimplementation at ~75 % of typescript-eslint's catch rate, and the 2026 roadmap prioritises Vue/Svelte/HTML and YAML over deepening inference. Also wants to own formatting, displacing a Prettier pass that covers Markdown, YAML and JSON tree-wide from a three-line config. Largest blast radius, weakest fit |
 
 Consequences:
 
@@ -681,7 +716,7 @@ directly in the Zepp app's App Store on a paired phone, 2026-09-09;
 **[unknown]** = not determinable. No claim here is inferred from plausibility.
 
 There is no public web catalogue of Zepp mini apps — Zepp's own documentation
-directs users to the "App Store" section *inside the Zepp app* — so everything
+directs users to the "App Store" section _inside the Zepp app_ — so everything
 **[store]** comes from looking, and everything that was **[press]** or
 **[unknown]** about the store before that look should be treated as suspect.
 Two claims in earlier drafts did not survive it; see §7.1.
@@ -690,14 +725,14 @@ Two claims in earlier drafts did not survive it; see §7.1.
 
 Open-source projects, all figures **[repo]**, read 2026-09-09:
 
-| Repo | License | ★ | Forks | Created | Last push | Enrollment |
-| --- | --- | --- | --- | --- | --- | --- |
-| `ZoLArk173/Authenticator` | MIT | **31** | 9 | 2022-08-18 | 2025-09-24 | Paste `otpauth://totp/{ACCOUNT}?secret=&issuer=` in Zepp app settings |
-| `manujedi/Authenticator` (fork of the above) | MIT | **14** | 3 | 2022-12-23 | 2023-03-24 | Same, plus `algorithm` / `digits` / `period` |
-| `Lisoveliy/totpfit` | **none declared** | 8 | 1 | 2024-11-09 | 2025-08-08 | `otpauth://` with `issuer`/`algorithm`/`digits`/`period`/`offset`; **plus** `otpauth-migration://` bulk import and Proton Authenticator export; add/sort/edit/delete from the phone |
-| `UniqueDroid/totp-authenticator-zeppos` | GPL-3.0 | 0 | 0 | 2026-08-19 | 2026-08-19 | Unknown — README is a one-line stub |
-| `cubimon/zeppos-totp-generator` | none | 0 | 0 | 2025-08-29 | 2025-08-29 | Unknown — no README |
-| `Alpaca131/GTasks` | none | 0 | 0 | 2022-10-19 | 2022-10-19 | Unknown — no README; description reads "An app to show 2FA code on your ZeppOS watch" |
+| Repo                                         | License           | ★      | Forks | Created    | Last push  | Enrollment                                                                                                                                                                          |
+| -------------------------------------------- | ----------------- | ------ | ----- | ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ZoLArk173/Authenticator`                    | MIT               | **31** | 9     | 2022-08-18 | 2025-09-24 | Paste `otpauth://totp/{ACCOUNT}?secret=&issuer=` in Zepp app settings                                                                                                               |
+| `manujedi/Authenticator` (fork of the above) | MIT               | **14** | 3     | 2022-12-23 | 2023-03-24 | Same, plus `algorithm` / `digits` / `period`                                                                                                                                        |
+| `Lisoveliy/totpfit`                          | **none declared** | 8      | 1     | 2024-11-09 | 2025-08-08 | `otpauth://` with `issuer`/`algorithm`/`digits`/`period`/`offset`; **plus** `otpauth-migration://` bulk import and Proton Authenticator export; add/sort/edit/delete from the phone |
+| `UniqueDroid/totp-authenticator-zeppos`      | GPL-3.0           | 0      | 0     | 2026-08-19 | 2026-08-19 | Unknown — README is a one-line stub                                                                                                                                                 |
+| `cubimon/zeppos-totp-generator`              | none              | 0      | 0     | 2025-08-29 | 2025-08-29 | Unknown — no README                                                                                                                                                                 |
+| `Alpaca131/GTasks`                           | none              | 0      | 0     | 2022-10-19 | 2022-10-19 | Unknown — no README; description reads "An app to show 2FA code on your ZeppOS watch"                                                                                               |
 
 Notes on the table:
 
@@ -705,7 +740,7 @@ Notes on the table:
   author's Gitea, and GitHub carries issues only **[repo]**. Its migration
   support is not just a README claim — the tree contains
   `lib/protobuf-decoder/` **[repo]**.
-- `Alpaca131/GTasks` is *not* a predecessor of the ZoLArk app — it was created
+- `Alpaca131/GTasks` is _not_ a predecessor of the ZoLArk app — it was created
   two months **after** it. `manujedi`'s README credits "ZoLArk173 and Alpaca131
   for the idea and original code", which is the only established link **[repo]**.
 - `ZoLArk173`'s README lists its own limitations verbatim: "Cannot rearrange 2FA
@@ -715,13 +750,13 @@ Notes on the table:
 **Store listings: five, all third-party, publishers shown.** Observed directly in
 the Zepp app's App Store on 2026-09-09 **[store]**, searching "Authenticator":
 
-| Listing | Publisher | Dated | Also on GitHub (§7.1)? |
-| --- | --- | --- | --- |
-| Authenticator | galulex | 2026-08-01 | no |
-| TOTP Authenticator | manujedi | 2023-01-29 | yes — confirms its README claim |
-| AMGTOTP | leen | 2026-05-30 | no |
-| Auth | Tachanka | 2023-09-28 | no |
-| TOTPFit | Lisoveliy | 2025-08-28 | yes |
+| Listing            | Publisher | Dated      | Also on GitHub (§7.1)?          |
+| ------------------ | --------- | ---------- | ------------------------------- |
+| Authenticator      | galulex   | 2026-08-01 | no                              |
+| TOTP Authenticator | manujedi  | 2023-01-29 | yes — confirms its README claim |
+| AMGTOTP            | leen      | 2026-05-30 | no                              |
+| Auth               | Tachanka  | 2023-09-28 | no                              |
+| TOTPFit            | Lisoveliy | 2025-08-28 | yes                             |
 
 **This refutes two things earlier drafts of this report asserted.**
 
@@ -729,8 +764,8 @@ the Zepp app's App Store on 2026-09-09 **[store]**, searching "Authenticator":
    article's "Zepp Health also notes that the Authenticator Mini App has been
    revamped" **[press]** does not correspond to a Zepp-published listing. The
    nearest match by date is **galulex's "Authenticator" (2026-08-01)** — a
-   third-party app that Zepp appears to have promoted. Zepp *announcing* an app
-   is not Zepp *writing* one, and this report twice built inferences on the gap.
+   third-party app that Zepp appears to have promoted. Zepp _announcing_ an app
+   is not Zepp _writing_ one, and this report twice built inferences on the gap.
 2. **Publishers are shown.** §7.1 previously warned that attribution "may not be
    displayed at all" and treated it as possibly unanswerable. It is displayed,
    with dates, for every listing.
@@ -744,13 +779,13 @@ can build it. See `ADR-0001`.
 **Also: the field is larger than §7.1's GitHub survey suggested.** Three of the
 five listings — galulex, leen, Tachanka — have no repository in that table, so
 the six open-source projects were an undercount of the competitive field, though
-not of the *inspectable* one. Whether any of them is polished is still
+not of the _inspectable_ one. Whether any of them is polished is still
 **[unknown]**; only their existence is established.
 
 **What can be said with confidence:** six open-source projects exist; only two
 have any traction (31 and 14 stars); the most-starred self-describes as a
 prototype; the fork that reached the store was last touched in March 2023, in
-the Zepp OS 2 era. Among *inspectable* competitors there is no polished
+the Zepp OS 2 era. Among _inspectable_ competitors there is no polished
 alternative. The store side is not inspectable from here.
 
 ### 7.2 Paid vs. free, and the price ceiling
@@ -793,7 +828,7 @@ The most capable enrollment is TOTPFit's, per its own guide
    §4.5.
 2. **Google Authenticator bulk import** — "Transfer accounts" → "Export
    accounts", screenshot the QR, decode it to an `otpauth-migration://offline?
-   data=…` URI, paste once, and all selected records import together.
+data=…` URI, paste once, and all selected records import together.
 3. **Proton Authenticator** — export, open the file in a text editor, paste the
    contents.
 
@@ -817,7 +852,7 @@ catalogue either, so the only public proxy remains the GitHub star counts in
 §7.1 — an ecosystem where 31 stars is the leader, and where three of the five
 store listings have no public repository at all.
 
-What the store *did* settle is that the field is at least five apps deep rather
+What the store _did_ settle is that the field is at least five apps deep rather
 than the two-with-traction §7.1 implied. That is a mild argument against the
 "the field is thin, so build" reasoning — though §8.4 rests the build decision on
 wanting the porting experience, not on market gap, so it does not change the
@@ -832,12 +867,12 @@ All device figures **[docs]**, from Zepp's device list, read 2026-09-09.
 Zepp's list carries **34 devices**. By API_LEVEL — the only compatibility axis
 that matters, since Zepp OS firmware versions and API levels are decoupled:
 
-| API_LEVEL | Devices | Which |
-| --- | --- | --- |
-| none (Zepp OS 1.0) | 5 | GTR 3, GTR 3 Pro, GTS 3, GTS 4 mini, Band 7 — predate API_LEVEL; effectively out of scope |
-| 2.0 – 3.0 | 4 | GTR Mini, Bip 5, Bip 5 Unity, T-Rex 2 |
-| 3.5 – 3.7 | 10 | GTR 4, GTS 4, Cheetah (round/square/Pro), T-Rex Ultra, Falcon, Balance, Active, Active Edge |
-| 4.0 – 4.4 | 15 | Active 2 (round + square), Balance 2 / 3 / Ultra, T-Rex 3, T-Rex 3 Pro (44 + 48), T-Rex Ultra 2, Bip 6, Bip Max, Cheetah 2 (Pro + Ultra), Active Max, Active 3 Premium |
+| API_LEVEL          | Devices | Which                                                                                                                                                                  |
+| ------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| none (Zepp OS 1.0) | 5       | GTR 3, GTR 3 Pro, GTS 3, GTS 4 mini, Band 7 — predate API_LEVEL; effectively out of scope                                                                              |
+| 2.0 – 3.0          | 4       | GTR Mini, Bip 5, Bip 5 Unity, T-Rex 2                                                                                                                                  |
+| 3.5 – 3.7          | 10      | GTR 4, GTS 4, Cheetah (round/square/Pro), T-Rex Ultra, Falcon, Balance, Active, Active Edge                                                                            |
+| 4.0 – 4.4          | 15      | Active 2 (round + square), Balance 2 / 3 / Ultra, T-Rex 3, T-Rex 3 Pro (44 + 48), T-Rex Ultra 2, Bip 6, Bip Max, Cheetah 2 (Pro + Ultra), Active Max, Active 3 Premium |
 
 Targeting **API_LEVEL ≥ 3.6** — the floor for `@zeppos/zml` — reaches **24 of
 the 34 devices**, spanning about four hardware generations.
@@ -845,12 +880,12 @@ the 34 devices**, spanning about four hardware generations.
 But porting effort does not scale with device count; it scales with **screen
 geometry**, because layout is absolute-positioned (§3). Among those 24:
 
-| Layout | Devices ≥ 3.6 | Cumulative |
-| --- | --- | --- |
-| Round 466 × 466 — **Active 2 Round**, GTR 4, Cheetah 2 Pro, T-Rex 3 Pro 44 mm, Active 3 Premium | 5 | 5 |
-| Round 480 × 480 — Balance / 2 / 3 / Ultra, T-Rex 3, T-Rex 3 Pro 48 mm, T-Rex Ultra 2, Cheetah Pro, Cheetah 2 Ultra, Active Max | 10 | 15 |
-| Square 390 × 450 — Active 2 Square, Bip 6, Active, Cheetah Square, GTS 4 | 5 | 20 |
-| Round 454 × 454 (2), round 416 × 416 (1), square 432 × 514 (1) | 4 | 24 |
+| Layout                                                                                                                         | Devices ≥ 3.6 | Cumulative |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------- | ---------- |
+| Round 466 × 466 — **Active 2 Round**, GTR 4, Cheetah 2 Pro, T-Rex 3 Pro 44 mm, Active 3 Premium                                | 5             | 5          |
+| Round 480 × 480 — Balance / 2 / 3 / Ultra, T-Rex 3, T-Rex 3 Pro 48 mm, T-Rex Ultra 2, Cheetah Pro, Cheetah 2 Ultra, Active Max | 10            | 15         |
+| Square 390 × 450 — Active 2 Square, Bip 6, Active, Cheetah Square, GTS 4                                                       | 5             | 20         |
+| Round 454 × 454 (2), round 416 × 416 (1), square 432 × 514 (1)                                                                 | 4             | 24         |
 
 So the **first layout is nearly free reach for five devices**, a second layout
 (480 round) reaches 15, and a third (390 × 450 square) reaches 20 of 24. This is
@@ -906,7 +941,7 @@ This depends on one thing the report cannot settle:
   45–60 h is a fair price for a working authenticator on a watch you own.
 - **Publishing for others** — the ecosystem returns little that is measurable.
   No paid listing is possible (§7.2), no public ratings or install counts exist
-  (§7.4), and *polish is the least durable advantage you can build*: a rival can
+  (§7.4), and _polish is the least durable advantage you can build_: a rival can
   match it in a weekend. The advantages that don't rot are TOTP correctness
   under test, clock-drift compensation, and `otpauth-migration://` import
   (§7.3).
@@ -994,23 +1029,23 @@ saying out loud instead of retrofitting a market rationale onto it.
 Resolved in the design session of 2026-09-09. See `CONTEXT.md` for the glossary
 and `docs/adr/` for the decisions that needed reasoning recorded.
 
-| # | Question | Resolution |
-| --- | --- | --- |
-| 1 | Is losing one-tap QR enrollment acceptable? | **Moot — QR survives as file import** (§4.2). v1 ships Manual Entry + URI Paste; text file import (~3–4 h) and image QR decode (~4–6 h) follow after parity. Hosted scanning stays rejected on trust grounds — ADR-0001 |
-| 2 | One device target or a family? | **Active 2 round (466 × 466) only.** No responsive layer, but all coordinates in one layout-constants module so a second geometry is a data change |
-| 3 | Store release or sideload? | **Neither is the goal.** Public Repo + a project page on binarypoetry.ch are the deliverables; a Store Listing is a deferred byproduct |
-| 4 | Shared `common/` or separate repo? | **Separate repo, code copied** with attribution. The two will diverge (§3.1), copying brings the tests along, and a frozen Fitbit repo shouldn't be coupled to a live one |
-| 5 | Build or contribute to TOTPFit? | **Build** — see §8.4 |
-| 6 | Add `otpauth-migration://` Bulk Import? | **Yes, import-only, after parity** (§10 step 5) |
-| — | Reorder, with no list component? | **Move-up/move-down buttons per Token** in the Settings App |
-| — | Transport? | **`@zeppos/zml`**, protocol collapsed to one message — ADR-0002 |
-| — | Phone-side connection status? | **Dropped**; ZML exposes BLE state on the device only — ADR-0003 |
-| — | On-watch Token storage? | **Not initially**; revisit if the connection proves unstable — ADR-0004 |
-| — | Color schemes? | **Three** — binary poetry, white, black (§3.3) |
-| — | Linter and test runner? | **oxlint** (timeboxed, ESLint 9 as fallback) and **Vitest**; everything else copied from the `vite-press` repo's current stack. §6.5's "modernize the Fitbit repo first" is dropped — that repo stays frozen |
-| — | Coverage floor? | **≥ 80 % per file** (`perFile: true`), with explicit `coverage.exclude` entries for genuinely untestable UI rather than a lower threshold (§6.3) |
-| — | Settings App token list? | **Flat in-place list** — rename `TextInput` plus `↑` `↓` `✕` per Token; `Select`-plus-single-editor as the fallback (§3.6) |
-| — | i18n? | **`.po` stays the source of truth.** Device uses `@zos/i18n` directly; a build step compiles `.po` → JS for the Settings App and Side Service, which have no i18n API (§3.7) |
+| #   | Question                                    | Resolution                                                                                                                                                                                                              |
+| --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Is losing one-tap QR enrollment acceptable? | **Moot — QR survives as file import** (§4.2). v1 ships Manual Entry + URI Paste; text file import (~3–4 h) and image QR decode (~4–6 h) follow after parity. Hosted scanning stays rejected on trust grounds — ADR-0001 |
+| 2   | One device target or a family?              | **Active 2 round (466 × 466) only.** No responsive layer, but all coordinates in one layout-constants module so a second geometry is a data change                                                                      |
+| 3   | Store release or sideload?                  | **Neither is the goal.** Public Repo + a project page on binarypoetry.ch are the deliverables; a Store Listing is a deferred byproduct                                                                                  |
+| 4   | Shared `common/` or separate repo?          | **Separate repo, code copied** with attribution. The two will diverge (§3.1), copying brings the tests along, and a frozen Fitbit repo shouldn't be coupled to a live one                                               |
+| 5   | Build or contribute to TOTPFit?             | **Build** — see §8.4                                                                                                                                                                                                    |
+| 6   | Add `otpauth-migration://` Bulk Import?     | **Yes, import-only, after parity** (§10 step 5)                                                                                                                                                                         |
+| —   | Reorder, with no list component?            | **Move-up/move-down buttons per Token** in the Settings App                                                                                                                                                             |
+| —   | Transport?                                  | **`@zeppos/zml`**, protocol collapsed to one message — ADR-0002                                                                                                                                                         |
+| —   | Phone-side connection status?               | **Dropped**; ZML exposes BLE state on the device only — ADR-0003                                                                                                                                                        |
+| —   | On-watch Token storage?                     | **Not initially**; revisit if the connection proves unstable — ADR-0004                                                                                                                                                 |
+| —   | Color schemes?                              | **Three** — binary poetry, white, black (§3.3)                                                                                                                                                                          |
+| —   | Linter and test runner?                     | **oxlint** (timeboxed, ESLint 9 as fallback) and **Vitest**; everything else copied from the `vite-press` repo's current stack. §6.5's "modernize the Fitbit repo first" is dropped — that repo stays frozen            |
+| —   | Coverage floor?                             | **≥ 80 % per file** (`perFile: true`), with explicit `coverage.exclude` entries for genuinely untestable UI rather than a lower threshold (§6.3)                                                                        |
+| —   | Settings App token list?                    | **Flat in-place list** — rename `TextInput` plus `↑` `↓` `✕` per Token; `Select`-plus-single-editor as the fallback (§3.6)                                                                                              |
+| —   | i18n?                                       | **Straight copy.** All three surfaces are `.po`-based; the phone side keeps `import { gettext } from 'i18n'` verbatim (§3.7)                                                                                            |
 
 Still open:
 

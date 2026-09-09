@@ -1,0 +1,6 @@
+build/
+coverage/
+package-lock.json
+*.po
+src/setting/licenses.js
+COPYING

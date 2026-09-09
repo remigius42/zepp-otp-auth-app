@@ -1,0 +1,13 @@
+node_modules/
+build/
+coverage/
+dist/
+*.zab
+*.zpk
+.DS_Store
+
+# Ignore the generated licenses data
+/src/setting/licenses.js
+
+# Scratch list, not part of the published repo
+/TODO.md

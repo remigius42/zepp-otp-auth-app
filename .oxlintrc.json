@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "ignorePatterns": ["build", "coverage", "node_modules"],
+  "rules": {
+    "typescript/no-explicit-any": "error",
+    "no-console": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "vitest/require-to-throw-message": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/__tests__/**"],
+      "rules": {
+        "max-lines-per-function": "off",
+        "max-nested-callbacks": "off"
+      }
+    }
+  ]
+}

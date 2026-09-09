@@ -14,12 +14,12 @@ anything we host**.
 
 Ship in this order:
 
-| | Path | When | Cost |
-| --- | --- | --- | --- |
-| **Manual Entry** | Type the Secret and parameters from the service's "can't scan? enter this key manually" text | v1 | ported, tested |
-| **URI Paste** | Paste a whole `otpauth://` URI into one field | v1 | ~2 h, `keyUri.ts` and its tests reused verbatim |
-| **File Import, text** | `onInputFile` → `readFile` → parse `otpauth-migration://`, Aegis / 2FAS / Proton exports | after parity | ~3–4 h |
-| **File Import, image** | `readFile` → pure-JS PNG decode → RGBA → `Decoder.decode()` | after parity | ~4–6 h |
+|                        | Path                                                                                         | When         | Cost                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ------------ | ----------------------------------------------- |
+| **Manual Entry**       | Type the Secret and parameters from the service's "can't scan? enter this key manually" text | v1           | ported, tested                                  |
+| **URI Paste**          | Paste a whole `otpauth://` URI into one field                                                | v1           | ~2 h, `keyUri.ts` and its tests reused verbatim |
+| **File Import, text**  | `onInputFile` → `readFile` → parse `otpauth-migration://`, Aegis / 2FAS / Proton exports     | after parity | ~3–4 h                                          |
+| **File Import, image** | `readFile` → pure-JS PNG decode → RGBA → `Decoder.decode()`                                  | after parity | ~4–6 h                                          |
 
 The first two are what the effort estimate is built on and what the app needs to
 be usable at all. The file-import paths are additive and deliberately sequenced
@@ -30,10 +30,10 @@ after parity so that a stalled port loses a bonus rather than a core claim.
 `@nuintun/qrcode` 3.3.0 — the version already pinned in the Fitbit app — has two
 entry points, and only one of them needs a browser:
 
-| Method | Depends on | Ports? |
-| --- | --- | --- |
-| `Decoder.decode(data: Uint8ClampedArray, width, height)` | nothing; `binarize()` then `scan()`, pure computation | **yes, unchanged** |
-| `Decoder.scan(src: string)` | `new Image()`, `document.createElement('canvas')`, `getImageData()` | no — but it is ~25 lines that end by calling `this.decode(...)` |
+| Method                                                   | Depends on                                                          | Ports?                                                          |
+| -------------------------------------------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `Decoder.decode(data: Uint8ClampedArray, width, height)` | nothing; `binarize()` then `scan()`, pure computation               | **yes, unchanged**                                              |
+| `Decoder.scan(src: string)`                              | `new Image()`, `document.createElement('canvas')`, `getImageData()` | no — but it is ~25 lines that end by calling `this.decode(...)` |
 
 `companion/tokens.ts` calls `scan()`, which is what made the decoder look
 browser-bound. The decoding logic underneath is portable as-is. The only genuinely
@@ -76,7 +76,7 @@ milder form, plus it contradicts the app's zero-backend property.
 
 **On-watch camera scanning** is not an option: the watch has no camera.
 
-**These objections are about *hosting*, not about QR.** Local file import raises
+**These objections are about _hosting_, not about QR.** Local file import raises
 none of them, because nothing leaves the phone. Conflating the two is what
 originally made QR look impossible here.
 

@@ -20,8 +20,8 @@ percentage.
   scannable.
 - **Block-glyph progress bar in a `text_view`** — trivial, but depends on font
   glyph coverage we have not verified.
-- **One global countdown for the whole list** — rejected as *wrong by
-  construction*. Period is per-Token; a single countdown lies for any Token that
+- **One global countdown for the whole list** — rejected as _wrong by
+  construction_. Period is per-Token; a single countdown lies for any Token that
   is not on 30 seconds.
 - **Abandon `SCROLL_LIST` and hand-build the list** from absolute-positioned
   `TEXT` and `ARC` widgets with our own recycling — rejected. It preserves the

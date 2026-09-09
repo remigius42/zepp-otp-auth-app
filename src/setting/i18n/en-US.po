@@ -1,0 +1,92 @@
+msgid "Add token"
+msgstr "Add token"
+
+msgid "Add token manually"
+msgstr "Add token manually"
+
+msgid "Add token via QR tag"
+msgstr "Add token via QR tag"
+
+msgid "Algorithm"
+msgstr "Algorithm"
+
+msgid "Color scheme"
+msgstr "Color scheme"
+
+msgid "Compensate clock drift"
+msgstr "Compensate clock drift"
+
+msgid "Current QR tag image."
+msgstr "Current QR tag image."
+
+msgid "Display name"
+msgstr "Display name"
+
+msgid "Enlarge token information"
+msgstr "Enlarge token information"
+
+msgid "Import new QR tag"
+msgstr "Import new QR tag"
+
+msgid "Import QR tag from an image"
+msgstr "Import QR tag from an image"
+
+msgid "Introduction"
+msgstr "Introduction"
+
+msgid "Issuer"
+msgstr "Issuer"
+
+msgid "Label"
+msgstr "Label"
+
+msgid "License information"
+msgstr "License information"
+
+msgid "Licensed under GPL version 3.0 or later."
+msgstr "Licensed under GPL version 3.0 or later."
+
+msgid "No connection to device message"
+msgstr "The app on the smartwatch is currently not connected to your phone. The settings will by sent to the smartwatch as soon as the connection is reestablished. You could try to reestablish the connection by restarting the app on the smartwatch."
+
+msgid "Number of digits"
+msgstr "Number of digits"
+
+msgid "Period in seconds"
+msgstr "Period in seconds"
+
+msgid "Please help support this app by donating a coffee"
+msgstr "Please help support this app by donating a coffee"
+
+msgid "Reset to defaults"
+msgstr "Reset to defaults"
+
+msgid "Secret in Base32"
+msgstr "Secret in Base32"
+
+msgid "Select number of digits"
+msgstr "Select number of digits"
+
+msgid "Select token algorithm"
+msgstr "Select token algorithm"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Store tokens on device"
+msgstr "Store tokens on smartwatch"
+
+msgid "Third-party licenses"
+msgstr "Third-party licenses"
+
+msgid "Tokens"
+msgstr "Tokens"
+
+msgid "Tokens section description"
+msgstr "You can set custom names for tokens by clicking on the list entries. To revert a token to the original label and issuer, click on the entry, delete the custom name and save."
+
+msgid "User documentation"
+msgstr "User documentation"
+
+msgid "Welcome to the OTP Auth App!"
+msgstr "Welcome to the OTP Auth App!"
