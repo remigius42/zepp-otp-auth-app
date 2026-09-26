@@ -4,6 +4,8 @@ import { ColorSchemeName } from "../../shared/ColorSchemes"
 import {
   COLOR_SCHEME_SETTINGS_KEY,
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
+  LARGE_TOKEN_VIEW_SETTINGS_KEY,
+  SYNC_STATS_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY,
   URI_PASTE_ERROR_SETTINGS_KEY,
   URI_PASTE_INPUT_SETTINGS_KEY
@@ -56,20 +58,26 @@ describe("syncMessage", () => {
 })
 
 describe("messageForSettingsChange", () => {
-  it("pushes a Sync when the Token set changed", () => {
+  it.each([
+    TOKENS_SETTINGS_KEY,
+    COLOR_SCHEME_SETTINGS_KEY,
+    LARGE_TOKEN_VIEW_SETTINGS_KEY,
+    COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY
+  ])("pushes a Sync when %s changed", key => {
     const storage = storageWith([TOKEN])
 
-    expect(
-      messageForSettingsChange(TOKENS_SETTINGS_KEY, storage, NOW_MS)
-    ).toEqual(syncMessage(storage, NOW_MS))
+    expect(messageForSettingsChange(key, storage, NOW_MS)).toEqual(
+      syncMessage(storage, NOW_MS)
+    )
   })
 
-  it.each([URI_PASTE_INPUT_SETTINGS_KEY, URI_PASTE_ERROR_SETTINGS_KEY])(
-    "does not push when %s changed",
-    key => {
-      expect(
-        messageForSettingsChange(key, storageWith([TOKEN]), NOW_MS)
-      ).toBeUndefined()
-    }
-  )
+  it.each([
+    URI_PASTE_INPUT_SETTINGS_KEY,
+    URI_PASTE_ERROR_SETTINGS_KEY,
+    SYNC_STATS_SETTINGS_KEY
+  ])("does not push when %s changed", key => {
+    expect(
+      messageForSettingsChange(key, storageWith([TOKEN]), NOW_MS)
+    ).toBeUndefined()
+  })
 })

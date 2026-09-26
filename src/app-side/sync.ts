@@ -1,6 +1,11 @@
 import type { SyncMessage } from "../shared/PeerMessage"
 import { settingsFromStorage } from "../shared/settings"
-import { TOKENS_SETTINGS_KEY } from "../shared/settingsKeys"
+import {
+  COLOR_SCHEME_SETTINGS_KEY,
+  COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
+  LARGE_TOKEN_VIEW_SETTINGS_KEY,
+  TOKENS_SETTINGS_KEY
+} from "../shared/settingsKeys"
 import { tokensForSync } from "../shared/tokens"
 
 type SettingsStorage = { getItem(key: string): string | undefined }
@@ -24,14 +29,23 @@ export function syncMessage(
   }
 }
 
+/** The keys whose change the watch must see; everything else is phone-only. */
+const SYNCED_KEYS = [
+  TOKENS_SETTINGS_KEY,
+  COLOR_SCHEME_SETTINGS_KEY,
+  LARGE_TOKEN_VIEW_SETTINGS_KEY,
+  COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY
+]
+
 /**
  * What to push when a settings key changes, if anything. Every settings write
- * wakes the Side Service (§3.6.1), including the URI Paste field's own keys.
+ * wakes the Side Service (§3.6.1), including transient UI keys such as the URI
+ * Paste field's.
  */
 export function messageForSettingsChange(
   key: string,
   storage: SettingsStorage,
   nowMs: number
 ): SyncMessage | undefined {
-  return key === TOKENS_SETTINGS_KEY ? syncMessage(storage, nowMs) : undefined
+  return SYNCED_KEYS.includes(key) ? syncMessage(storage, nowMs) : undefined
 }

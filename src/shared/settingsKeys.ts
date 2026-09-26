@@ -17,3 +17,6 @@ export const LARGE_TOKEN_VIEW_SETTINGS_KEY = "shouldUseLargeTokenView"
 
 /** Whether Syncs carry the phone's clock, as JSON `true`/`false`. */
 export const COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY = "compensateClockDrift"
+
+/** The watch's Sync Stats as last reported with a launch pull, JSON-encoded. */
+export const SYNC_STATS_SETTINGS_KEY = "syncStats"
