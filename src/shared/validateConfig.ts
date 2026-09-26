@@ -1,10 +1,16 @@
-import base32decode from "base32-decode"
 import { gettext } from "i18n"
 import { gettextWithReplacement } from "./i18nUtils"
 import type { TotpConfig } from "./TotpConfig"
 import { SUPPORTED_ALGORITHMS } from "./totp"
 
 export type TotpConfigField = keyof Omit<TotpConfig, "displayName">
+
+/**
+ * RFC 4648 base32, any case, optional trailing padding. Exactly the inputs
+ * `base32-decode` accepts, checked without calling it: it fails in the
+ * Settings App runtime on hardware, rejecting valid Secrets.
+ */
+const BASE32 = /^[A-Z2-7]+=*$/i
 
 /**
  * Check a Token's configuration before it is enrolled or synced.
@@ -35,12 +41,8 @@ export function validateConfig(config: TotpConfig) {
   }
   if (!config.secret) {
     errors.set("secret", gettext("Error: Secret must not be empty"))
-  } else {
-    try {
-      base32decode(config.secret.toUpperCase(), "RFC4648")
-    } catch {
-      errors.set("secret", gettext("Error: Secret cannot be decoded"))
-    }
+  } else if (!BASE32.test(config.secret)) {
+    errors.set("secret", gettext("Error: Secret cannot be decoded"))
   }
   if (!config.digits) {
     errors.set("digits", gettext("Error: Number of digits must be selected"))

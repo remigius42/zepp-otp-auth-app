@@ -1,6 +1,12 @@
-/* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ mjuxiltmpextewrwmnfeity */
+/* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ mjuxiltmpextewrwmnfeity MZXW */
 
 import type { TotpConfig } from "../TotpConfig"
+
+vi.mock("base32-decode", () => ({
+  default: () => {
+    throw new Error("base32-decode is unavailable in the Settings App")
+  }
+}))
 import { validateConfig } from "../validateConfig"
 
 const VALID: TotpConfig = {
@@ -42,6 +48,18 @@ describe("validateConfig", () => {
     expect(validateConfig(config).get("secret")).toBe(
       "Error: Secret cannot be decoded"
     )
+  })
+
+  /* On hardware base32-decode fails in the Settings App runtime, cause
+   * unknown, and rejected valid Secrets; validation must not depend on it. */
+  it("validates the Secret without base32-decode", () => {
+    expect(validateConfig(VALID).get("secret")).toBeUndefined()
+  })
+
+  it("accepts trailing base32 padding", () => {
+    const config = { ...VALID, secret: "MZXW6===" }
+
+    expect(validateConfig(config).get("secret")).toBeUndefined()
   })
 
   it("ignores the casing of the Secret", () => {
