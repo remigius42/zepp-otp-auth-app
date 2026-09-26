@@ -28,6 +28,37 @@ type check rather than trusting esbuild, which strips types without checking
 them. Emit target is ES2020, matching what zpm already targets for the device
 bundle.
 
+## Amendment, 2026-09-26: the step also bundles dependencies
+
+Originally the step only transpiled our own sources (`bundle: false`) and left
+npm dependencies for Zeus to resolve. **That is not safe**, and it took a device
+build to find out.
+
+zpm's `rollup-plugin-esbuild` is configured with `include: /\.js?$/` but it does
+not lower `node_modules` to the ES2020 target it sets for our code. Dependency
+code therefore reaches `qjsc` at whatever language level it was published at,
+and `qjsc` is an older QuickJS than the target suggests. `@noble/hashes` uses
+`||=` — logical OR assignment, ES2021 — and the build failed with:
+
+```text
+SyntaxError: unexpected token in expression: '='
+    at .../device/page/index.js:1
+```
+
+No file, no dependency, no construct named; the location points at the bundled
+output, which by then contains every dependency concatenated.
+
+So the step now runs with `bundle: true` and an `external` list of the
+specifiers Zeus resolves itself — `@zos/*`, `i18n` and `zosLoader:*`. esbuild
+lowers dependency code to the same ES2020 target as ours, and the class of
+failure cannot recur for a future dependency.
+
+- **Cost:** shared modules are inlined per entry point rather than loaded once.
+  On a device where everything is compiled to bytecode anyway, that is
+  acceptable; `page/index.js` is ~33 KB before bytecode compilation.
+- **Requirement:** anything Zeus must resolve has to stay in `ZEUS_PROVIDED`, or
+  esbuild will try to bundle a module that only exists on the device.
+
 ## Considered alternatives
 
 - **JavaScript with JSDoc annotations and `checkJs: true`**, which is what the

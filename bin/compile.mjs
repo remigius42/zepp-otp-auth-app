@@ -53,11 +53,35 @@ async function copyAssets() {
   )
 }
 
+/**
+ * Module specifiers the Zeus toolchain resolves itself, which must survive
+ * bundling untouched: the `@zos/*` device APIs, the phone-side `i18n` module,
+ * and the per-platform layout loader.
+ */
+const ZEUS_PROVIDED = ["@zos/*", "i18n", "zosLoader:*"]
+
+/**
+ * Bundle npm dependencies into the entry points rather than leaving them for
+ * Zeus.
+ *
+ * Zeus compiles only the project's own sources; it passes `node_modules`
+ * through untouched, and its bytecode compiler then rejects anything newer than
+ * it understands. `@noble/hashes` uses `||=` (ES2021), which produced a bare
+ * `SyntaxError: unexpected token in expression: '='` from QJSC with no hint as
+ * to which file or which dependency.
+ *
+ * Bundling here means esbuild lowers dependency code to the same ES2020
+ * target as ours, so the hazard cannot recur for any future dependency. The
+ * cost is that shared modules are inlined per entry point instead of being
+ * loaded once -- acceptable on a device where the bundle is compiled to
+ * bytecode anyway. See docs/adr/0006-typescript-via-precompile-step.md.
+ */
 const options = {
   entryPoints: await collect(`${SRC}/**/*.ts`),
   outdir: OUT,
   outbase: SRC,
-  bundle: false,
+  bundle: true,
+  external: ZEUS_PROVIDED,
   format: "esm",
   target: "es2020",
   sourcemap: true,
