@@ -61,7 +61,8 @@ AppSettingsPage({
 
     return View({ style: { padding: "12px 20px" } }, [
       introductionSection(),
-      Section({ title: gettext("Tokens") }, [
+      Section({}, [
+        heading(gettext("Tokens")),
         TextInput({
           label: gettext("Paste otpauth:// URI"),
           value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
@@ -152,7 +153,8 @@ const BUTTONS_STYLE = {
 }
 
 function introductionSection() {
-  return Section({ title: gettext("Introduction") }, [
+  return Section({}, [
+    heading(gettext("Introduction")),
     textLine(gettext("Welcome to the OTP Auth App!")),
     link(
       "https://github.com/remigius42/zepp-otp-auth-app",
@@ -192,7 +194,8 @@ function manualEntrySection(storage: SettingsStorage) {
     }),
     ...errorFor(field)
   ]
-  return Section({ title: gettext("Add token manually") }, [
+  return Section({}, [
+    heading(gettext("Add token manually")),
     ...input("label", gettext("Label")),
     ...input("issuer", gettext("Issuer")),
     ...input("secret", gettext("Secret in Base32")),
@@ -217,7 +220,8 @@ function manualEntrySection(storage: SettingsStorage) {
 }
 
 function licensesSection() {
-  return Section({ title: gettext("License information") }, [
+  return Section({}, [
+    heading(gettext("License information")),
     textLine(`zepp-otp-auth-app v${appJson.app.version.name}`),
     textLine("Copyright 2026 binary poetry gmbh."),
     textLine(gettext("Licensed under GPL version 3.0 or later.")),
@@ -235,7 +239,8 @@ function licensesSection() {
 
 function settingsSection(storage: SettingsStorage) {
   const settings = settingsFromStorage(storage)
-  return Section({ title: gettext("Settings") }, [
+  return Section({}, [
+    heading(gettext("Settings")),
     Toggle({
       label: gettext("Enlarge token information"),
       value: settings.shouldUseLargeTokenView,
@@ -280,6 +285,15 @@ function errorLine(message: string) {
 
 /* `Text` and `Link` flow inline on hardware, running into each other; a
  * `View` apiece puts each on a line of its own. */
+
+/** `Section`'s `title` renders as plain body text, so headings are our own. */
+function heading(title: string) {
+  return typeof Text === "function"
+    ? View({ style: { marginTop: "24px", marginBottom: "8px" } }, [
+        Text({ style: { fontSize: "20px", fontWeight: "bold" } }, title)
+      ])
+    : textLine(title)
+}
 
 function link(url: string, label: string) {
   return typeof Link === "function"
