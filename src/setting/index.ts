@@ -1,24 +1,48 @@
 import { gettext } from "i18n"
+import {
+  TOKENS_SETTINGS_KEY,
+  URI_PASTE_ERROR_SETTINGS_KEY,
+  URI_PASTE_INPUT_SETTINGS_KEY
+} from "../shared/settingsKeys"
+import { tokensForSync } from "../shared/tokens"
+import { getDisplayName } from "../shared/formatTokens"
+import { handleUriPaste } from "./uriPaste"
 
 /**
- * Settings App — placeholder until the Token list arrives in Phase 2.
+ * Settings App — Phase 2 vertical slice: URI Paste plus a read-only Token
+ * list. Logic lives in `./uriPaste`; this file only renders.
  *
- * Built from `View`, `TextInput` and `Button` only, copied from the shipped
- * `todo-list` template. `Section`, `Text` and `Toggle` are documented but
- * unverified on hardware and should be confirmed individually before anything
- * depends on them; see docs/ZEPP_OS_PORTING_ANALYSIS.md §3.6.1.
+ * Built from `View`, `TextInput` and `Button`, the components the shipped
+ * `todo-list` template proves render. `Text` is unverified on hardware and a
+ * throw blanks the whole page with no log (§3.6.1), so the error line checks
+ * for it and falls back to a disabled `TextInput`.
  *
- * Two constraints from the spike, both of which apply to the real list:
- *
- * - **`build()` must not write to settings storage.** The write fires
- *   `settingsChanged`, which re-runs `build()`, which writes again.
- * - **Every settings write wakes the Side Service** with the changed key, which
- *   is the push trigger the sync protocol uses (ADR-0002).
+ * `build()` must never write to settings storage: the write re-runs `build()`.
+ * Writes happen in `onChange` only.
  */
 AppSettingsPage({
-  build() {
+  build({ settingsStorage }) {
+    const tokens = tokensForSync(settingsStorage.getItem(TOKENS_SETTINGS_KEY))
+    const error = settingsStorage.getItem(URI_PASTE_ERROR_SETTINGS_KEY)
+
     return View({ style: { padding: "12px 20px" } }, [
-      TextInput({ label: gettext("Tokens"), disabled: true })
+      TextInput({
+        label: gettext("Paste otpauth:// URI"),
+        value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
+        onChange: (input: string) => {
+          handleUriPaste(settingsStorage, input)
+        }
+      }),
+      ...(error ? [errorLine(error)] : []),
+      ...tokens.map(token =>
+        TextInput({ label: getDisplayName(token, true), disabled: true })
+      )
     ])
   }
 })
+
+function errorLine(message: string) {
+  return typeof Text === "function"
+    ? Text({ style: { color: "#d00", fontSize: "12px" } }, message)
+    : TextInput({ label: message, disabled: true })
+}

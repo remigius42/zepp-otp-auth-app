@@ -1,4 +1,4 @@
-# spellchecker:words tokenalgorithmus, tokenansicht, uhrenfehler
+# spellchecker:words ganzzahl, tokenalgorithmus, tokenansicht, uhrenfehler
 
 msgid "Add token"
 msgstr "Token hinzufügen"
@@ -92,3 +92,42 @@ msgstr "Benutzerdokumentation"
 
 msgid "Welcome to the OTP Auth App!"
 msgstr "Willkommen zur OTP Auth App!"
+
+msgid "Error: Algorithm must be selected"
+msgstr "Algorithmus muss ausgewählt sein"
+
+msgid "Error: Issuer should match label issuer prefix"
+msgstr "Error: Aussteller sollte mit dem Ausstellerpräfix der Bezeichnung übereinstimmen (@issuer_prefix)"
+
+msgid "Error: Label must not be empty"
+msgstr "Bezeichnung darf nicht leer sein"
+
+msgid "Error: Number of digits must be selected"
+msgstr "Anzahl Ziffern muss ausgewählt sein"
+
+msgid "Error: Period must be a whole number greater 0"
+msgstr "Gültigkeitsdauer muss eine Ganzzahl grösser 0 sein"
+
+msgid "Error: Period must not be empty"
+msgstr "Gültigkeitsdauer darf nicht leer sein"
+
+msgid "Error: Secret cannot be decoded"
+msgstr "Schlüssel kann nicht dekodiert werden"
+
+msgid "Error: Secret must not be empty"
+msgstr "Schlüssel darf nicht leer sein"
+
+msgid "Error: Token with same label and issuer already exists"
+msgstr "Token mit gleicher Bezeichnung und Aussteller existiert bereits. Entfernen Sie zuerst dieses Token (@token_list_reference)."
+
+msgid "Error: SHA-512 is not supported yet"
+msgstr "SHA-512 wird noch nicht unterstützt. Diese App unterstützt derzeit SHA-1 und SHA-256."
+
+msgid "Error: Algorithm is not supported"
+msgstr "Algorithmus wird nicht unterstützt. Diese App unterstützt SHA-1 und SHA-256."
+
+msgid "Error: Not an otpauth:// URI"
+msgstr "Keine otpauth://-URI. Falls sie über ein Teilen-Menü kopiert wurde: Prüfen Sie, ob \":\" und \"@\" durch %3A und %40 ersetzt wurden."
+
+msgid "Paste otpauth:// URI"
+msgstr "otpauth://-URI einfügen"

@@ -23,8 +23,9 @@ export default defineConfig({
         // functions have no test seam on this platform. Excluded explicitly so
         // the untestable surface stays visible in review rather than being
         // averaged away — see docs/ZEPP_OS_PORTING_ANALYSIS.md §6.3.
-        "src/page/**",
-        "src/setting/**",
+        "src/page/index.ts",
+        "src/page/index.r.layout.ts",
+        "src/setting/index.ts",
         // Entry-point shims. These only register a lifecycle object with a Zepp
         // global, so there is nothing to assert. Keep them shims: anything
         // worth testing belongs in a module under src/shared/ instead.
