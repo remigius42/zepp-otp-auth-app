@@ -138,6 +138,9 @@ function currentRows() {
 
 /** Shows the status or the list, whichever `pageStatus` calls for. */
 function render() {
+  /* The launch pull starts in `onInit`, before `build` creates the widgets;
+   * `build` renders then. Throwing here once kept the pull from being sent. */
+  if (statusText === undefined) return
   const status = pageStatus({ pull, tokens: state.tokens })
   if (status.kind === "tokens") {
     untyped(statusText as Widget).setProperty(prop.VISIBLE, false)
