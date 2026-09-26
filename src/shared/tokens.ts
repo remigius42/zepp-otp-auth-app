@@ -107,7 +107,8 @@ export function deleteToken(
   return parseTokens(storedTokens).filter((_token, i) => i !== index)
 }
 
-function parseTokens(storedTokens: string | undefined): TotpConfig[] {
+/** The stored Token set as enrolled, before validation; the Token list's indices. */
+export function parseTokens(storedTokens: string | undefined): TotpConfig[] {
   if (!storedTokens) return []
   try {
     return JSON.parse(storedTokens) as TotpConfig[]

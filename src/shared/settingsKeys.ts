@@ -23,3 +23,6 @@ export const SYNC_STATS_SETTINGS_KEY = "syncStats"
 
 /** The watch's diagnostic trail as last reported with a launch pull. */
 export const DIAG_SETTINGS_KEY = "diag"
+
+/** The index of the Token awaiting delete confirmation, absent when none. */
+export const PENDING_DELETE_INDEX_SETTINGS_KEY = "pendingDeleteIndex"
