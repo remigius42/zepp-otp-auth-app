@@ -437,6 +437,10 @@ more than the answer did:
    therefore produces a blank page and nothing else. **Debug by rendering:**
    build each component inside a `try`/`catch` that falls back to a
    `TextInput({ label, disabled: true })`.
+   **Correction, 2026-09-26:** there _is_ a channel, just not `console.log`.
+   `zeus bridge` logs every settings-storage write as a `settingsChanged`
+   event with key, old and new value — so writing a diagnostic to a settings
+   key makes it visible in the bridge log.
 
 **And the method that should have been used first.** Four versions of the probe
 page were written from Zepp's prose docs plus the Fitbit app's idiom, and all
