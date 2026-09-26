@@ -1,9 +1,14 @@
 /* spell-checker:ignore GEZDGNBVGY TQOJQGEZDGNBVGY TQOJQ */
 
+import { hmac } from "@noble/hashes/hmac.js"
+import { sha1 } from "@noble/hashes/legacy.js"
+import { sha256, sha512 } from "@noble/hashes/sha2.js"
+import base32decode from "base32-decode"
 import { push } from "@zos/router"
 import { localStorage } from "@zos/storage"
 import * as zosTimer from "@zos/timer"
 import { prop } from "@zos/ui"
+import { base16decode, base16encode } from "../../shared/base16codec"
 import type { TotpConfig } from "../../shared/TotpConfig"
 import { totp } from "../../shared/totp"
 import {
@@ -124,17 +129,52 @@ const pageOptions: Page.Option & Record<string, unknown> = {
     })
 
     /* The one dynamic-code construct Zepp OS documents as permitted, and the
-     * one bundled npm libraries reach for. If it is gone, crypto-js's global
-     * detection is what breaks. */
+     * one bundled npm libraries reach for. Report what it returns rather than
+     * asserting identity: on hardware it returns an object that is *not*
+     * `globalThis`, and which object that is decides whether libraries relying
+     * on it find the globals they expect. */
     reportCheck(screen, "new Function('return this')", () => {
-      const globalObject = new Function("return this")() as unknown
-      assertEqual(globalObject === globalThis, true, "identity with globalThis")
-      return "returns globalThis"
+      const returned = new Function("return this")() as Record<string, unknown>
+      const isGlobalThis = returned === globalThis
+      const hasMath = typeof returned.Math === "function" || !!returned.Math
+      return `${typeof returned}, ===globalThis: ${String(isGlobalThis)}, .Math: ${String(hasMath)}`
     })
 
     /* --- Crypto (analysis §3.1, the whole reason the port is viable) ------- */
 
-    reportCheck(screen, "crypto-js HMAC-SHA1", () => {
+    /* Staged rather than one assertion: `totp()` composes three libraries and
+     * "TypeError: not a function" does not say which. Each stage reports the
+     * shape it produced, so the first bad one is obvious. This is what caught
+     * crypto-js failing to survive the bundler; kept pointed at its
+     * replacement. */
+    let keyBytes: Uint8Array | undefined
+    let digest: Uint8Array | undefined
+
+    reportCheck(screen, "1 base32decode", () => {
+      keyBytes = new Uint8Array(base32decode(RFC6238_TOKEN.secret, "RFC4648"))
+      return `Uint8Array, byteLength ${String(keyBytes.byteLength)}`
+    })
+
+    reportCheck(screen, "2 base16decode", () => {
+      const counter = base16decode("0000000000000001")
+      return `Uint8Array, byteLength ${String(counter.byteLength)}`
+    })
+
+    reportCheck(screen, "3 hmac(sha1)", () => {
+      if (!keyBytes) throw new Error("skipped, stage 1 failed")
+      digest = hmac(sha1, keyBytes, base16decode("0000000000000001"))
+      return `byteLength ${String(digest.length)}, ${base16encode(digest).slice(0, 12)}…`
+    })
+
+    reportCheck(screen, "4 hmac(sha256) / hmac(sha512)", () => {
+      if (!keyBytes) throw new Error("skipped, stage 1 failed")
+      const message = base16decode("0000000000000001")
+      return `${String(hmac(sha256, keyBytes, message).length)} / ${String(
+        hmac(sha512, keyBytes, message).length
+      )} bytes`
+    })
+
+    reportCheck(screen, "6 totp RFC 6238", () => {
       const actual = totpAtCounter(RFC6238_TOKEN, RFC6238_COUNTER)
       assertEqual(actual, RFC6238_EXPECTED, "RFC 6238 vector")
       return `${RFC6238_EXPECTED} ✓`
@@ -199,21 +239,24 @@ const pageOptions: Page.Option & Record<string, unknown> = {
 
     /* --- SCROLL_LIST update mechanism (analysis §3.5) --------------------- */
 
-    /* The pivotal spike question, and answerable without rendering anything:
-     * `prop` is an enum the runtime hands over, so if UPDATE_ITEM is absent
-     * from it, per-row patching does not exist on this device. */
-    const propKeys = Object.keys(prop)
-    const hasUpdateItem = propKeys.includes("UPDATE_ITEM")
-    const hasUpdateData = propKeys.includes("UPDATE_DATA")
-    screen.addLine(
-      `${hasUpdateItem ? "✓" : "✗"} prop.UPDATE_ITEM`,
-      hasUpdateItem ? OK : FAIL
+    /* The pivotal spike question. Read the properties directly rather than
+     * enumerating: `Object.keys(prop)` comes back empty on hardware even though
+     * `prop.MORE` plainly works, so the runtime hides them from enumeration and
+     * enumerating reports every prop as missing. */
+    const propRecord = prop as unknown as Record<string, unknown>
+    for (const name of ["UPDATE_ITEM", "UPDATE_DATA", "MORE", "TEXT"]) {
+      const value = propRecord[name]
+      const present = value !== undefined
+      screen.addLine(
+        `${present ? "✓" : "✗"} prop.${name}${present ? ` = ${String(value)}` : ""}`,
+        present ? OK : FAIL
+      )
+    }
+    /* MORE and TEXT are the control: they are documented and known-good, so if
+     * they read as missing too, the probe is wrong rather than the platform. */
+    console.log(
+      `Object.keys(prop) = [${Object.keys(prop).join(", ")}], getOwnPropertyNames = [${Object.getOwnPropertyNames(prop).join(", ")}]`
     )
-    screen.addLine(
-      `${hasUpdateData ? "✓" : "✗"} prop.UPDATE_DATA`,
-      hasUpdateData ? OK : FAIL
-    )
-    console.log(`prop keys: ${propKeys.join(", ")}`)
 
     /* --- Page lifecycle (TODO.md: does Page get onResume/onPause?) -------- */
 

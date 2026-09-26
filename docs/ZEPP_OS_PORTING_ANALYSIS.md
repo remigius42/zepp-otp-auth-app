@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi -->
+<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays -->
 
 # Porting analysis: `fitbit-otp-auth-app` → Amazfit Active 2 (round) / Zepp OS
 
@@ -456,6 +456,51 @@ streams device logs into the terminal. And the relay's client list can be read
 directly by shimming the CLI's WebSocket — `{"type":"debug"}` is the phone,
 `{"type":"development"}` is the CLI, and seeing both is the only reliable proof
 that the accounts match.
+
+### 3.10 `crypto-js` does not survive the bundler — the one wrong call that mattered
+
+§3.1 concluded: "**`crypto-js` should be fine**: pure ES5, and the one construct
+bundled libs typically need — `new Function('return this')` — is the explicitly
+permitted exception." Both halves were wrong, and the second was wrong in a way
+that made the first irrelevant.
+
+**What the device says [device].** `new Function('return this')` does not throw,
+but the object it returns is **not `globalThis`** — it has `Math`, so it is a
+global-ish object, just not the one. And `crypto-js` fails regardless, for an
+unrelated reason:
+
+- Importing a submodule (`crypto-js/enc-hex`) yields an object with no `parse`
+  method: `TypeError: not a function`.
+- Importing the package root crashes the page outright:
+  `TypeError: cannot read property 'WordArray' of undefined`, thrown from
+  `requireLibTypedarrays` → `requireCryptoJs`.
+
+**Why.** `crypto-js`'s UMD wrapper ends `}(this, function (CryptoJS) {…})`, so
+its `root` comes from module-scope `this` — `undefined` under ESM. The Zeus
+bundler's CommonJS interop then initializes `lib-typedarrays` before `core` has
+finished, and `C.lib` is undefined when the typed-array extension reads it. This
+is a **packaging** failure, not an engine one: `base32-decode`'s default import
+works on the same device in the same bundle, and the engine has `Map`, `Set`,
+`Promise`, typed arrays and working timers.
+
+**Resolution: `@noble/hashes` 2.4.0** — MIT, zero production dependencies, pure
+ESM (`"type": "module"`), so there is no UMD wrapper for the interop to get wrong. Cure53-audited
+at 1.0.0, though **SHA-1 is explicitly outside the audit scope**; HMAC and
+SHA-256/512 are inside it, and HMAC-SHA1 is unaffected by SHA-1's collision
+weaknesses. The swap is ~15 lines in `totp.ts` and **all 36 TOTP tests pass
+unchanged**, RFC vectors included, across all three algorithms.
+
+This also closes the open question TODO.md filed under "decide consciously
+rather than inherit": `crypto-js` was the app's only cryptographic dependency,
+inherited from `fitbit-otp-auth-app`, and officially discontinued. The platform
+forced the decision earlier than planned and in the same direction.
+
+**The lesson, again.** §3.1's judgement came from reading the library's source
+and the platform's documentation and reasoning about them. Both readings were
+locally correct and jointly useless, because the failure lives in the seam
+between them — the bundler. Same conclusion as §3.2, §3.7, §4.2 and §3.8:
+**only the device is authoritative.** This one cost the crypto core of the app
+being non-functional on hardware while every test on the laptop stayed green.
 
 ## 4. The QR code workaround — the part that breaks
 
