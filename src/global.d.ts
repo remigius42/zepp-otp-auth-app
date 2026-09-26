@@ -32,16 +32,6 @@ declare module "i18n" {
   export function gettext(key: string): string
 }
 
-/**
- * Side Service launch context. Logged to learn what starts the Side Service —
- * in particular whether a device `request` wakes it (ADR-0002 amendment).
- * Shape unverified, hence `unknown`.
- */
-declare const sideService: {
-  launchReasons: Record<string, unknown>
-  launchArgs: unknown
-}
-
 /** Side Service entry point. */
 declare function AppSideService(options: {
   onInit?: () => void

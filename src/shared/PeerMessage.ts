@@ -1,31 +1,15 @@
 import { AppSettings } from "./AppSettings"
 import type { TotpConfig } from "./TotpConfig"
 
-export interface UpdateTokensStartMessage {
-  type: "UPDATE_TOKENS_START_MESSAGE"
-  /** Expected number of tokens. Used to detect whether messages have been lost. */
-  count: number
-  /** Optional seconds since epoch in companion. Used to compensate clock drift on the device. */
-  secondsSinceEpochInCompanion?: number
-  /** Optionally store tokens on device */
-  storeTokensOnDevice?: boolean
+/**
+ * The whole Token set in one message. ZML chunks, orders and length-checks
+ * the payload, so Fitbit's start/token/end envelope with its `count` and
+ * `index` is gone (ADR-0002).
+ */
+export interface UpdateTokensMessage {
+  type: "UPDATE_TOKENS_MESSAGE"
+  tokens: TotpConfig[]
 }
-
-export interface UpdateTokensTokenMessage {
-  type: "UPDATE_TOKENS_TOKEN_MESSAGE"
-  /** Index of the token in the update sequence. Used to detect message ordering issues. */
-  index: number
-  token: TotpConfig
-}
-
-export interface UpdateTokensEndMessage {
-  type: "UPDATE_TOKENS_END_MESSAGE"
-}
-
-export type UpdateTokensMessage =
-  | UpdateTokensStartMessage
-  | UpdateTokensTokenMessage
-  | UpdateTokensEndMessage
 
 export interface UpdateSettingsMessage {
   type: "UPDATE_SETTINGS_MESSAGE"
@@ -34,5 +18,8 @@ export interface UpdateSettingsMessage {
 
 export type PeerMessage = UpdateTokensMessage | UpdateSettingsMessage
 
-/** Device → Side Service request for a Sync; answered with a `TotpConfig[]`. */
+/** Device → Side Service request for a Sync; answered with an `UpdateTokensMessage`. */
 export const GET_TOKENS_METHOD = "GET_TOKENS"
+
+/** Side Service → device push carrying a `PeerMessage`. */
+export const PEER_MESSAGE_METHOD = "PEER_MESSAGE"
