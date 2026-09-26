@@ -24,6 +24,11 @@ declare module "zosLoader:./index.[pf].layout.js" {
   export = styles
 }
 
+/** Documented, and in the 4.0 typings' `HmUI` namespace, but not exported. */
+declare module "@zos/ui" {
+  export function deleteWidget(widget: unknown): void
+}
+
 /**
  * Phone-side i18n. Note this is a different module from the device's
  * `@zos/i18n`, despite doing the same job — see the porting analysis §3.7.

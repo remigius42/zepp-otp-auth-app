@@ -2,7 +2,15 @@ import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
 import { getText } from "@zos/i18n"
 import { localStorage } from "@zos/storage"
-import { align, createWidget, event, prop, text_style, widget } from "@zos/ui"
+import {
+  align,
+  createWidget,
+  deleteWidget,
+  event,
+  prop,
+  text_style,
+  widget
+} from "@zos/ui"
 import { ColorSchemes, toZeppColor } from "../shared/ColorSchemes"
 import {
   GET_TOKENS_METHOD,
@@ -11,19 +19,26 @@ import {
 } from "../shared/PeerMessage"
 import { appendDiag, parseDiag } from "../shared/diagTrail"
 import { parseStats, recordPull } from "../shared/syncStats"
+import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
+import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
 import { applySync, INITIAL_SYNC_STATE } from "./syncState"
-import { tokenView } from "./tokenView"
+import { msUntilNextTick } from "./tick"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
 /**
- * Phase 2 vertical slice: the first synced Token, rendered ticking. The
- * `SCROLL_LIST` of all Tokens is Phase 3.
+ * The Token list: one `SCROLL_LIST` row per synced Token, ticking.
  *
  * Sync per the ADR-0002 amendment: `onInit` pulls the Token set, `onCall`
  * receives pushes while the page is open. A failed pull is retried only by
- * tapping the status — not on `onResume`, which looped (ADR-0003 amendment). What to show lives in
- * `./tokenView` and `./pageStatus`; this file is widget and ZML wiring only.
+ * tapping the status — not on `onResume`, which looped (ADR-0003 amendment).
+ * What to show lives in `./rowView`, `./changedRows` and `./pageStatus`; this
+ * file is widget and ZML wiring only.
+ *
+ * Every Sync re-supplies the whole list (`UPDATE_DATA`), or re-creates it when
+ * the color scheme or the enlarged view changed, since row colors and sizes are
+ * fixed at creation. Ticks patch only the changed rows (`UPDATE_ITEM`): a
+ * whole-list update scrolls back to the top (ADR-0005).
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
@@ -50,6 +65,21 @@ const SYNC_STATS_STORAGE_KEY = "syncStats"
 /** `localStorage` key of the diagnostic trail (`shared/diagTrail`). */
 const DIAG_STORAGE_KEY = "diag"
 
+/** The row layout's only `type_id`. */
+const ROW_TYPE = 1
+
+/**
+ * Runtime props the 4.0 typings lack (analysis §3.5.1), and `setProperty`
+ * for props other than `MORE`, which the typings admit alone.
+ */
+const listProp = prop as unknown as { UPDATE_DATA: number; UPDATE_ITEM: number }
+type Widget = ReturnType<typeof createWidget>
+type UntypedWidget = {
+  setProperty(property: number, value: unknown): boolean
+  getProperty(property: number): unknown
+}
+const untyped = (target: Widget) => target as unknown as UntypedWidget
+
 let state = INITIAL_SYNC_STATE
 let pull: PullState = "pending"
 /** `this.request` of the page, which `pull` needs outside the lifecycle. */
@@ -60,13 +90,16 @@ let request:
     ) => Promise<unknown>)
   | undefined
 let clockSyncMessageUntilMs = 0
-let background: ReturnType<typeof createWidget> | undefined
-let statusText: ReturnType<typeof createWidget> | undefined
-let displayNameText: ReturnType<typeof createWidget> | undefined
-let codeText: ReturnType<typeof createWidget> | undefined
-let countdownText: ReturnType<typeof createWidget> | undefined
-let timer: ReturnType<typeof setInterval> | undefined
+let background: Widget | undefined
+let statusText: Widget | undefined
+let clockSyncText: Widget | undefined
+let list: Widget | undefined
+/** Scheme and row size the list was created with; a change re-creates it. */
+let listLook: string | undefined
+let rows: RowView[] = []
+let timer: ReturnType<typeof setTimeout> | undefined
 let lastStatusKind: string | undefined
+let maxTickMs = 0
 
 /** `getItem` as it behaves; the typings claim it returns `void` (§3.8). */
 function readStorage(key: string) {
@@ -92,60 +125,179 @@ function guarded(name: string, fn: () => void) {
   }
 }
 
-function refresh() {
-  const status = pageStatus({ pull, tokens: state.tokens })
-  if (status.kind !== lastStatusKind) {
-    lastStatusKind = status.kind
-    diag(`status ${status.kind}`)
-  }
-  const token = state.tokens?.[0]
-  if (status.kind !== "tokens" || token === undefined) {
-    setText(displayNameText, "")
-    setText(codeText, "")
-    setText(countdownText, "")
-    setText(statusText, "msgid" in status ? getText(status.msgid) : "")
-    return
-  }
+function scheme() {
+  return ColorSchemes[state.settings.colorScheme]
+}
 
+function currentRows() {
   const now = Date.now()
-  const view = tokenView(token, now, state.driftSeconds)
-  setText(statusText, "")
-  setText(displayNameText, view.name)
-  setText(codeText, view.code)
-  setText(
-    countdownText,
-    now < clockSyncMessageUntilMs
-      ? getText("Synchronizing clock...")
-      : `${view.secondsRemaining}s`
+  return (state.tokens ?? []).map(token =>
+    rowView(token, now, state.driftSeconds, state.settings.colorScheme)
   )
 }
 
-/** Colors every widget from the synced color scheme. */
-function applyColorScheme() {
-  const scheme = ColorSchemes[state.settings.colorScheme]
-  const primary = toZeppColor(scheme.primaryColor)
-  const secondary = toZeppColor(scheme.secondaryColor)
-  background?.setProperty(prop.MORE, {
-    color: toZeppColor(scheme.backgroundColor)
-  })
-  codeText?.setProperty(prop.MORE, { color: primary })
-  for (const textWidget of [displayNameText, countdownText, statusText]) {
-    textWidget?.setProperty(prop.MORE, { color: secondary })
+/** Shows the status or the list, whichever `pageStatus` calls for. */
+function render() {
+  const status = pageStatus({ pull, tokens: state.tokens })
+  if (status.kind === "tokens") {
+    untyped(statusText as Widget).setProperty(prop.VISIBLE, false)
+    showList()
+  } else {
+    removeList()
+    const text = getText(status.msgid)
+    untyped(statusText as Widget).setProperty(prop.TEXT, text)
+    untyped(statusText as Widget).setProperty(prop.VISIBLE, true)
+  }
+  if (status.kind !== lastStatusKind) {
+    lastStatusKind = status.kind
+    /* S1 set the status and nothing showed; the read-back tells why. */
+    const shown =
+      status.kind === "tokens"
+        ? `${rows.length} rows`
+        : JSON.stringify(untyped(statusText as Widget).getProperty(prop.TEXT))
+    diag(`status ${status.kind}: ${shown}`)
   }
 }
 
-function setText(
-  textWidget: ReturnType<typeof createWidget> | undefined,
-  text: string
-) {
-  textWidget?.setProperty(prop.MORE, { text })
+function showList() {
+  const look = `${state.settings.colorScheme} ${state.settings.shouldUseLargeTokenView}`
+  rows = currentRows()
+  if (list !== undefined && look === listLook) {
+    untyped(list).setProperty(listProp.UPDATE_DATA, listData(rows))
+    return
+  }
+  removeList()
+  list = createWidget(widget.SCROLL_LIST, {
+    ...Styles.LIST,
+    item_config: [rowConfig()],
+    item_config_count: 1,
+    ...listData(rows)
+  })
+  listLook = look
+}
+
+function removeList() {
+  if (list !== undefined) deleteWidget(list)
+  list = undefined
+  listLook = undefined
+}
+
+function listData(data: RowView[]) {
+  return {
+    data_array: data,
+    data_count: data.length,
+    data_type_config: [{ start: 0, end: data.length - 1, type_id: ROW_TYPE }],
+    data_type_config_count: 1
+  }
+}
+
+/** The row layout in the current colors and size. */
+function rowConfig() {
+  const colors = scheme()
+  const row = state.settings.shouldUseLargeTokenView
+    ? Styles.LARGE_ROW
+    : Styles.ROW
+  const text = (
+    key: string,
+    box: typeof row.name,
+    color: number,
+    alignH = align.LEFT
+  ) => ({
+    ...box,
+    key,
+    color,
+    align_h: alignH,
+    align_v: align.CENTER_V,
+    text_style: text_style.NONE
+  })
+  const secondary = toZeppColor(colors.secondaryColor)
+  const texts = [
+    text("name", row.name, secondary),
+    text("code", row.code, toZeppColor(colors.primaryColor))
+  ]
+  const images = []
+  if (ARC_FALLBACK) {
+    texts.push(
+      text(
+        "countdown",
+        { ...row.arc, text_size: Styles.COUNTDOWN_TEXT_SIZE },
+        secondary,
+        align.CENTER_H
+      )
+    )
+  } else {
+    images.push({ ...row.arc, key: "arc" })
+  }
+  return {
+    type_id: ROW_TYPE,
+    item_height: row.height,
+    item_bg_color: toZeppColor(colors.backgroundColor),
+    item_bg_radius: 0,
+    text_view: texts,
+    text_view_count: texts.length,
+    image_view: images,
+    image_view_count: images.length
+  }
+}
+
+/**
+ * The status message, colored at creation: S1 set text and color through
+ * `prop.MORE` on a wrapping `TEXT` and nothing showed. Re-created when the
+ * color scheme changes.
+ */
+function createStatusText() {
+  if (statusText !== undefined) deleteWidget(statusText)
+  lastStatusKind = undefined
+  statusText = createWidget(widget.TEXT, {
+    ...Styles.STATUS_TEXT,
+    color: toZeppColor(scheme().secondaryColor),
+    align_h: align.CENTER_H,
+    align_v: align.CENTER_V,
+    text_style: text_style.WRAP,
+    text: ""
+  })
+  statusText.addEventListener(event.CLICK_UP, () => {
+    diag(`tap while ${pull}`)
+    if (pull === "failed") guarded("pull", pullTokens)
+  })
+}
+
+/** Colors the widgets that take a color after creation. */
+function applyColorScheme() {
+  const colors = scheme()
+  background?.setProperty(prop.MORE, {
+    color: toZeppColor(colors.backgroundColor)
+  })
+  clockSyncText?.setProperty(prop.MORE, {
+    color: toZeppColor(colors.secondaryColor)
+  })
+}
+
+/** One tick: patch the rows whose Code or arc moved on. */
+function tick() {
+  const startedAt = Date.now()
+  if (list !== undefined) {
+    const next = currentRows()
+    for (const index of changedRows(rows, next)) {
+      untyped(list).setProperty(listProp.UPDATE_ITEM, {
+        index,
+        item_data: next[index]
+      })
+    }
+    rows = next
+  }
+  untyped(clockSyncText as Widget).setProperty(
+    prop.TEXT,
+    startedAt < clockSyncMessageUntilMs ? getText("Synchronizing clock...") : ""
+  )
+  maxTickMs = Math.max(maxTickMs, Date.now() - startedAt)
 }
 
 /** The launch pull, also used to retry; records the outcome in Sync Stats. */
 function pullTokens() {
   if (request === undefined) return
   pull = "pending"
-  refresh()
+  render()
   const startedAt = Date.now()
   diag("pull")
   const stats = parseStats(readStorage(SYNC_STATS_STORAGE_KEY))
@@ -180,29 +332,46 @@ function pullTokens() {
         `failed after ${elapsed} ms: ${JSON.stringify(error)} ${String(error)}`
       )
       pull = "failed"
-      guarded("refresh", refresh)
+      guarded("render", render)
     })
 }
 
 function receive(message: PeerMessage) {
   const now = Date.now()
+  const previousScheme = state.settings.colorScheme
   state = applySync(state, message, now)
   diag(`drift ${state.driftSeconds} s`)
   if (state.showClockSync) clockSyncMessageUntilMs = now + CLOCK_SYNC_MESSAGE_MS
-  applyColorScheme()
-  refresh()
+  /* Before `build` there are no widgets yet; `build` creates them colored. */
+  if (statusText === undefined) return
+  if (state.settings.colorScheme !== previousScheme) {
+    applyColorScheme()
+    createStatusText()
+  }
+  render()
 }
 
 function startTicking() {
   stopTicking()
-  timer = setInterval(() => guarded("tick", refresh), 1000)
+  const arm = () => {
+    timer = setTimeout(
+      () => {
+        guarded("tick", tick)
+        arm()
+      },
+      msUntilNextTick(Date.now(), state.driftSeconds)
+    )
+  }
+  arm()
 }
 
 function stopTicking() {
   if (timer !== undefined) {
-    clearInterval(timer)
+    clearTimeout(timer)
     timer = undefined
   }
+  if (maxTickMs > 0) diag(`slowest tick ${maxTickMs} ms`)
+  maxTickMs = 0
 }
 
 Page(
@@ -228,7 +397,6 @@ Page(
       guarded("build", () => {
         setPageBrightTime({ brightTime: SCREEN_ON_MS })
 
-        /* Final colors are set by `applyColorScheme` once all widgets exist. */
         background = createWidget(widget.FILL_RECT, {
           x: 0,
           y: 0,
@@ -239,54 +407,24 @@ Page(
           color: 0
         })
 
-        displayNameText = createWidget(widget.TEXT, {
-          ...Styles.DISPLAY_NAME_TEXT,
+        clockSyncText = createWidget(widget.TEXT, {
+          ...Styles.CLOCK_SYNC_TEXT,
           align_h: align.CENTER_H,
           align_v: align.CENTER_V,
           text_style: text_style.NONE,
           text: ""
-        })
-
-        codeText = createWidget(widget.TEXT, {
-          ...Styles.CODE_TEXT,
-          align_h: align.CENTER_H,
-          align_v: align.CENTER_V,
-          text_style: text_style.NONE,
-          text: ""
-        })
-
-        countdownText = createWidget(widget.TEXT, {
-          ...Styles.COUNTDOWN_TEXT,
-          align_h: align.CENTER_H,
-          align_v: align.CENTER_V,
-          text_style: text_style.NONE,
-          text: ""
-        })
-
-        statusText = createWidget(widget.TEXT, {
-          ...Styles.STATUS_TEXT,
-          align_h: align.CENTER_H,
-          align_v: align.CENTER_V,
-          text_style: text_style.WRAP,
-          text: ""
-        })
-        statusText.addEventListener(event.CLICK_UP, () => {
-          diag(`tap while ${pull}`)
-          if (pull === "failed") guarded("pull", pullTokens)
         })
 
         applyColorScheme()
-        refresh()
+        createStatusText()
+        render()
         startTicking()
       })
     },
 
     onResume() {
       diag("resume")
-      guarded("resume", () => {
-        refresh()
-        startTicking()
-      })
+      guarded("resume", startTicking)
     },
 
     onPause() {
