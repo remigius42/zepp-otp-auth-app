@@ -147,3 +147,12 @@ msgstr "White on black"
 
 msgid "Black on white"
 msgstr "Black on white"
+
+msgid "Delete @name?"
+msgstr "Delete @name?"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Cancel"
+msgstr "Cancel"
