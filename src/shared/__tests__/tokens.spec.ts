@@ -2,6 +2,7 @@
 
 import {
   addTokenFromUri,
+  addTokenManually,
   deleteToken,
   moveToken,
   renameToken,
@@ -178,5 +179,57 @@ describe("deleteToken", () => {
 
   it("leaves the Tokens alone for an index out of range", () => {
     expect(deleteToken(stored, 2)).toEqual([TOKEN_A, TOKEN_B])
+  })
+})
+
+describe("addTokenManually", () => {
+  const FIELDS = {
+    label: "alice",
+    issuer: "ACME",
+    secret: SECRET,
+    algorithm: "sha256",
+    digits: "8",
+    period: "60"
+  }
+
+  it("appends the Token, with the algorithm upper-cased", () => {
+    expect(addTokenManually(JSON.stringify([TOKEN_B]), FIELDS)).toEqual({
+      tokens: [TOKEN_B, { ...FIELDS, algorithm: "SHA256" }]
+    })
+  })
+
+  it("stores no Issuer when it is left empty", () => {
+    const result = addTokenManually(undefined, { ...FIELDS, issuer: "" })
+
+    expect(result).toEqual({
+      tokens: [expect.not.objectContaining({ issuer: expect.anything() })]
+    })
+  })
+
+  it("names every invalid field", () => {
+    const result = addTokenManually(undefined, {
+      label: "",
+      issuer: "",
+      secret: "",
+      algorithm: "",
+      digits: "",
+      period: ""
+    })
+
+    expect("errors" in result && new Set(result.errors.keys())).toEqual(
+      new Set(["algorithm", "digits", "label", "period", "secret"])
+    )
+  })
+
+  it("rejects a Token whose Label and Issuer are already enrolled", () => {
+    const result = addTokenManually(JSON.stringify([TOKEN_A]), {
+      ...FIELDS,
+      label: TOKEN_A.label,
+      issuer: TOKEN_A.issuer
+    })
+
+    expect("errors" in result && result.errors.get("label")).toContain(
+      "already exists"
+    )
   })
 })

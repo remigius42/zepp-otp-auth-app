@@ -3,7 +3,7 @@ import { getDisplayName } from "./formatTokens"
 import { gettextWithReplacement } from "./i18nUtils"
 import { totpConfigFromUri } from "./keyUri"
 import type { TotpConfig } from "./TotpConfig"
-import { validateConfig } from "./validateConfig"
+import { validateConfig, type TotpConfigField } from "./validateConfig"
 
 export type AddTokenResult = { tokens: TotpConfig[] } | { error: string }
 
@@ -27,21 +27,51 @@ export function addTokenFromUri(
       error: `${gettext("Error: Not an otpauth:// URI")} (${String(error)})`
     }
   }
+  const result = appendToken(storedTokens, parsed)
+  if ("tokens" in result) return result
+  const [error] = result.errors.values()
+  return { error: error as string }
+}
+
+export type TokenFields = Omit<TotpConfig, "displayName" | "issuer"> & {
+  issuer: string
+}
+
+export type AddTokenManuallyResult =
+  | { tokens: TotpConfig[] }
+  | { errors: Map<TotpConfigField, string> }
+
+/**
+ * Manual Entry: validate the fields and append the Token to the stored set.
+ *
+ * @returns the new Token set to store, or a message per invalid field
+ */
+export function addTokenManually(
+  storedTokens: string | undefined,
+  { issuer, ...fields }: TokenFields
+): AddTokenManuallyResult {
+  return appendToken(storedTokens, issuer ? { ...fields, issuer } : fields)
+}
+
+/** Validate a new Token and append it, unless its Label and Issuer exist. */
+function appendToken(
+  storedTokens: string | undefined,
+  config: TotpConfig
+): AddTokenManuallyResult {
   /* Some issuers emit lowercase names; totp() keys its hashes by uppercase. */
-  const token = { ...parsed, algorithm: parsed.algorithm.toUpperCase() }
-  const [error] = validateConfig(token).values()
-  if (error !== undefined) return { error }
+  const token = { ...config, algorithm: config.algorithm.toUpperCase() }
+  const errors = validateConfig(token)
+  if (errors.size > 0) return { errors }
 
   const tokens = parseTokens(storedTokens)
   const existing = tokens.find(candidate => isSameToken(candidate, token))
   if (existing !== undefined) {
-    return {
-      error: gettextWithReplacement(
-        "Error: Token with same label and issuer already exists",
-        "@token_list_reference",
-        `#${tokens.indexOf(existing) + 1}: ${getDisplayName(existing, true)}`
-      )
-    }
+    const error = gettextWithReplacement(
+      "Error: Token with same label and issuer already exists",
+      "@token_list_reference",
+      `#${tokens.indexOf(existing) + 1}: ${getDisplayName(existing, true)}`
+    )
+    return { errors: new Map([["label", error]]) }
   }
 
   return { tokens: [...tokens, token] }
