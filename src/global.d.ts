@@ -40,11 +40,16 @@ declare function AppSideService(options: {
   [key: string]: unknown
 }): void
 
-/** Settings App entry point. */
+/**
+ * Settings App entry point.
+ *
+ * The shipped templates use an object with `state` plus helper methods that
+ * call `this.setState(...)`, so callers should type their page object and
+ * annotate it with `ThisType` rather than relying on inference here — see
+ * `src/setting/index.ts`.
+ */
 declare function AppSettingsPage(options: {
-  state?: Record<string, unknown>
   build: (props: SettingsProps) => unknown
-  [key: string]: unknown
 }): void
 
 interface SettingsProps {

@@ -405,6 +405,46 @@ The fallback is immune because its controls sit at a fixed position.
 `Toggle` on a deliberately long page answers it in two minutes. This is the
 phone-side twin of the `SCROLL_LIST` refresh question in §3.5.
 
+### 3.6.1 §3.6 settled on hardware [device]
+
+Observed 2026-09-26 with a 30-row settings page and a button that writes one key.
+
+**Scroll position is preserved across a rebuild.** Scrolled to the bottom,
+tapped the button, and the page stayed where it was; values typed into rows 0
+and 25 persisted. So the risk the fallback existed to hedge against does not
+materialize: **the flat in-place Token list stands**, and the
+`Select`-plus-single-editor design is dropped rather than held in reserve.
+
+Three things learned the hard way while getting that answer, all of which cost
+more than the answer did:
+
+1. **`build()` must never write to settings storage.** A write fires
+   `settingsChanged`, which re-runs `build()`, which writes again. A rebuild
+   counter incremented inside `build()` reached **26 rebuilds in one burst**.
+   Writes belong in event handlers only. This constrains the Phase 3 Token
+   list, where rename, reorder and delete all write.
+2. **Every settings write wakes the Side Service**, with
+   `launchArgs.launchType === "settingsChanged"` naming the changed key. That
+   is useful — it is how the phone side learns a Token changed without polling —
+   but it also means a chatty settings UI launches a service process per
+   keystroke-ish action. Relevant to ADR-0002's sync design.
+3. **The Settings App has no log channel on real hardware.** The Zepp App's log
+   screen covers Device App and Side Service only, and Zeus wraps the emitted
+   settings bundle in `try { … } catch (e) { console.log(e) }`. A single throw
+   therefore produces a blank page and nothing else. **Debug by rendering:**
+   build each component inside a `try`/`catch` that falls back to a
+   `TextInput({ label, disabled: true })`.
+
+**And the method that should have been used first.** Four versions of the probe
+page were written from Zepp's prose docs plus the Fitbit app's idiom, and all
+four rendered blank. The fix was to install the shipped `todo-list` template
+unmodified — it rendered — and then copy its shape: `View` as root, and only
+`View`, `TextInput` and `Button`, which are the components it actually uses. It
+never uses `Section`, `Text` or `Toggle`, all three of which the earlier
+versions were built from, and §3.6's table above assumes port "1:1". **Those
+three are unverified**; `Section` and `Toggle` are needed for the real settings
+UI and should be confirmed individually before Phase 3 depends on them.
+
 ### 3.7 i18n: same format on the watch, no mechanism on the phone
 
 **On the device, this is a near-verbatim port.** Zepp uses `.po` files with the
