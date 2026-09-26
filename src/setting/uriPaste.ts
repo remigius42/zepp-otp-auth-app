@@ -15,6 +15,17 @@ export type SettingsStorage = Pick<
  * so the Secret does not stay on screen.
  */
 export function handleUriPaste(storage: SettingsStorage, input: string) {
+  try {
+    storeResult(storage, input)
+  } catch (error) {
+    /* The Settings App cannot console.log on hardware, but settings writes
+     * reach the bridge log (§3.6.1), so any surprise names its own cause. */
+    storage.setItem(URI_PASTE_INPUT_SETTINGS_KEY, input)
+    storage.setItem(URI_PASTE_ERROR_SETTINGS_KEY, String(error))
+  }
+}
+
+function storeResult(storage: SettingsStorage, input: string) {
   const result = addTokenFromUri(storage.getItem(TOKENS_SETTINGS_KEY), input)
   if ("tokens" in result) {
     storage.setItem(TOKENS_SETTINGS_KEY, JSON.stringify(result.tokens))

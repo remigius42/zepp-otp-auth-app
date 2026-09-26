@@ -47,4 +47,20 @@ describe("handleUriPaste", () => {
     )
     expect(storage.items.get(TOKENS_SETTINGS_KEY)).toBe("[]")
   })
+
+  it("reports an unexpected failure in the error field", () => {
+    const storage = fakeStorage()
+    const failing = {
+      ...storage,
+      getItem: () => {
+        throw new Error("storage exploded")
+      }
+    }
+
+    handleUriPaste(failing, URI)
+
+    expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).toContain(
+      "storage exploded"
+    )
+  })
 })
