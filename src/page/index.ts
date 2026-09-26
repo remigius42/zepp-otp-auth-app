@@ -1,6 +1,8 @@
 /* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
 
+import { push } from "@zos/router"
 import { align, createWidget, prop, text_style, widget } from "@zos/ui"
+import { px } from "@zos/utils"
 import {
   ColorSchemeName,
   ColorSchemes,
@@ -81,6 +83,23 @@ Page({
       align_v: align.CENTER_V,
       text_style: text_style.NONE,
       text: ""
+    })
+
+    /* The only way into the Phase 1 probes: Zepp OS launches the first page in
+     * `app.json` and offers no page picker. Removed with SPIKE_TOKEN. */
+    createWidget(widget.BUTTON, {
+      x: px(133),
+      y: px(370),
+      w: px(200),
+      h: px(56),
+      text: "Probes",
+      text_size: px(20),
+      normal_color: 0x333333,
+      press_color: 0x555555,
+      radius: px(28),
+      click_func: () => {
+        push({ url: "page/probe/index" })
+      }
     })
 
     refresh()
