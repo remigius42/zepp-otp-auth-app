@@ -441,6 +441,11 @@ more than the answer did:
    `zeus bridge` logs every settings-storage write as a `settingsChanged`
    event with key, old and new value — so writing a diagnostic to a settings
    key makes it visible in the bridge log.
+4. **The Settings App runtime is not a browser.** It has no `URL` API — the
+   key URI parser threw on every paste until rewritten with plain string
+   handling — and `base32-decode` fails there too, cause unknown, while the
+   same code passes on Node. Treat it as its own engine: nothing on the
+   laptop exercises it.
 
 **And the method that should have been used first.** Four versions of the probe
 page were written from Zepp's prose docs plus the Fitbit app's idiom, and all
