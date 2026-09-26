@@ -17,9 +17,11 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * Spike scaffolding: one hard-coded Token, rendered and ticking.
  *
  * This exists to prove the toolchain end to end — TypeScript compiling to a
- * Zeus-buildable bundle, `crypto-js` surviving the bundler, and the device
- * runtime providing what `totp()` needs. It is replaced wholesale by the real
- * Token list; see docs/ZEPP_OS_PORTING_ANALYSIS.md §10.
+ * Zeus-buildable bundle, the crypto dependency surviving the bundler, and the
+ * device runtime providing what `totp()` needs. The middle one is not
+ * hypothetical: `crypto-js` did not survive it, which is why the app now uses
+ * `@noble/hashes` (§3.10). Replaced wholesale by the real Token list;
+ * see docs/ZEPP_OS_PORTING_ANALYSIS.md §10.
  */
 const SPIKE_TOKEN: TotpConfig = {
   label: "john.doe@email.com",
