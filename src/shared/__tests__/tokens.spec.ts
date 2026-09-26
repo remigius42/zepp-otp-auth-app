@@ -61,4 +61,22 @@ describe("addTokenFromUri", () => {
 
     expect(result).toEqual({ error: expect.stringContaining("Algorithm") })
   })
+
+  it("rejects a Token whose Label and Issuer are already enrolled", () => {
+    const stored = addTokenFromUri(undefined, uri())
+    if (!("tokens" in stored)) throw new Error("setup failed")
+
+    const result = addTokenFromUri(JSON.stringify(stored.tokens), uri())
+
+    expect(result).toEqual({ error: expect.stringContaining("already exists") })
+  })
+
+  it.each(["not a URI", "https://example.com"])(
+    "returns an error instead of throwing for %s",
+    input => {
+      expect(addTokenFromUri(undefined, input)).toEqual({
+        error: expect.stringContaining("otpauth://")
+      })
+    }
+  )
 })

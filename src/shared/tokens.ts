@@ -1,3 +1,6 @@
+import { gettext } from "i18n"
+import { getDisplayName } from "./formatTokens"
+import { gettextWithReplacement } from "./i18nUtils"
 import { totpConfigFromUri } from "./keyUri"
 import type { TotpConfig } from "./TotpConfig"
 import { validateConfig } from "./validateConfig"
@@ -14,14 +17,34 @@ export function addTokenFromUri(
   storedTokens: string | undefined,
   uri: string
 ): AddTokenResult {
-  const parsed = totpConfigFromUri(uri)
+  let parsed: TotpConfig
+  try {
+    parsed = totpConfigFromUri(uri)
+  } catch {
+    return { error: gettext("Error: Not an otpauth:// URI") }
+  }
   /* Some issuers emit lowercase names; totp() keys its hashes by uppercase. */
   const token = { ...parsed, algorithm: parsed.algorithm.toUpperCase() }
   const [error] = validateConfig(token).values()
   if (error !== undefined) return { error }
 
-  return { tokens: [...parseTokens(storedTokens), token] }
+  const tokens = parseTokens(storedTokens)
+  const existing = tokens.find(candidate => isSameToken(candidate, token))
+  if (existing !== undefined) {
+    return {
+      error: gettextWithReplacement(
+        "Error: Token with same label and issuer already exists",
+        "@token_list_reference",
+        `#${tokens.indexOf(existing) + 1}: ${getDisplayName(existing, true)}`
+      )
+    }
+  }
+
+  return { tokens: [...tokens, token] }
 }
+
+const isSameToken = (a: TotpConfig, b: TotpConfig) =>
+  a.label === b.label && a.issuer === b.issuer
 
 function parseTokens(storedTokens: string | undefined): TotpConfig[] {
   return storedTokens ? (JSON.parse(storedTokens) as TotpConfig[]) : []
