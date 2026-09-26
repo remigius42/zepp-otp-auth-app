@@ -79,6 +79,26 @@ export function renameToken(
   })
 }
 
+/**
+ * Move the Token at `index` one place up (`delta` < 0) or down (> 0). At either
+ * end of the list it stays where it is.
+ */
+export function moveToken(
+  storedTokens: string | undefined,
+  index: number,
+  delta: number
+): TotpConfig[] {
+  const tokens = parseTokens(storedTokens)
+  const target = index + Math.sign(delta)
+  const moving = tokens[index]
+  if (moving === undefined || target < 0 || target >= tokens.length) {
+    return tokens
+  }
+  tokens.splice(index, 1)
+  tokens.splice(target, 0, moving)
+  return tokens
+}
+
 function parseTokens(storedTokens: string | undefined): TotpConfig[] {
   if (!storedTokens) return []
   try {

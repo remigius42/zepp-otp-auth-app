@@ -1,6 +1,11 @@
 /* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
 
-import { addTokenFromUri, renameToken, tokensForSync } from "../tokens"
+import {
+  addTokenFromUri,
+  moveToken,
+  renameToken,
+  tokensForSync
+} from "../tokens"
 
 const SECRET = "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
 
@@ -141,4 +146,24 @@ describe("renameToken", () => {
       expect(renameToken(renamed, 1, name)).toEqual([TOKEN_A, TOKEN_B])
     }
   )
+})
+
+describe("moveToken", () => {
+  const TOKEN_C = { ...TOKEN_A, label: "carol" }
+  const stored = JSON.stringify([TOKEN_A, TOKEN_B, TOKEN_C])
+
+  it("moves a Token down by one", () => {
+    expect(moveToken(stored, 0, 1)).toEqual([TOKEN_B, TOKEN_A, TOKEN_C])
+  })
+
+  it("moves a Token up by one", () => {
+    expect(moveToken(stored, 2, -1)).toEqual([TOKEN_A, TOKEN_C, TOKEN_B])
+  })
+
+  it.each([
+    [0, -1],
+    [2, 1]
+  ])("leaves the order alone moving Token %i by %i", (index, delta) => {
+    expect(moveToken(stored, index, delta)).toEqual([TOKEN_A, TOKEN_B, TOKEN_C])
+  })
 })
