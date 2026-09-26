@@ -2,7 +2,7 @@
 
 import { hmac } from "@noble/hashes/hmac.js"
 import { sha1 } from "@noble/hashes/legacy.js"
-import { sha256, sha512 } from "@noble/hashes/sha2.js"
+import { sha256 } from "@noble/hashes/sha2.js"
 import base32decode from "base32-decode"
 import { push } from "@zos/router"
 import { localStorage } from "@zos/storage"
@@ -166,12 +166,21 @@ const pageOptions: Page.Option & Record<string, unknown> = {
       return `byteLength ${String(digest.length)}, ${base16encode(digest).slice(0, 12)}…`
     })
 
-    reportCheck(screen, "4 hmac(sha256) / hmac(sha512)", () => {
+    reportCheck(screen, "4 hmac(sha256)", () => {
       if (!keyBytes) throw new Error("skipped, stage 1 failed")
       const message = base16decode("0000000000000001")
-      return `${String(hmac(sha256, keyBytes, message).length)} / ${String(
-        hmac(sha512, keyBytes, message).length
-      )} bytes`
+      return `${String(hmac(sha256, keyBytes, message).length)} bytes`
+    })
+
+    /* SHA-512 is deliberately absent: importing it pulls in BigInt, which this
+     * QuickJS build does not have, and the page dies during module evaluation
+     * rather than at the call. Probe the engine capability directly instead. */
+    reportCheck(screen, "4b BigInt (SHA-512 blocker)", () => {
+      const bigIntType = typeof (globalThis as Record<string, unknown>).BigInt
+      if (bigIntType === "function") {
+        return "present - SHA-512 could be restored"
+      }
+      throw new Error(`typeof BigInt is "${bigIntType}", so SHA-512 stays out`)
     })
 
     reportCheck(screen, "6 totp RFC 6238", () => {

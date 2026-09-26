@@ -2,7 +2,7 @@
 
 import { hmac } from "@noble/hashes/hmac.js"
 import { sha1 } from "@noble/hashes/legacy.js"
-import { sha256, sha512 } from "@noble/hashes/sha2.js"
+import { sha256 } from "@noble/hashes/sha2.js"
 import base32decode from "base32-decode"
 import { TotpConfig } from "./TotpConfig"
 import { base16decode } from "./base16codec"
@@ -100,6 +100,26 @@ function dynamicTruncate(hash: Uint8Array) {
 }
 
 /**
+ * The TOTP algorithms this app can compute.
+ *
+ * **SHA-512 is absent, and that is a regression against `fitbit-otp-auth-app`.**
+ * Zepp OS runs QuickJS 2020-07-05 compiled **without BigInt** — its own `qjsc`
+ * rejects even a `1n` literal — and `@noble/hashes` builds SHA-512's constant
+ * table with `BigInt()` at module load, so merely importing it kills the page
+ * during evaluation. SHA-1 and SHA-256 pull no BigInt at all.
+ *
+ * Restoring it is a packaging problem rather than a mathematical one: the
+ * SHA-512 round arithmetic is already 32-bit, and BigInt is used only to build
+ * the constants. See §3.10 and the TODO entry.
+ */
+export const SUPPORTED_ALGORITHMS = ["SHA1", "SHA256"] as const
+
+const HASH_FUNCTIONS: Record<string, typeof sha1 | undefined> = {
+  SHA1: sha1,
+  SHA256: sha256
+}
+
+/**
  * Calculate the HMAC of the given message under the given key.
  *
  * `@noble/hashes` rather than `crypto-js`: the latter is a UMD bundle whose
@@ -114,8 +134,12 @@ function hmacDigest(
   key: Uint8Array,
   algorithm: string
 ): Uint8Array {
-  const hashFunction =
-    algorithm === "SHA1" ? sha1 : algorithm === "SHA256" ? sha256 : sha512
+  const hashFunction = HASH_FUNCTIONS[algorithm]
+  if (!hashFunction) {
+    throw new Error(
+      `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
+    )
+  }
 
   return hmac(hashFunction, key, message)
 }

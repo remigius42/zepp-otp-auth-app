@@ -495,6 +495,31 @@ rather than inherit": `crypto-js` was the app's only cryptographic dependency,
 inherited from `fitbit-otp-auth-app`, and officially discontinued. The platform
 forced the decision earlier than planned and in the same direction.
 
+**Follow-on: SHA-512 had to be dropped [device].** Swapping the library exposed
+a second, deeper constraint. Zepp OS runs **QuickJS 2020-07-05 compiled without
+BigInt** — its own `qjsc` rejects a bare `1n` literal with
+`SyntaxError: invalid number literal`, which makes this checkable on a laptop in
+ten seconds. `@noble/hashes` builds SHA-512's constant table with `BigInt()` at
+module load, so importing it kills the page during evaluation with the same
+unhelpful `TypeError: not a function`. SHA-1 and SHA-256 pull no BigInt at all,
+confirmed by bundling each in isolation.
+
+So the app supports **SHA-1 and SHA-256 only**, a parity regression against
+`fitbit-otp-auth-app`, where `crypto-js` made all three free. It is a packaging
+problem rather than a mathematical one: SHA-512's round arithmetic is already
+32-bit and BigInt is used only to construct the constants, so a vendored copy
+with the table precomputed would restore it in ~120 lines. The RFC 6238 SHA-512
+vectors are kept in the test suite as explicit rejection cases so that work
+starts from a green baseline.
+
+**And a correction to §3.1's "ES2020" claim.** zpm targets ES2020 for _our_
+sources, but passes `node_modules` through at whatever level they were published
+at, and the engine is older than that target implies. `@noble/hashes` uses `||=`
+(ES2021) and QJSC rejected it outright. The fix belongs in our compile step,
+which now bundles and lowers dependencies before Zeus sees them
+([ADR-0006](./adr/0006-typescript-via-precompile-step.md)); relying on the
+platform to normalize dependency syntax does not work.
+
 **The lesson, again.** §3.1's judgement came from reading the library's source
 and the platform's documentation and reasoning about them. Both readings were
 locally correct and jointly useless, because the failure lives in the seam

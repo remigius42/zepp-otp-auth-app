@@ -27,35 +27,60 @@ describe("totp", () => {
   const RFC6238_TEST_VECTORS = [
     ...[
       { algorithm: "SHA1", totp: "94287082" },
-      { algorithm: "SHA256", totp: "46119246" },
-      { algorithm: "SHA512", totp: "90693936" }
+      { algorithm: "SHA256", totp: "46119246" }
     ].map(entry => ({ ...entry, seconds: 59 })),
     ...[
       { algorithm: "SHA1", totp: "07081804" },
-      { algorithm: "SHA256", totp: "68084774" },
-      { algorithm: "SHA512", totp: "25091201" }
+      { algorithm: "SHA256", totp: "68084774" }
     ].map(entry => ({ ...entry, seconds: 1111111109 })),
     ...[
       { algorithm: "SHA1", totp: "14050471" },
-      { algorithm: "SHA256", totp: "67062674" },
-      { algorithm: "SHA512", totp: "99943326" }
+      { algorithm: "SHA256", totp: "67062674" }
     ].map(entry => ({ ...entry, seconds: 1111111111 })),
     ...[
       { algorithm: "SHA1", totp: "89005924" },
-      { algorithm: "SHA256", totp: "91819424" },
-      { algorithm: "SHA512", totp: "93441116" }
+      { algorithm: "SHA256", totp: "91819424" }
     ].map(entry => ({ ...entry, seconds: 1234567890 })),
     ...[
       { algorithm: "SHA1", totp: "69279037" },
-      { algorithm: "SHA256", totp: "90698825" },
-      { algorithm: "SHA512", totp: "38618901" }
+      { algorithm: "SHA256", totp: "90698825" }
     ].map(entry => ({ ...entry, seconds: 2000000000 })),
     ...[
       { algorithm: "SHA1", totp: "65353130" },
-      { algorithm: "SHA256", totp: "77737706" },
-      { algorithm: "SHA512", totp: "47863826" }
+      { algorithm: "SHA256", totp: "77737706" }
     ].map(entry => ({ ...entry, seconds: 20000000000 }))
   ]
+
+  /* SHA-512 is not supported: Zepp OS runs QuickJS without BigInt, which
+   * `@noble/hashes` needs to build SHA-512's constant table. The RFC 6238
+   * vectors are kept so restoring support is a matter of deleting this block
+   * and moving them back. See totp.ts's SUPPORTED_ALGORITHMS. */
+  const RFC6238_SHA512_VECTORS_PENDING_SUPPORT = [
+    { seconds: 59, totp: "90693936" },
+    { seconds: 1111111109, totp: "25091201" },
+    { seconds: 1111111111, totp: "99943326" },
+    { seconds: 1234567890, totp: "93441116" },
+    { seconds: 2000000000, totp: "38618901" },
+    { seconds: 20000000000, totp: "47863826" }
+  ]
+
+  it.each(RFC6238_SHA512_VECTORS_PENDING_SUPPORT)(
+    "should reject SHA512 with an explicit message at $seconds seconds",
+    ({ seconds }) => {
+      vi.useFakeTimers()
+      vi.setSystemTime(seconds * 1000)
+      const totpConfig: TotpConfig = {
+        label: "some label",
+        secret: RFC6238_TEST_VECTORS_BASE32_SECRETS.SHA512,
+        algorithm: "SHA512",
+        digits: "8",
+        period: "30"
+      }
+
+      expect(() => totp(totpConfig)).toThrow(/Unsupported algorithm "SHA512"/)
+      vi.useRealTimers()
+    }
+  )
 
   // see https://www.rfc-editor.org/rfc/rfc4226#page-32
   it.each(RFC4226_TEST_VECTORS)(
