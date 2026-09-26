@@ -85,3 +85,16 @@ Side Service with `launchType: "peerAppLaunched"`, and closing the watch app
 destroys it again — its lifetime follows the watch app's. The launch pull
 returned the Token in **885 ms** on the first open after install and **417 ms**
 on a reopen; 558 ms after the next install.
+
+## Amendment, 2026-09-26: what the one message carries
+
+The Sync message carries **Tokens, Settings and, when Clock Drift
+Compensation is on, `phoneEpochSeconds`** — Fitbit's
+`secondsSinceEpochInCompanion`, moved from the dropped start message to the
+single one. Settings joined it per the ADR-0004 amendment.
+
+The stamp is taken when the Side Service builds the payload, and the watch
+measures drift as `phoneEpochSeconds − now` on receipt. Most pull latency is
+the Side Service launching, which happens before the stamp, so only one-way
+transit biases the measurement. An NTP-style request/response midpoint was
+rejected: it would count the launch time as transit.

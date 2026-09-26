@@ -83,22 +83,34 @@ No UI; distinct from the **Settings App**.
 _Avoid_: companion, config app, background app.
 
 **Sync**:
-The watch receiving the full set of **Tokens** from the **Side Service**. Either
-side may start it — the watch on launch, the phone when a Token changes. Always
-the complete set — there is no partial or incremental sync.
+The watch receiving the full set of **Tokens**, plus the **Settings**, from the
+**Side Service**. Either side may start it — the watch on launch, the phone when
+a Token or Setting changes. Always the complete state — there is no partial or
+incremental sync.
 _Avoid_: transfer, update, push, transmission.
+
+**Sync Stats**:
+How many watch launches Synced and how many failed, plus recent Sync latencies.
+Diagnostic evidence for the Store On Watch decision; shown read-only in the
+**Settings App**.
+_Avoid_: connection status (dropped — see ADR-0003), health, telemetry.
 
 **Store On Watch**:
 Persisting synced **Tokens** on the watch so it can produce **Codes** with the
 phone out of range. A user setting on Fitbit; **not implemented here** — see
 ADR-0004. Tokens live in memory only and a **Sync** happens on every connection.
-_Avoid_: offline mode, caching, persistence (**Settings** are still persisted on
-the watch — only Tokens are not).
+_Avoid_: offline mode, caching, persistence.
+
+**Settings**:
+The user's app preferences — color scheme, enlarged view, **Clock Drift
+Compensation**. Owned by the phone like **Tokens** and delivered by the same
+**Sync**; the watch persists neither.
+_Avoid_: config, preferences, options.
 
 **Clock Drift Compensation**:
-A user setting. When on, the phone sends its own wall-clock time alongside the
-**Tokens** so the watch can correct for its own drifting clock. Without it, a
-watch a minute out of step produces wrong **Codes**.
+A user setting, on by default. When on, the phone sends its own wall-clock time
+with every **Sync**; the watch shifts **Codes** and countdowns by the
+difference. Without it, a watch a minute out of step produces wrong **Codes**.
 _Avoid_: time sync, NTP.
 
 ### Shipping it

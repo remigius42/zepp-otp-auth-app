@@ -41,6 +41,7 @@ words:
   - getUserMedia
   - gitea
   - hmac
+  - ihdr
   - inspectable
   - janky
   - jsQR
@@ -51,6 +52,7 @@ words:
   - manujedi
   - markdownlint
   - msgid
+  - msgids
   - msgstr
   - notebookcheck
   - ontick
@@ -58,7 +60,9 @@ words:
   - outbase
   - oxlint
   - prerendered
+  - qrencode
   - rasterizer
+  - rasterizes
   - recompiles
   - reimplementation
   - remigius
@@ -68,6 +72,7 @@ words:
   - sideload
   - sideloaded
   - sideloading
+  - supersampling
   - tachanka
   - timeboxed
   - totp

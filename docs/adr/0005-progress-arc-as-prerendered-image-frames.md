@@ -81,3 +81,23 @@ Layout note for whoever builds the real rows: in the probe, a child at
 horizontal inset well beyond the nominal bounds, and how much depends on
 vertical position. That belongs to the §5 round-screen tuning line, but it is
 cheaper to design for than to retrofit.
+
+## Amendment, 2026-09-26: how the frames are made
+
+- **Generator:** `bin/generate-arc-frames.mjs`, dependency-free — rasterizes
+  with 4×4 supersampling and encodes PNG via `node:zlib`. zpm converts asset
+  PNGs to TGA during `zeus build`, so the script never touches TGA.
+- **Look:** Fitbit's — full ring in the secondary color, the remaining part of
+  the Period in the primary color over it, clockwise from 12 o'clock. Opaque
+  background in the scheme's background color; alpha through the TGA
+  conversion is unverified.
+- **Count and size:** 30 frames × 3 schemes, 64×64 at native resolution.
+  Frame index is `floor(elapsedFraction × 30)`; frame 0 is a full ring.
+- **Location:** `src/assets/default.r/arc/<scheme>/<n>.png`, gitignored and
+  regenerated on build, like `src/setting/licenses.js`.
+- **Size risk:** uncompressed TGA is ~16 KB a frame, ~1.5 MB in all. If the
+  `.zab` or install time is unacceptable, shrink to 48 px before cutting
+  frames.
+- **Fallback trigger**, any of: janky swapping at 1 Hz on hardware; frames not
+  rendering; a tick over 250 ms with 12 Tokens; bundle still unacceptable at
+  48 px. The fallback binds a text countdown to the same row slot.

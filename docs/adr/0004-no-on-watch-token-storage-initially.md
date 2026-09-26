@@ -76,3 +76,32 @@ Tokens been persisted there, every developer install would have lost them.
 Whether an ordinary app update does the same is unverified — a bridge install
 may uninstall first — so this is supporting evidence, not proof. The same risk
 applies to persisted **app settings** (§3.4): check it before relying on them.
+
+## Amendment, 2026-09-26: app settings are not persisted on the watch either
+
+The consequence above kept `localStorage` for app **Settings** (color scheme,
+enlarged view). Dropped: Settings stay in phone-side settings storage and ride
+the same Sync payload as Tokens. The watch persists neither Tokens nor
+Settings.
+
+- A watch that cannot reach the phone shows the no-tokens view anyway, so
+  persisted Settings would only color an empty screen.
+- The launch pull (417–885 ms) delivers them at no extra cost, and a reinstall
+  cannot lose what the watch never stored (§3.1.1).
+- One source of truth, no merge logic.
+- Cost: the first ~0.5 s after launch renders in the default scheme.
+
+`UpdateSettingsMessage` is folded into the single Sync message (ADR-0002): one
+payload carrying Tokens and Settings, pulled on launch and pushed on any Token
+or Settings key change.
+
+## Amendment, 2026-09-26: the revisit trigger, made measurable
+
+"Often enough to be annoying" becomes a number: **re-evaluate Store On Watch if
+more than 1 in 20 launches fails to Sync over two weeks of daily use.**
+
+The watch counts launches, failed pulls and the last 20 pull latencies in
+`localStorage` — diagnostics only, no Secrets, no Settings; losing them on
+reinstall is acceptable. Each pull sends them along, and the Settings App
+shows them as one line (**Sync Stats**). So the `device:os.local_storage`
+permission stays.

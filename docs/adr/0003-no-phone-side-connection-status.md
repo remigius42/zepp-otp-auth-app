@@ -46,3 +46,13 @@ conveyed, arriving at the moment it matters.
 - This is a genuine parity regression against the Fitbit app, and the analysis
   did not account for it. It should be stated plainly in the README and in the
   blog post rather than quietly omitted.
+
+## Amendment, 2026-09-26: failures surface on the watch
+
+"An explicit error or Toast on a failed `call`" was wrong. A push to a closed
+watch app is the normal case — the next launch pulls (ADR-0002 amendment) — and
+ZML's `call` gives no reliable failure signal. The failure that matters is the
+**launch pull**, and the watch reports it where the user is looking: "Phone not
+reachable", tap to retry, and a re-pull on resume while it has no Tokens.
+Connection quality is measured rather than indicated — see the ADR-0004
+amendment on **Sync Stats**.

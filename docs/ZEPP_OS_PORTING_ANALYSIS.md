@@ -273,6 +273,11 @@ app's own settings (color scheme, enlarged view), for which `@zos/storage`
 reads, one `device:os.local_storage` permission line in `app.json`. `@zos/fs` is
 unnecessary once there is no Token blob to write.
 
+**Superseded, 2026-09-26: the watch persists nothing.** Reinstalling wipes
+`localStorage` (§3.1.1), and a watch without its phone shows no Tokens anyway,
+so Settings stay phone-side and travel in the Sync payload — ADR-0004
+amendment.
+
 Worth recording, since it is the reason Tokens are not stored: Zepp's documented
 storage model is **isolation plus permissions, not encryption at rest**. Each
 Mini Program gets its own `/data` root isolated from other Mini Programs, and
