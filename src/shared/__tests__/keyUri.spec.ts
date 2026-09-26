@@ -89,7 +89,7 @@ describe("keyUri", () => {
         })
       })
 
-      it.each(["SHA1, SHA256, SHA512"])("algorithm %s", algorithm => {
+      it.each(["SHA1", "SHA256", "SHA512"])("algorithm %s", algorithm => {
         expect(totpConfigFromUri(getUrl({ algorithm }))).toMatchObject({
           algorithm
         })
