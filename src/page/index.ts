@@ -21,8 +21,8 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * `SCROLL_LIST` of all Tokens is Phase 3.
  *
  * Sync per the ADR-0002 amendment: `onInit` pulls the Token set, `onCall`
- * receives pushes while the page is open. A failed pull is retried by tapping
- * the status or on `onResume` (ADR-0003 amendment). What to show lives in
+ * receives pushes while the page is open. A failed pull is retried only by
+ * tapping the status — not on `onResume`, which looped (ADR-0003 amendment). What to show lives in
  * `./tokenView` and `./pageStatus`; this file is widget and ZML wiring only.
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
@@ -284,7 +284,6 @@ Page(
     onResume() {
       diag("resume")
       guarded("resume", () => {
-        if (pull === "failed" && state.tokens === undefined) pullTokens()
         refresh()
         startTicking()
       })

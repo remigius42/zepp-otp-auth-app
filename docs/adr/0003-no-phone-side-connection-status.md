@@ -53,6 +53,12 @@ conveyed, arriving at the moment it matters.
 watch app is the normal case — the next launch pulls (ADR-0002 amendment) — and
 ZML's `call` gives no reliable failure signal. The failure that matters is the
 **launch pull**, and the watch reports it where the user is looking: "Phone not
-reachable", tap to retry, and a re-pull on resume while it has no Tokens.
+reachable", tap to retry.
 Connection quality is measured rather than indicated — see the ADR-0004
 amendment on **Sync Stats**.
+
+**Corrected on hardware, 2026-09-26:** the first version also re-pulled on
+`onResume` while the watch had no Tokens. With Bluetooth off, Sync Stats
+counted 30 failed pulls within about a minute and the screen stayed black —
+most likely each failure made the system pause and resume the page, which
+pulled again. Retrying is now on tap only.
