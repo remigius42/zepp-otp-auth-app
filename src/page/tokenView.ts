@@ -15,5 +15,5 @@ export function tokenView(token: TotpConfig) {
 
 /** The Token set carried by a Sync message, if it is one. */
 export function tokensFromMessage(message: PeerMessage) {
-  return message.type === "UPDATE_TOKENS_MESSAGE" ? message.tokens : undefined
+  return message.type === "SYNC_MESSAGE" ? message.tokens : undefined
 }

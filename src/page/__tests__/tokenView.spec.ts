@@ -1,5 +1,6 @@
 /* spell-checker:ignore GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ */
 
+import { ColorSchemeName } from "../../shared/ColorSchemes"
 import { tokensFromMessage, tokenView } from "../tokenView"
 
 /* RFC 6238 appendix B: SHA-1, 8 digits, T = 59 s → 94287082. */
@@ -29,18 +30,16 @@ describe("tokenView", () => {
 })
 
 describe("tokensFromMessage", () => {
-  it("takes the Token set from an update", () => {
-    expect(
-      tokensFromMessage({ type: "UPDATE_TOKENS_MESSAGE", tokens: [RFC_TOKEN] })
-    ).toEqual([RFC_TOKEN])
-  })
-
-  it("ignores other messages", () => {
+  it("takes the Token set from a Sync", () => {
     expect(
       tokensFromMessage({
-        type: "UPDATE_SETTINGS_MESSAGE",
-        updatedSettings: {}
+        type: "SYNC_MESSAGE",
+        tokens: [RFC_TOKEN],
+        settings: {
+          colorScheme: ColorSchemeName.default,
+          shouldUseLargeTokenView: false
+        }
       })
-    ).toBeUndefined()
+    ).toEqual([RFC_TOKEN])
   })
 })

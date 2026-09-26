@@ -1,24 +1,26 @@
-import { AppSettings } from "./AppSettings"
+import type { AppSettings } from "./AppSettings"
 import type { TotpConfig } from "./TotpConfig"
 
 /**
- * The whole Token set in one message. ZML chunks, orders and length-checks
- * the payload, so Fitbit's start/token/end envelope with its `count` and
- * `index` is gone (ADR-0002).
+ * One Sync: the whole Token set and the Settings in one message. ZML chunks,
+ * orders and length-checks the payload, so Fitbit's start/token/end envelope
+ * with its `count` and `index` is gone, and so is its separate settings
+ * message (ADR-0002, ADR-0004 amendments).
  */
-export interface UpdateTokensMessage {
-  type: "UPDATE_TOKENS_MESSAGE"
+export interface SyncMessage {
+  type: "SYNC_MESSAGE"
   tokens: TotpConfig[]
+  settings: AppSettings
+  /**
+   * The phone's clock when the message was built, present only with Clock
+   * Drift Compensation on. Fitbit's `secondsSinceEpochInCompanion`.
+   */
+  phoneEpochSeconds?: number
 }
 
-export interface UpdateSettingsMessage {
-  type: "UPDATE_SETTINGS_MESSAGE"
-  updatedSettings: Partial<AppSettings>
-}
+export type PeerMessage = SyncMessage
 
-export type PeerMessage = UpdateTokensMessage | UpdateSettingsMessage
-
-/** Device → Side Service request for a Sync; answered with an `UpdateTokensMessage`. */
+/** Device → Side Service request for a Sync; answered with a `SyncMessage`. */
 export const GET_TOKENS_METHOD = "GET_TOKENS"
 
 /** Side Service → device push carrying a `PeerMessage`. */

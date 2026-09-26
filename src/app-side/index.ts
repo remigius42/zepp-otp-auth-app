@@ -1,6 +1,6 @@
 import { BaseSideService, settingsLib } from "@zeppos/zml/base-side"
 import { GET_TOKENS_METHOD, PEER_MESSAGE_METHOD } from "../shared/PeerMessage"
-import { messageForSettingsChange, tokensMessage } from "./sync"
+import { messageForSettingsChange, syncMessage } from "./sync"
 
 /**
  * Side Service — the ZML transport adapter. Everything that decides what to
@@ -17,14 +17,14 @@ AppSideService(
       respond: (error: unknown, data: unknown) => void
     ) {
       if (request.method === GET_TOKENS_METHOD) {
-        respond(null, tokensMessage(settingsLib))
+        respond(null, syncMessage(settingsLib, Date.now()))
       } else {
         respond(new Error(`Unknown method "${request.method}"`), null)
       }
     },
 
     onSettingsChange({ key }: { key: string }) {
-      const message = messageForSettingsChange(key, settingsLib)
+      const message = messageForSettingsChange(key, settingsLib, Date.now())
       if (message !== undefined) {
         this.call({ method: PEER_MESSAGE_METHOD, params: message })
       }

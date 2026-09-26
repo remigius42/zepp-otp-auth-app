@@ -1,14 +1,26 @@
-import type { UpdateTokensMessage } from "../shared/PeerMessage"
+import type { SyncMessage } from "../shared/PeerMessage"
+import { settingsFromStorage } from "../shared/settings"
 import { TOKENS_SETTINGS_KEY } from "../shared/settingsKeys"
 import { tokensForSync } from "../shared/tokens"
 
-type TokenStorage = { getItem(key: string): string | undefined }
+type SettingsStorage = { getItem(key: string): string | undefined }
 
-/** The Sync payload: every valid stored Token. */
-export function tokensMessage(storage: TokenStorage): UpdateTokensMessage {
+/**
+ * The Sync payload: every valid stored Token, the Settings and — with Clock
+ * Drift Compensation on — the phone's clock, stamped now rather than when the
+ * watch asked, so the Side Service's launch time does not count as drift
+ * (ADR-0002 amendment).
+ */
+export function syncMessage(
+  storage: SettingsStorage,
+  nowMs: number
+): SyncMessage {
+  const { compensateClockDrift, ...settings } = settingsFromStorage(storage)
   return {
-    type: "UPDATE_TOKENS_MESSAGE",
-    tokens: tokensForSync(storage.getItem(TOKENS_SETTINGS_KEY))
+    type: "SYNC_MESSAGE",
+    tokens: tokensForSync(storage.getItem(TOKENS_SETTINGS_KEY)),
+    settings,
+    ...(compensateClockDrift ? { phoneEpochSeconds: nowMs / 1000 } : {})
   }
 }
 
@@ -18,7 +30,8 @@ export function tokensMessage(storage: TokenStorage): UpdateTokensMessage {
  */
 export function messageForSettingsChange(
   key: string,
-  storage: TokenStorage
-): UpdateTokensMessage | undefined {
-  return key === TOKENS_SETTINGS_KEY ? tokensMessage(storage) : undefined
+  storage: SettingsStorage,
+  nowMs: number
+): SyncMessage | undefined {
+  return key === TOKENS_SETTINGS_KEY ? syncMessage(storage, nowMs) : undefined
 }
