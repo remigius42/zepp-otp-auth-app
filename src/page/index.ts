@@ -8,7 +8,7 @@ import {
 } from "../shared/ColorSchemes"
 import { formatTotp, getDisplayName } from "../shared/formatTokens"
 import type { TotpConfig } from "../shared/TotpConfig"
-import { currentPeriod, totp } from "../shared/totp"
+import { totp } from "../shared/totp"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
 /**
@@ -39,7 +39,7 @@ function refresh() {
   const secondsRemaining = period - (Math.floor(Date.now() / 1000) % period)
 
   codeText?.setProperty(prop.MORE, {
-    text: formatTotp(totp(SPIKE_TOKEN, currentPeriod(period)))
+    text: formatTotp(totp(SPIKE_TOKEN))
   })
   countdownText?.setProperty(prop.MORE, { text: `${secondsRemaining}s` })
 }
