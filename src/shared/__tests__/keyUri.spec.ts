@@ -1,4 +1,4 @@
-/* spell-checker:ignore MJUXILTMPEXTEWRWMNFEITY */
+/* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ MJUXILTMPEXTEWRWMNFEITY unstub */
 
 import type { TotpConfig } from "../TotpConfig"
 import { totpConfigFromUri } from "../keyUri"
@@ -12,6 +12,39 @@ describe("keyUri", () => {
 
       it("all protocols except otpauth", () => {
         expect(() => totpConfigFromUri("https://www.example.com")).toThrow()
+      })
+
+      it("other protocols even with a label path", () => {
+        expect(() => totpConfigFromUri("https://example.com/label")).toThrow(
+          /protocol mismatch/
+        )
+      })
+    })
+
+    /* The Settings App runtime rejected every pasted URI on hardware; the
+     * browser URL API is the suspected cause, so parsing must not need it. */
+    describe("without the URL API", () => {
+      beforeEach(() => {
+        vi.stubGlobal("URL", undefined)
+        vi.stubGlobal("URLSearchParams", undefined)
+      })
+      afterEach(() => {
+        vi.unstubAllGlobals()
+      })
+
+      it("tolerates surrounding whitespace, empty and valueless pairs", () => {
+        expect(
+          totpConfigFromUri(
+            `  otpauth://totp/a?&flag&secret=${"HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"}&secret=X \n`
+          )
+        ).toMatchObject({ secret: "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ" })
+      })
+
+      it("still parses a key URI", () => {
+        expect(totpConfigFromUri(getUrl({ label: "a b" }))).toMatchObject({
+          label: "a b",
+          secret: "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
+        })
       })
     })
 

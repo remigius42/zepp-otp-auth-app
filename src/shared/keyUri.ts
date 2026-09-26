@@ -11,61 +11,69 @@ import type { TotpConfig } from "./TotpConfig"
  * @returns totpConfig based on URI
  */
 export function totpConfigFromUri(keyUri: string) {
-  const url = new URL(keyUri)
-  validateProtocol(url)
-  return extractTotpConfig(url)
+  return extractTotpConfig(parseKeyUri(keyUri))
 }
 
-function extractTotpConfig(url: URL) {
-  const label = getLabel(url)
-  const issuer = getIssuer(url)
-  const secret = getSecret(url)
-  const algorithm = url.searchParams.get("algorithm") || "SHA1"
-  const digits = url.searchParams.get("digits") || "6"
-  const period = url.searchParams.get("period") || "30"
-  const totpConfig: TotpConfig = {
-    label,
-    issuer,
-    secret,
-    algorithm,
-    digits,
-    period
+interface KeyUri {
+  labelWithOptionalIssuer: string
+  params: Map<string, string>
+}
+
+/**
+ * Split a key URI by hand rather than with `URL`/`URLSearchParams`: the
+ * Settings App rejected every pasted URI on hardware, and a missing URL API in
+ * its runtime is the suspected cause. Plain string handling runs everywhere.
+ */
+function parseKeyUri(keyUri: string): KeyUri {
+  const match =
+    /^([a-z][a-z0-9+.-]*):\/\/[^/?#]*\/([^?#]*)(?:\?([^#]*))?/i.exec(
+      keyUri.trim()
+    )
+  if (!match) {
+    throw Error(`Not a key URI: "${keyUri}"`)
   }
-  return totpConfig
-}
-
-function validateProtocol(url: URL) {
-  if (url.protocol !== "otpauth:") {
+  const [, scheme = "", rawLabel = "", query = ""] = match
+  if (scheme.toLowerCase() !== "otpauth") {
     throw Error(
-      `Key URI protocol mismatch: expected "otpauth:" but got "${url.protocol}"`
+      `Key URI protocol mismatch: expected "otpauth:" but got "${scheme}:"`
     )
   }
+  return {
+    labelWithOptionalIssuer: decode(rawLabel),
+    params: parseQuery(query)
+  }
 }
 
-function getLabel(url: URL) {
-  const labelWithOptionalIssuer = getDecodedLabelWithOptionalIssuer(url)
-  const [issuerPrefix, labelAfterColon] = labelWithOptionalIssuer.split(":")
-  return labelAfterColon ?? issuerPrefix ?? ""
+function parseQuery(query: string) {
+  const params = new Map<string, string>()
+  for (const pair of query.split("&")) {
+    if (!pair) continue
+    const separator = pair.indexOf("=")
+    const key = separator === -1 ? pair : pair.slice(0, separator)
+    const value = separator === -1 ? "" : pair.slice(separator + 1)
+    if (!params.has(decode(key))) params.set(decode(key), decode(value))
+  }
+  return params
 }
 
-function getIssuer(url: URL) {
-  const labelWithOptionalIssuer = getDecodedLabelWithOptionalIssuer(url)
-  const issuer = url.searchParams.get("issuer")
+/** As `URLSearchParams` does: `+` is a space in form-encoded text. */
+function decode(text: string) {
+  return decodeURIComponent(text.replace(/\+/g, " "))
+}
+
+function extractTotpConfig({ labelWithOptionalIssuer, params }: KeyUri) {
   const [issuerPrefix, labelAfterColon] = labelWithOptionalIssuer.split(":")
   const fallbackIssuer =
     labelAfterColon === undefined ? undefined : issuerPrefix
-  return issuer || fallbackIssuer
-}
-
-function getDecodedLabelWithOptionalIssuer(url: URL) {
-  return decodeURIComponent(
-    url.href.match(/otpauth:\/\/(?:h|t)otp\/([^?]+)\?.*/)?.[1] ?? ""
-  )
-}
-
-/* An absent `secret` yields an empty string rather than null: `validateConfig`
- * rejects empty secrets already, so this keeps the rejection path identical
- * while making the TotpConfig honestly typed. */
-function getSecret(url: URL) {
-  return url.searchParams.get("secret") ?? ""
+  const totpConfig: TotpConfig = {
+    label: labelAfterColon ?? issuerPrefix ?? "",
+    issuer: params.get("issuer") || fallbackIssuer,
+    /* An absent `secret` yields an empty string rather than undefined:
+     * `validateConfig` rejects empty secrets already. */
+    secret: params.get("secret") ?? "",
+    algorithm: params.get("algorithm") || "SHA1",
+    digits: params.get("digits") || "6",
+    period: params.get("period") || "30"
+  }
+  return totpConfig
 }

@@ -42,7 +42,7 @@ describe("handleUriPaste", () => {
     handleUriPaste(storage, "not a URI")
 
     expect(storage.items.get(URI_PASTE_INPUT_SETTINGS_KEY)).toBe("not a URI")
-    expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).toBe(
+    expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).toContain(
       "Error: Not an otpauth:// URI"
     )
     expect(storage.items.get(TOKENS_SETTINGS_KEY)).toBe("[]")

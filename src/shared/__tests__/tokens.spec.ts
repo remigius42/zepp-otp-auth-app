@@ -71,6 +71,12 @@ describe("addTokenFromUri", () => {
     expect(result).toEqual({ error: expect.stringContaining("already exists") })
   })
 
+  it("names the underlying parse failure, since the Settings App has no log", () => {
+    expect(addTokenFromUri(undefined, "https://example.com/x")).toEqual({
+      error: expect.stringContaining("protocol mismatch")
+    })
+  })
+
   it.each(["not a URI", "https://example.com"])(
     "returns an error instead of throwing for %s",
     input => {

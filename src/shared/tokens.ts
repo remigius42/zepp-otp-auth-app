@@ -20,8 +20,12 @@ export function addTokenFromUri(
   let parsed: TotpConfig
   try {
     parsed = totpConfigFromUri(uri)
-  } catch {
-    return { error: gettext("Error: Not an otpauth:// URI") }
+  } catch (error) {
+    /* The detail is the only diagnostic the Settings App can show: it has no
+     * log channel on hardware (§3.6.1). */
+    return {
+      error: `${gettext("Error: Not an otpauth:// URI")} (${String(error)})`
+    }
   }
   /* Some issuers emit lowercase names; totp() keys its hashes by uppercase. */
   const token = { ...parsed, algorithm: parsed.algorithm.toUpperCase() }
