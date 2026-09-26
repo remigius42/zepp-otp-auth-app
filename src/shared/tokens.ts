@@ -99,6 +99,14 @@ export function moveToken(
   return tokens
 }
 
+/** Remove the Token at `index`. */
+export function deleteToken(
+  storedTokens: string | undefined,
+  index: number
+): TotpConfig[] {
+  return parseTokens(storedTokens).filter((_token, i) => i !== index)
+}
+
 function parseTokens(storedTokens: string | undefined): TotpConfig[] {
   if (!storedTokens) return []
   try {

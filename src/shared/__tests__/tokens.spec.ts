@@ -2,6 +2,7 @@
 
 import {
   addTokenFromUri,
+  deleteToken,
   moveToken,
   renameToken,
   tokensForSync
@@ -165,5 +166,17 @@ describe("moveToken", () => {
     [2, 1]
   ])("leaves the order alone moving Token %i by %i", (index, delta) => {
     expect(moveToken(stored, index, delta)).toEqual([TOKEN_A, TOKEN_B, TOKEN_C])
+  })
+})
+
+describe("deleteToken", () => {
+  const stored = JSON.stringify([TOKEN_A, TOKEN_B])
+
+  it("removes the Token at the index", () => {
+    expect(deleteToken(stored, 0)).toEqual([TOKEN_B])
+  })
+
+  it("leaves the Tokens alone for an index out of range", () => {
+    expect(deleteToken(stored, 2)).toEqual([TOKEN_A, TOKEN_B])
   })
 })
