@@ -11,3 +11,6 @@ dist/
 
 # Scratch list, not part of the published repo
 /TODO.md
+
+# Ignore the generated arc frames
+/src/assets/default.r/arc/
