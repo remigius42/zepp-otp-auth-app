@@ -165,6 +165,37 @@ string>>>`, exist only for JerryScript. Recommendation: port them unchanged
   cache to two entries per token (`keepTwoCachedPasswordsByToken`) were
   JerryScript-era economies; `SCROLL_LIST` does its own recycling.
 
+### 3.1.1 What the engine actually is, measured [device]
+
+Confirmed on an Amazfit Active 2 (round), 2026-09-26, by the probe in
+`src/page/probe/`. Several of these correct claims made earlier in this
+document.
+
+| Claim                         | Result                                                                                                    |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `Promise`                     | **present**, resolves                                                                                     |
+| `Map`, `Set`                  | **present**, full set/get/delete/size/iteration                                                           |
+| `globalThis`                  | present                                                                                                   |
+| `new Function('return this')` | **returns an object that is _not_ `globalThis`** — it has `Math`, so it is global-ish, but identity fails |
+| **`BigInt`**                  | **absent.** `typeof BigInt === "undefined"`; `qjsc` rejects a `1n` literal outright                       |
+| `Object.hasOwn`               | absent (ES2022) — polyfilled                                                                              |
+| Global `setTimeout`           | present, fired at 506 ms for a 500 ms delay                                                               |
+| `@zos/timer` `setTimeout`     | present, fired at 578 ms                                                                                  |
+| `@zos/storage` `localStorage` | set/get/remove all work                                                                                   |
+| Engine version                | **QuickJS 2020-07-05**, from `qjsc -h`                                                                    |
+
+**`@zos/timer` exports far more than its typings admit:** `setTimeout`,
+`clearTimeout`, `setImmediate`, `clearImmediate`, `setInterval`,
+`clearInterval`, `createTimer`, `stopTimer`, `createSysTimer`. The 4.0 typings
+declare only the last two (§3.8).
+
+**The engine is older than the toolchain's own target.** zpm compiles our
+sources to ES2020, but the runtime is a mid-2020 QuickJS with BigInt compiled
+out, and `node_modules` is passed through unchanged. Nothing on the laptop can
+see this, which is why `npm run check:engine` now compiles every bundle with the
+shipped `qjsc` and scans for post-2020 built-ins before anything reaches the
+watch.
+
 ### 3.2 Transport: `@zeppos/zml` vs. `@zos/ble` — settled from source
 
 Read from `zepp-health/zml` at version **0.0.41** on 2026-09-09, plus the
