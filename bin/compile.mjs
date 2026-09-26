@@ -54,6 +54,27 @@ async function copyAssets() {
 }
 
 /**
+ * German for Swiss phones. On a `de-CH` phone the Settings App's `gettext`
+ * returned the msgid: the runtime matches the locale exactly and ignores the
+ * `en-US` fallback. So `de-CH` gets `de-DE`'s translations, copied at build
+ * time so the two cannot drift. Whether this works is Phase 3's S1 hardware
+ * check; see TODO.md.
+ */
+const LOCALE_ALIASES = { "de-DE": ["de-CH"] }
+
+async function copyLocaleAliases() {
+  const catalogs = await collect(`${OUT}/**/i18n/*.po`)
+  await Promise.all(
+    catalogs.flatMap(catalog => {
+      const locale = catalog.slice(catalog.lastIndexOf("/") + 1, -".po".length)
+      return (LOCALE_ALIASES[locale] ?? []).map(alias =>
+        cp(catalog, join(dirname(catalog), `${alias}.po`))
+      )
+    })
+  )
+}
+
+/**
  * Module specifiers the Zeus toolchain resolves itself, which must survive
  * bundling untouched: the `@zos/*` device APIs, the phone-side `i18n` module,
  * and the per-platform layout loader.
@@ -111,6 +132,7 @@ async function emptyOutDir() {
 await assertAppJsonReferencesJs()
 await emptyOutDir()
 await copyAssets()
+await copyLocaleAliases()
 
 if (watch) {
   const ctx = await context(options)
