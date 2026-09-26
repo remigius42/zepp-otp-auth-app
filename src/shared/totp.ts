@@ -1,12 +1,11 @@
-/* spellchecker:ignore HOTP */
+/* spellchecker:ignore HOTP typedarrays */
 
+import { hmac } from "@noble/hashes/hmac.js"
+import { sha1 } from "@noble/hashes/legacy.js"
+import { sha256, sha512 } from "@noble/hashes/sha2.js"
 import base32decode from "base32-decode"
-import encHex from "crypto-js/enc-hex"
-import HmacSHA1 from "crypto-js/hmac-sha1"
-import HmacSHA256 from "crypto-js/hmac-sha256"
-import HmacSHA512 from "crypto-js/hmac-sha512"
 import { TotpConfig } from "./TotpConfig"
-import { base16decode, base16encode } from "./base16codec"
+import { base16decode } from "./base16codec"
 
 /**
  * Calculate the current Time-based One-Time Password (TOTP) for a given TOTP
@@ -33,12 +32,10 @@ export function totp(
     isForNextPeriod,
     clockDriftSeconds
   )
-  const keyBytes = base32decode(secret.toUpperCase(), "RFC4648")
-  const keyBytesHexString = base16encode(keyBytes)
-  const hashHexString = hmac(messageHexString, keyBytesHexString, algorithm)
+  const keyBytes = new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
+  const hash = hmacDigest(base16decode(messageHexString), keyBytes, algorithm)
 
   // Step 2 in https://www.rfc-editor.org/rfc/rfc4226#section-5.3
-  const hash = base16decode(hashHexString)
   const otp = dynamicTruncate(hash)
 
   // Step 3 in https://www.rfc-editor.org/rfc/rfc4226#section-5.3
@@ -103,24 +100,24 @@ function dynamicTruncate(hash: Uint8Array) {
 }
 
 /**
- * Calculate the HMAC for the given message, key and algorithm and return it
- * encoded in base16 (hex).
+ * Calculate the HMAC of the given message under the given key.
+ *
+ * `@noble/hashes` rather than `crypto-js`: the latter is a UMD bundle whose
+ * wrapper resolves its global from module-scope `this`, which is `undefined`
+ * under ESM. The Zeus bundler's CommonJS interop then initializes
+ * `lib-typedarrays` before `core` has finished, and the library throws on the
+ * device — see docs/ZEPP_OS_PORTING_ANALYSIS.md §3.10. It is also officially
+ * discontinued, which this repo inherited from `fitbit-otp-auth-app`.
  */
-function hmac(
-  messageHexString: string,
-  keyHexString: string,
+function hmacDigest(
+  message: Uint8Array,
+  key: Uint8Array,
   algorithm: string
-) {
-  const message = encHex.parse(messageHexString)
-  const key = encHex.parse(keyHexString)
-  const hash =
-    algorithm === "SHA1"
-      ? HmacSHA1(message, key)
-      : algorithm === "SHA256"
-        ? HmacSHA256(message, key)
-        : HmacSHA512(message, key)
+): Uint8Array {
+  const hashFunction =
+    algorithm === "SHA1" ? sha1 : algorithm === "SHA256" ? sha256 : sha512
 
-  return hash.toString() // by default encodes to base16
+  return hmac(hashFunction, key, message)
 }
 
 /**
