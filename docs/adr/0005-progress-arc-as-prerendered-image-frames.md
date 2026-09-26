@@ -57,3 +57,27 @@ shape rather than introducing a new one.
 - **Falling back is cheap**: option (b) binds a different value to the same row
   `key`. If frame-swapping at 1 Hz turns out to be janky on real hardware, the
   change is small and local.
+
+## Confirmed on hardware, 2026-09-26
+
+The spike answered both open questions, and the decision stands.
+
+- **Per-row patching exists.** `prop.UPDATE_ITEM` is `66` on an Active 2
+  (round), and patching index 0 visibly changes that row alone. The condition
+  this ADR was hedged against does not apply, so the countdown stays inside the
+  list.
+- **Whole-array refresh is confirmed unusable for the countdown.** A 1 Hz
+  `prop.UPDATE_DATA` refresh scrolls the list back to the top on every tick.
+  That rules out the alternative rather than merely making it unattractive.
+- **`fill_view` is not an escape hatch.** Rows do admit a `fill_view` child —
+  the porting analysis was wrong to say text and image only — but its data
+  `key` binds the fill **color**, not any geometry: binding `0xffd502`,
+  `0xff0000` and `0x00ff00` produced amber, red and green bars of identical
+  size. So it cannot express progress, and pre-rendered frames in an
+  `image_view` remain the way to draw a per-row arc.
+
+Layout note for whoever builds the real rows: in the probe, a child at
+`x: px(12)` was clipped by the round screen's corner. Row children need a
+horizontal inset well beyond the nominal bounds, and how much depends on
+vertical position. That belongs to the §5 round-screen tuning line, but it is
+cheaper to design for than to retrofit.
