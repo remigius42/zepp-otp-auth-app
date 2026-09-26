@@ -17,6 +17,14 @@ export function addTokenFromUri(
   storedTokens: string | undefined,
   uri: string
 ): AddTokenResult {
+  /* Some share menus escape the whole URI; the label alone may be escaped. */
+  if (/^otpauth%3A/i.test(uri.trim())) {
+    return {
+      error: gettext(
+        "Error: This URI was percent-escaped by the app you copied it from, so it starts with otpauth%3A instead of otpauth:. Copy it from a scanner that shares plain text, or add the Token manually."
+      )
+    }
+  }
   let parsed: TotpConfig
   try {
     parsed = totpConfigFromUri(uri)

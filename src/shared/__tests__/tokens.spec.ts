@@ -1,4 +1,4 @@
-/* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
+/* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ Ajohn Fsecret Ftotp */
 
 import {
   addTokenFromUri,
@@ -231,5 +231,36 @@ describe("addTokenManually", () => {
     expect("errors" in result && result.errors.get("label")).toContain(
       "already exists"
     )
+  })
+})
+
+describe("addTokenFromUri with a percent-escaped URI", () => {
+  const ESCAPED = `otpauth%3A%2F%2Ftotp%2FGitHub%3Ajohn%3Fsecret%3D${SECRET}`
+
+  it.each([ESCAPED, ESCAPED.replace("otpauth%3A", "OTPAUTH%3a")])(
+    "names the escaping for %s",
+    input => {
+      const result = addTokenFromUri(undefined, input)
+
+      expect(result).toEqual({
+        error: expect.stringContaining("percent-escaped")
+      })
+      expect(result).not.toEqual({
+        error: expect.stringContaining("Not an otpauth")
+      })
+    }
+  )
+
+  it("still accepts %3A and %40 inside the label", () => {
+    expect(
+      addTokenFromUri(undefined, uri({ label: "GitHub:john@example.com" }))
+    ).toEqual({
+      tokens: [
+        expect.objectContaining({
+          issuer: "GitHub",
+          label: "john@example.com"
+        })
+      ]
+    })
   })
 })

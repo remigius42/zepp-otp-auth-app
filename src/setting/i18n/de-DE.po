@@ -127,7 +127,10 @@ msgid "Error: Algorithm is not supported"
 msgstr "Algorithmus wird nicht unterstützt. Diese App unterstützt SHA-1 und SHA-256."
 
 msgid "Error: Not an otpauth:// URI"
-msgstr "Keine otpauth://-URI. Falls sie über ein Teilen-Menü kopiert wurde: Prüfen Sie, ob \":\" und \"@\" durch %3A und %40 ersetzt wurden."
+msgstr "Keine otpauth://-URI."
+
+msgid "Error: This URI was percent-escaped by the app you copied it from, so it starts with otpauth%3A instead of otpauth:. Copy it from a scanner that shares plain text, or add the Token manually."
+msgstr "Die App, aus der Sie diese URI kopiert haben, hat sie kodiert: Sie beginnt mit otpauth%3A statt otpauth:. Kopieren Sie sie aus einem Scanner, der reinen Text teilt, oder fügen Sie das Token manuell hinzu."
 
 msgid "Paste otpauth:// URI"
 msgstr "otpauth://-URI einfügen"

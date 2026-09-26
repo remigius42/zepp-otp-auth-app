@@ -125,7 +125,10 @@ msgid "Error: Algorithm is not supported"
 msgstr "Algorithm is not supported. This app supports SHA-1 and SHA-256."
 
 msgid "Error: Not an otpauth:// URI"
-msgstr "Not an otpauth:// URI. If it was copied from a share menu, check that \":\" and \"@\" were not replaced by %3A and %40."
+msgstr "Not an otpauth:// URI."
+
+msgid "Error: This URI was percent-escaped by the app you copied it from, so it starts with otpauth%3A instead of otpauth:. Copy it from a scanner that shares plain text, or add the Token manually."
+msgstr "This URI was percent-escaped by the app you copied it from, so it starts with otpauth%3A instead of otpauth:. Copy it from a scanner that shares plain text, or add the Token manually."
 
 msgid "Paste otpauth:// URI"
 msgstr "Paste otpauth:// URI"
