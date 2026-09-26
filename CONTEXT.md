@@ -72,9 +72,20 @@ _Avoid_: migration (ambiguous with SDK version migration), transfer.
 
 ### Moving tokens to the watch
 
+**Settings App**:
+The configuration UI on the phone, inside the Zepp app. Where **Enrollment**
+happens and **Tokens** are renamed, reordered and deleted.
+_Avoid_: config app, companion, settings page.
+
+**Side Service**:
+The headless phone-side process that owns the **Tokens** and performs **Sync**.
+No UI; distinct from the **Settings App**.
+_Avoid_: companion, config app, background app.
+
 **Sync**:
-Pushing the full set of **Tokens** from the phone to the watch. Always the
-complete set — there is no partial or incremental sync.
+The watch receiving the full set of **Tokens** from the **Side Service**. Either
+side may start it — the watch on launch, the phone when a Token changes. Always
+the complete set — there is no partial or incremental sync.
 _Avoid_: transfer, update, push, transmission.
 
 **Store On Watch**:

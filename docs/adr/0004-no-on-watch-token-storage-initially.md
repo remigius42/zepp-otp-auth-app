@@ -68,3 +68,11 @@ equal.
   opt-in and off by default, with the Fitbit warning text carried over. If
   `localStorage` is chosen then, it is key-value JSON, which is the natural shape
   once CBOR is gone.
+
+## Evidence from the spike, 2026-09-26
+
+Reinstalling the app over `zeus bridge` wiped `localStorage` (§3.1.1). Had
+Tokens been persisted there, every developer install would have lost them.
+Whether an ordinary app update does the same is unverified — a bridge install
+may uninstall first — so this is supporting evidence, not proof. The same risk
+applies to persisted **app settings** (§3.4): check it before relying on them.

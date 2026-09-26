@@ -61,3 +61,21 @@ of Tokens, so a single message carrying the array loses nothing.
   push a full Token set is not something the source can tell us.
 - Phone-side connection state is not available through ZML — see
   [ADR-0003](./0003-no-phone-side-connection-status.md).
+
+## Amendment, 2026-09-26: the watch pulls on launch
+
+"Phone-initiated" was wrong. Fitbit's companion pushed on `peerSocket` `open`;
+the Side Service has no such event (ADR-0003), and a `settingsChanged` launch
+only fires on settings writes. With Tokens held in memory only (ADR-0004),
+nothing would ever Sync a freshly opened watch app.
+
+So Sync has two triggers and one payload:
+
+- **Pull:** the page's `onInit` calls `request({ method: "GET_TOKENS" })`; the
+  Side Service answers in `onRequest` with the whole array.
+- **Push:** `onSettingsChange` on a Token key sends the same payload via `call`.
+  Dropped if the page is closed — the next launch pulls.
+
+**Per-Token messages stay rejected.** The per-key trigger makes the _trigger_
+cheaper, not the payload: each write costs a process launch plus one `call`
+either way, and a watch starting empty needs the full set regardless.

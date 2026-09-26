@@ -354,8 +354,11 @@ list — is off the table, and the 10 h estimate for the device UI stands.
 **`prop` carries a richer `SCROLL_LIST` API than either the docs or the typings
 describe.** `getOwnPropertyNames(prop)` on the device returns 88 entries
 including `DELETE_ITEM`, `MOVE_ITEM`, `ITEM_MORE`, `ITEM_REFRESH`, `LIST_TOP`,
-`ITEM_HEIGHT` and `SCROLLBAR_VISIBLE`. `DELETE_ITEM` and `MOVE_ITEM` are
-directly relevant to the Token list. Note that **`Object.keys(prop)` returns
+`ITEM_HEIGHT` and `SCROLLBAR_VISIBLE`. `DELETE_ITEM` and `MOVE_ITEM` looked
+relevant to the Token list but **do not change its design**: delete and reorder
+happen in the Settings App, and every Sync replaces the whole set, so the watch
+uses `UPDATE_DATA` for a set change — where losing scroll position is correct —
+and never mutates the list structurally. Note that **`Object.keys(prop)` returns
 `[]`** — the runtime hides these from enumeration, so any enumeration-based
 capability check reports every property as missing. An earlier revision of the
 probe did exactly that and produced a confident false negative.
@@ -518,10 +521,10 @@ The substantive one: this is the same lesson as §3.2, §3.7 and §4.2, arriving
 from a fourth direction. **Prose, typings, library source and runtime are four
 different accounts of this platform, and only the last one is authoritative.**
 
-### 3.9 Getting a build onto the watch, and the four hours it cost
+### 3.9 Getting a build onto the watch
 
-Not a design question, but the first genuinely expensive surprise of the port,
-and none of it is in the effort estimate. Recorded because the failures were
+Not a design question, and not in the effort estimate — about 0.5 h, despite
+an earlier note here claiming four. Recorded because the failures were
 all misattributed at first, and because every message involved was actively
 misleading.
 
@@ -850,6 +853,16 @@ Estimate assumes: one device model first; feature parity excluding "store tokens
 on watch", clock-drift compensation, enlarged view, and three color schemes;
 test coverage maintained on pure logic but **not** on UI (no Zepp equivalent of
 your `document` mock — expect overall coverage to drop noticeably).
+
+**Actual hours, recorded per phase. The numbers above are the original estimate and
+stay unedited** — the write-up compares against them.
+
+| Phase    | Estimate | Actual | Where the difference went                                                                                                                     |
+| -------- | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Spike | 4 h      | ~6 h   | ≥1 h of device deploys that `check:engine` would have caught on the laptop; ≥0.5 h of blank Settings App pages (§3.6.1); 0.5 h account (§3.9) |
+
+Revising the estimate is deferred until after Phase 2, the first phase with real
+integration risk. 1.5× on a 4 h spike is too little evidence to scale 43 h by.
 
 ## 6. Tooling assessment
 
