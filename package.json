@@ -16,13 +16,13 @@
     "prepare": "husky",
     "compile": "node bin/compile.mjs",
     "compile:watch": "node bin/compile.mjs --watch",
-    "build": "npm run generate-licenses-data && npm run compile && cd build/zeus && zeus build",
+    "build": "npm run generate-licenses-data && npm run compile && npm run check:engine && cd build/zeus && zeus build",
     "dev": "npm run compile && cd build/zeus && zeus dev",
     "preview": "npm run compile && cd build/zeus && zeus preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "npm run lint:prettier && npm run lint:cspell && npm run lint:markdown && npm run lint:oxlint && npm run typecheck",
+    "lint": "npm run lint:prettier && npm run lint:cspell && npm run lint:markdown && npm run lint:oxlint && npm run typecheck && npm run check:engine",
     "lint:prettier": "prettier --no-error-on-unmatched-pattern --ignore-unknown --list-different '**/*'",
     "lint:cspell": "cspell --dot --no-must-find-files --no-progress '**/*'",
     "lint:markdown": "markdownlint-cli2 '**/*.md' '!node_modules/**'",
@@ -31,7 +31,8 @@
     "lint:fix:prettier": "prettier --write '**/*'",
     "lint:fix:oxlint": "oxlint --fix",
     "generate-licenses-data": "./bin/generate_licenses_data.sh",
-    "check-licenses": "license-checker-rseidelsohn --production --onlyAllow \"MIT;ISC;BSD-3-Clause;Apache-2.0;0BSD\" --excludePrivatePackages"
+    "check-licenses": "license-checker-rseidelsohn --production --onlyAllow \"MIT;ISC;BSD-3-Clause;Apache-2.0;0BSD\" --excludePrivatePackages",
+    "check:engine": "node bin/check-engine.mjs"
   },
   "_moduleAliases": {
     "zeppos-app-utils": "node_modules/@zeppos/zeus-cli/private-modules/zeppos-app-utils"

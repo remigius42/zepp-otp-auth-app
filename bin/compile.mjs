@@ -82,6 +82,10 @@ const options = {
   outbase: SRC,
   bundle: true,
   external: ZEUS_PROVIDED,
+  /* Runs before any dependency code in every bundle, filling standard-library
+   * gaps in the device's QuickJS. `npm run check:engine` fails the build if a
+   * bundle uses a polyfilled built-in without this present. */
+  inject: [`${SRC}/shared/enginePolyfills.ts`],
   format: "esm",
   target: "es2020",
   sourcemap: true,

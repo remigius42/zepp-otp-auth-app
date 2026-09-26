@@ -21,6 +21,10 @@ export default defineConfig({
         // worth testing belongs in a module under src/shared/ instead.
         "src/app.ts",
         "src/app-side/index.ts",
+        // Engine polyfills. Their whole point is a branch that is never taken
+        // on Node, where the built-ins already exist; bin/check-engine.mjs
+        // verifies them against the device's engine instead.
+        "src/shared/enginePolyfills.ts",
         // Type-only modules. They emit no runtime code, so v8 reports 0/0
         // statements as 0% and trips the per-file threshold.
         "src/shared/AppSettings.ts",

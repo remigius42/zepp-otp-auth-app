@@ -11,7 +11,10 @@ const LINT_STAGED_CONFIG = {
   "**/*.md": "markdownlint-cli2",
   "**/*.{ts,mts,mjs,js}": [
     "oxlint --max-warnings=0",
-    () => "vitest run --passWithNoTests"
+    () => "vitest run --passWithNoTests",
+    /* Catches constructs the device's QuickJS 2020-07-05 cannot run. Neither
+     * tsc nor the tests can see these, because both run on modern Node. */
+    () => "npm run check:engine"
   ]
 }
 

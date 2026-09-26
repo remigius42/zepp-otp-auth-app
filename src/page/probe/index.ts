@@ -175,7 +175,7 @@ const pageOptions: Page.Option & Record<string, unknown> = {
     /* SHA-512 is deliberately absent: importing it pulls in BigInt, which this
      * QuickJS build does not have, and the page dies during module evaluation
      * rather than at the call. Probe the engine capability directly instead. */
-    reportCheck(screen, "4b BigInt (SHA-512 blocker)", () => {
+    reportCheck(screen, "4b BigInt availability", () => {
       const bigIntType = typeof (globalThis as Record<string, unknown>).BigInt
       if (bigIntType === "function") {
         return "present - SHA-512 could be restored"
