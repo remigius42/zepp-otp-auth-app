@@ -44,10 +44,21 @@ interface UntypedWidget {
 
 const propRecord = prop as unknown as Record<string, number | undefined>
 
+/* Binding `bar: 50` produced a navy bar, and 50 is 0x000032 -- so the data
+ * value bound by a `fill_view`'s `key` looks like a *color*, not a width.
+ * These are unmistakable, so one glance settles it: if rows 0-2 come out amber,
+ * red and green, the key is a color and `fill_view` is a per-row swatch of
+ * fixed size rather than a progress bar -- which would leave ADR-0005's
+ * pre-rendered frames in place. */
+const BAR_VALUES = [0xffd502, 0xff0000, 0x00ff00]
+
 function makeRows(tick: number): RowData[] {
   const rows: RowData[] = []
   for (let index = 0; index < ROW_COUNT; index += 1) {
-    rows.push({ label: `row ${String(index)} · tick ${String(tick)}`, bar: 50 })
+    rows.push({
+      label: `row ${String(index)} · tick ${String(tick)}`,
+      bar: BAR_VALUES[index % BAR_VALUES.length] as number
+    })
   }
   return rows
 }
@@ -171,7 +182,7 @@ Page({
       }
       const patched: RowData = {
         label: `row 0 · PATCHED ${String(tick)}`,
-        bar: 50
+        bar: BAR_VALUES[tick % BAR_VALUES.length] as number
       }
       try {
         list.setProperty(updateItem, { index: 0, item_data: patched })

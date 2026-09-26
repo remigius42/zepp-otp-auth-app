@@ -332,6 +332,42 @@ which keys does the runtime's `prop` object actually carry? `page/probe/index`
 logs them, settling §3.5 from a transcript rather than from a reading of the
 docs.
 
+### 3.5.1 §3.5 settled on hardware [device]
+
+Observed on an Amazfit Active 2 (round), 2026-09-26.
+
+| Question                            | Answer                                                                                                                                  |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Does `prop.UPDATE_ITEM` exist?      | **Yes, `= 66`**                                                                                                                         |
+| Does `prop.UPDATE_DATA` exist?      | Yes, `= 53`                                                                                                                             |
+| Does `UPDATE_ITEM` patch one row?   | **Yes — row 0 alone changes.** Confirmed visually                                                                                       |
+| Does `UPDATE_DATA` preserve scroll? | **No.** It redraws every row, and a 1 Hz refresh **scrolls back to the top every tick**, making it unusable while the user is scrolling |
+| Does `fill_view` render?            | **Yes** — a third child type the earlier draft said did not exist                                                                       |
+
+**So the design question is closed in favour of per-row patching.** The
+countdown lives inside the list, updated with
+`setProperty(prop.UPDATE_ITEM, { index, item_data })` once per second per
+visible row. `UPDATE_DATA` is reserved for a genuine change of the Token set,
+where losing scroll position is correct anyway. Option (e) — hand-building the
+list — is off the table, and the 10 h estimate for the device UI stands.
+
+**`prop` carries a richer `SCROLL_LIST` API than either the docs or the typings
+describe.** `getOwnPropertyNames(prop)` on the device returns 88 entries
+including `DELETE_ITEM`, `MOVE_ITEM`, `ITEM_MORE`, `ITEM_REFRESH`, `LIST_TOP`,
+`ITEM_HEIGHT` and `SCROLLBAR_VISIBLE`. `DELETE_ITEM` and `MOVE_ITEM` are
+directly relevant to the Token list. Note that **`Object.keys(prop)` returns
+`[]`** — the runtime hides these from enumeration, so any enumeration-based
+capability check reports every property as missing. An earlier revision of the
+probe did exactly that and produced a confident false negative.
+
+**`fill_view` is probably a color swatch, not a progress bar.** It renders, but
+binding `bar: 50` produced a _navy_ bar — and 50 is `0x000032`. That points at
+the `key` binding the fill **color** rather than any geometry, with width and
+height fixed in `item_config`. If so it cannot express progress, and
+[ADR-0005](./adr/0005-progress-arc-as-prerendered-image-frames.md) stands
+unchanged. Pending one confirmation: rows bound to `0xffd502`, `0xff0000` and
+`0x00ff00` should come out amber, red and green.
+
 ### 3.6 Settings App: only the Token list is a rewrite
 
 The Settings App was costed at 11 h on the assumption that it is a rewrite. Read
