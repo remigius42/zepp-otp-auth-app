@@ -10,11 +10,21 @@ import {
   URI_PASTE_ERROR_SETTINGS_KEY,
   URI_PASTE_INPUT_SETTINGS_KEY
 } from "../shared/settingsKeys"
+import appJson from "../app.json"
 import { parseStats } from "../shared/syncStats"
 import { parseTokens } from "../shared/tokens"
 import type { TotpConfig } from "../shared/TotpConfig"
 import { getDisplayName } from "../shared/formatTokens"
 import { gettextWithReplacement } from "../shared/i18nUtils"
+import licenses from "./licenses"
+import {
+  addManualToken,
+  changeManualField,
+  manualEntryErrorKey,
+  manualEntryFields,
+  resetManualEntry,
+  type ManualEntryField
+} from "./manualEntry"
 import { storeSetting } from "./storeSetting"
 import { summarizeStats } from "./syncStatsSummary"
 import {
@@ -28,15 +38,15 @@ import {
 import { handleUriPaste, type SettingsStorage } from "./uriPaste"
 
 /**
- * Settings App: URI Paste, the Token list and the Settings. Logic lives in
- * `./uriPaste`, `./tokenList`, `./storeSetting` and `./syncStatsSummary`; this
- * file only renders.
+ * Settings App, in Fitbit's order: Introduction, Tokens (URI Paste and the
+ * Token list), Manual Entry, Settings, licenses. Logic lives in `./uriPaste`,
+ * `./tokenList`, `./manualEntry`, `./storeSetting` and `./syncStatsSummary`;
+ * this file only renders.
  *
- * `View`, `TextInput` and `Button` are proven by the shipped `todo-list`
- * template. `Section`, `Toggle` and `Select` are unverified on hardware and a
- * throw blanks the whole page with no log (§3.6.1); if the Phase 3 S1 check
- * shows that, each has a predetermined fallback in TODO.md. `Text` checks for
- * itself and falls back to a disabled `TextInput`.
+ * `View`, `TextInput`, `Button`, `Section`, `Toggle`, `Select` and `Text` are
+ * proven on hardware (S1). `Link` is not, and a throw blanks the whole page
+ * with no log (§3.6.1), so it checks for itself and falls back to its URL as
+ * text, like `Text` falls back to a disabled `TextInput`.
  *
  * `build()` must never write to settings storage: the write re-runs `build()`.
  * Writes happen in `onChange` only.
@@ -50,20 +60,25 @@ AppSettingsPage({
     const error = settingsStorage.getItem(URI_PASTE_ERROR_SETTINGS_KEY)
 
     return View({ style: { padding: "12px 20px" } }, [
-      TextInput({
-        label: gettext("Paste otpauth:// URI"),
-        value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
-        onChange: (input: string) => {
-          handleUriPaste(settingsStorage, input)
-        }
-      }),
-      ...(error ? [errorLine(error)] : []),
-      ...tokens.map((token, index) =>
-        index === pending
-          ? deleteConfirmationRow(settingsStorage, token)
-          : tokenRow(settingsStorage, token, index)
-      ),
-      settingsSection(settingsStorage)
+      introductionSection(),
+      Section({ title: gettext("Tokens") }, [
+        TextInput({
+          label: gettext("Paste otpauth:// URI"),
+          value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
+          onChange: (input: string) => {
+            handleUriPaste(settingsStorage, input)
+          }
+        }),
+        ...(error ? [errorLine(error)] : []),
+        ...tokens.map((token, index) =>
+          index === pending
+            ? deleteConfirmationRow(settingsStorage, token)
+            : tokenRow(settingsStorage, token, index)
+        )
+      ]),
+      manualEntrySection(settingsStorage),
+      settingsSection(settingsStorage),
+      licensesSection()
     ])
   }
 })
@@ -136,6 +151,88 @@ const BUTTONS_STYLE = {
   style: { display: "flex", flexDirection: "row", gap: "8px" }
 }
 
+function introductionSection() {
+  return Section({ title: gettext("Introduction") }, [
+    textLine(gettext("Welcome to the OTP Auth App!")),
+    link(
+      "https://github.com/remigius42/zepp-otp-auth-app",
+      gettext("User documentation")
+    ),
+    link(
+      "https://www.buymeacoffee.com/remigius",
+      gettext("Please help support this app by donating a coffee")
+    )
+  ])
+}
+
+function manualEntrySection(storage: SettingsStorage) {
+  const fields = manualEntryFields(storage)
+  const errorFor = (field: ManualEntryField) => {
+    const error = storage.getItem(manualEntryErrorKey(field))
+    return error ? [errorLine(error)] : []
+  }
+  const input = (field: ManualEntryField, label: string) => [
+    TextInput({
+      label,
+      value: fields[field],
+      onChange: (value: string) => {
+        changeManualField(storage, field, value)
+      }
+    }),
+    ...errorFor(field)
+  ]
+  const select = (field: ManualEntryField, label: string, values: string[]) => [
+    Select({
+      label,
+      options: values.map(value => ({ name: value, value })),
+      value: fields[field],
+      onChange: (value: string) => {
+        changeManualField(storage, field, value)
+      }
+    }),
+    ...errorFor(field)
+  ]
+  return Section({ title: gettext("Add token manually") }, [
+    ...input("label", gettext("Label")),
+    ...input("issuer", gettext("Issuer")),
+    ...input("secret", gettext("Secret in Base32")),
+    ...select("algorithm", gettext("Algorithm"), ["SHA1", "SHA256"]),
+    ...select("digits", gettext("Number of digits"), ["6", "8"]),
+    ...input("period", gettext("Period in seconds")),
+    View(BUTTONS_STYLE, [
+      Button({
+        label: gettext("Add token"),
+        onClick: () => {
+          addManualToken(storage)
+        }
+      }),
+      Button({
+        label: gettext("Reset to defaults"),
+        onClick: () => {
+          resetManualEntry(storage)
+        }
+      })
+    ])
+  ])
+}
+
+function licensesSection() {
+  return Section({ title: gettext("License information") }, [
+    textLine(`zepp-otp-auth-app v${appJson.app.version.name}`),
+    textLine("Copyright 2026 binary poetry gmbh."),
+    textLine(gettext("Licensed under GPL version 3.0 or later.")),
+    textLine(gettext("Third-party licenses")),
+    ...Object.values(licenses).map(
+      ({ name, version, licenses: license, copyright, repository }) =>
+        textLine(
+          [`${name}@${version}`, license, copyright, repository]
+            .filter(Boolean)
+            .join(", ")
+        )
+    )
+  ])
+}
+
 function settingsSection(storage: SettingsStorage) {
   const settings = settingsFromStorage(storage)
   return Section({ title: gettext("Settings") }, [
@@ -179,6 +276,12 @@ function errorLine(message: string) {
   return typeof Text === "function"
     ? Text({ style: { color: "#d00", fontSize: "12px" } }, message)
     : TextInput({ label: message, disabled: true })
+}
+
+function link(url: string, label: string) {
+  return typeof Link === "function"
+    ? Link({ source: url }, label)
+    : textLine(`${label}: ${url}`)
 }
 
 function textLine(text: string) {

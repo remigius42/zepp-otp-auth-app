@@ -40,7 +40,8 @@ export default defineConfig({
         "src/shared/AppSettings.ts",
         "src/shared/PeerMessage.ts",
         "src/shared/TotpConfig.ts",
-        "src/global.d.ts"
+        "src/global.d.ts",
+        "src/setting/licenses.d.ts"
       ],
       thresholds: {
         perFile: true,

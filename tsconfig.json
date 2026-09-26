@@ -12,7 +12,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "files": ["node_modules/@zeppos/zml/zml.d.ts"],
   "include": ["src", "bin"],

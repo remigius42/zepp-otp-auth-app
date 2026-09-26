@@ -85,7 +85,10 @@ declare function TextInput(props: Record<string, unknown>): SettingsRenderFunc
 declare function Button(props: Record<string, unknown>): SettingsRenderFunc
 declare function Toggle(props: Record<string, unknown>): SettingsRenderFunc
 declare function Select(props: Record<string, unknown>): SettingsRenderFunc
-declare function Link(props: Record<string, unknown>): SettingsRenderFunc
+declare function Link(
+  props: Record<string, unknown>,
+  children?: string | SettingsRenderFunc[]
+): SettingsRenderFunc
 declare function View(
   props: Record<string, unknown>,
   children?: SettingsRenderFunc[]
