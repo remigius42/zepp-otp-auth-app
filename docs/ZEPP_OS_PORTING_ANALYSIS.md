@@ -506,6 +506,16 @@ under Zepp app → Profile → device → Watch settings → System Language, wh
 Settings App follows the phone's locale. So the device UI and the settings UI can
 legitimately end up in different languages. Fitbit did not have this split.
 
+**Locales match exactly, with no fallback [device].** On a `de-CH` phone the
+Settings App showed raw msgids — neither the German nor the English text —
+although zpm injects `gettextFactory(table, lang, "en-US")`. The runtime looks
+the phone's locale up verbatim, finds no `de-CH` table, and does not fall back
+to `de-DE` or to the declared `en-US`. Shipping a `de-CH.po` fixed it:
+`bin/compile.mjs` copies `de-DE.po` to `de-CH.po` at build time, and the page
+rendered German, 2026-09-26. Every further regional variant (`de-AT`, `en-GB`,
+…) would need the same alias — and until it has one, that phone sees msgids,
+which is why msgids are kept as readable English sentences.
+
 **Rejected: `@silver-zepp/polyglot`.** A third-party toolkit offering dynamic
 language switching, an in-app language picker, and `.po` → Excel migration. It
 solves problems this app does not have — two languages, no runtime switching
