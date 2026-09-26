@@ -11,8 +11,8 @@ import {
   PEER_MESSAGE_METHOD,
   type PeerMessage
 } from "../shared/PeerMessage"
-import type { TotpConfig } from "../shared/TotpConfig"
-import { tokensFromMessage, tokenView } from "./tokenView"
+import { applySync, INITIAL_SYNC_STATE } from "./syncState"
+import { tokenView } from "./tokenView"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
 /**
@@ -41,18 +41,18 @@ const SYNC_TIMEOUT_MS = 10_000
 
 const scheme = ColorSchemes[ColorSchemeName.default]
 
-let tokens: TotpConfig[] | undefined
+let state = INITIAL_SYNC_STATE
 let displayNameText: ReturnType<typeof createWidget> | undefined
 let codeText: ReturnType<typeof createWidget> | undefined
 let countdownText: ReturnType<typeof createWidget> | undefined
 let timer: ReturnType<typeof setInterval> | undefined
 
 function refresh() {
-  const token = tokens?.[0]
+  const token = state.tokens?.[0]
   if (token === undefined) {
     displayNameText?.setProperty(prop.MORE, { text: "" })
     codeText?.setProperty(prop.MORE, { text: "" })
-    if (tokens !== undefined) showStatus("no tokens")
+    if (state.tokens !== undefined) showStatus("no tokens")
     return
   }
 
@@ -67,9 +67,8 @@ function showStatus(text: string) {
 }
 
 function receive(message: PeerMessage) {
-  const received = tokensFromMessage(message)
-  if (received === undefined) return
-  tokens = received
+  state = applySync(state, message, Date.now())
+  console.log(`sync drift ${state.driftSeconds} s`)
   refresh()
 }
 

@@ -1,7 +1,6 @@
 /* spell-checker:ignore GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ */
 
-import { ColorSchemeName } from "../../shared/ColorSchemes"
-import { tokensFromMessage, tokenView } from "../tokenView"
+import { tokenView } from "../tokenView"
 
 /* RFC 6238 appendix B: SHA-1, 8 digits, T = 59 s → 94287082. */
 const RFC_TOKEN = {
@@ -26,20 +25,5 @@ describe("tokenView", () => {
       code: "9428 7082",
       secondsRemaining: 1
     })
-  })
-})
-
-describe("tokensFromMessage", () => {
-  it("takes the Token set from a Sync", () => {
-    expect(
-      tokensFromMessage({
-        type: "SYNC_MESSAGE",
-        tokens: [RFC_TOKEN],
-        settings: {
-          colorScheme: ColorSchemeName.default,
-          shouldUseLargeTokenView: false
-        }
-      })
-    ).toEqual([RFC_TOKEN])
   })
 })
