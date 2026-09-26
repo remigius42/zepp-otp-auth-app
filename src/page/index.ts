@@ -1,8 +1,6 @@
 /* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
 
-import { push } from "@zos/router"
 import { align, createWidget, prop, text_style, widget } from "@zos/ui"
-import { px } from "@zos/utils"
 import {
   ColorSchemeName,
   ColorSchemes,
@@ -22,6 +20,10 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * hypothetical: `crypto-js` did not survive it, which is why the app now uses
  * `@noble/hashes` (§3.10). Replaced wholesale by the real Token list;
  * see docs/ZEPP_OS_PORTING_ANALYSIS.md §10.
+ *
+ * The timer runs for the page's whole lifetime. `onResume`/`onPause` do fire
+ * (§3.1.1), so that is wasteful rather than necessary; it changes with the
+ * Token list in Phase 2.
  */
 const SPIKE_TOKEN: TotpConfig = {
   label: "john.doe@email.com",
@@ -87,30 +89,7 @@ Page({
       text: ""
     })
 
-    /* The only way into the Phase 1 probes: Zepp OS launches the first page in
-     * `app.json` and offers no page picker. Removed with SPIKE_TOKEN. */
-    createWidget(widget.BUTTON, {
-      x: px(133),
-      y: px(370),
-      w: px(200),
-      h: px(56),
-      text: "Probes",
-      text_size: px(20),
-      normal_color: 0x333333,
-      press_color: 0x555555,
-      radius: px(28),
-      click_func: () => {
-        push({ url: "page/probe/index" })
-      }
-    })
-
     refresh()
-    /* The tick starts here rather than in an onResume hook: `Page.Option` in
-     * @zeppos/device-types 4.0 declares only state/onInit/build/onDestroy,
-     * while onResume and onPause appear on SecondaryWidget. Whether pages get
-     * them is a spike question; until it is answered, running the timer for the
-     * page's whole lifetime is correct if wasteful, whereas relying on a hook
-     * that never fires would silently freeze the display. */
     timer = setInterval(refresh, 1000)
   },
 

@@ -24,7 +24,7 @@
     "default": {
       "module": {
         "page": {
-          "pages": ["page/index", "page/probe/index", "page/probe/scrollList"]
+          "pages": ["page/index"]
         },
         "app-side": {
           "path": "app-side/index"
