@@ -1,6 +1,15 @@
+import { fileURLToPath } from "node:url"
 import { defineConfig } from "vitest/config"
 
 export default defineConfig({
+  resolve: {
+    /* The phone-side `i18n` module exists only inside the Zepp app. */
+    alias: {
+      i18n: fileURLToPath(
+        new URL("./src/shared/__tests__/support/i18n.ts", import.meta.url)
+      )
+    }
+  },
   test: {
     globals: true,
     include: ["src/**/__tests__/**/*.spec.ts"],
