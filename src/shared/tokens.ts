@@ -60,6 +60,25 @@ export function tokensForSync(storedTokens: string | undefined): TotpConfig[] {
   )
 }
 
+/**
+ * Give the Token at `index` a Display Name. Trimmed; an empty name, or one
+ * equal to the Issuer-and-Label fallback, removes the Display Name instead.
+ */
+export function renameToken(
+  storedTokens: string | undefined,
+  index: number,
+  name: string
+): TotpConfig[] {
+  return parseTokens(storedTokens).map((token, i) => {
+    if (i !== index) return token
+    const { displayName: _previous, ...unnamed } = token
+    const trimmed = name.trim()
+    return trimmed === "" || trimmed === getDisplayName(unnamed)
+      ? unnamed
+      : { ...unnamed, displayName: trimmed }
+  })
+}
+
 function parseTokens(storedTokens: string | undefined): TotpConfig[] {
   if (!storedTokens) return []
   try {

@@ -1,6 +1,6 @@
 /* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
 
-import { addTokenFromUri, tokensForSync } from "../tokens"
+import { addTokenFromUri, renameToken, tokensForSync } from "../tokens"
 
 const SECRET = "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
 
@@ -108,4 +108,37 @@ describe("tokensForSync", () => {
 
     expect(tokensForSync(stored)).toEqual([valid])
   })
+})
+
+const TOKEN_A = {
+  label: "alice",
+  issuer: "ACME",
+  secret: SECRET,
+  algorithm: "SHA1",
+  digits: "6",
+  period: "30"
+}
+const TOKEN_B = { ...TOKEN_A, label: "bob" }
+
+describe("renameToken", () => {
+  const stored = JSON.stringify([TOKEN_A, TOKEN_B])
+
+  it("sets the Display Name of one Token, trimmed", () => {
+    expect(renameToken(stored, 1, "  Work  ")).toEqual([
+      TOKEN_A,
+      { ...TOKEN_B, displayName: "Work" }
+    ])
+  })
+
+  it.each(["", "   ", "ACME (bob)"])(
+    "removes the Display Name when renamed to %j",
+    name => {
+      const renamed = JSON.stringify([
+        TOKEN_A,
+        { ...TOKEN_B, displayName: "Work" }
+      ])
+
+      expect(renameToken(renamed, 1, name)).toEqual([TOKEN_A, TOKEN_B])
+    }
+  )
 })
