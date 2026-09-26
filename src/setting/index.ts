@@ -278,14 +278,17 @@ function errorLine(message: string) {
     : TextInput({ label: message, disabled: true })
 }
 
+/* `Text` and `Link` flow inline on hardware, running into each other; a
+ * `View` apiece puts each on a line of its own. */
+
 function link(url: string, label: string) {
   return typeof Link === "function"
-    ? Link({ source: url }, label)
+    ? View({}, [Link({ source: url }, label)])
     : textLine(`${label}: ${url}`)
 }
 
 function textLine(text: string) {
   return typeof Text === "function"
-    ? Text({}, text)
+    ? View({}, [Text({}, text)])
     : TextInput({ label: text, disabled: true })
 }
