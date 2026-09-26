@@ -54,11 +54,14 @@ export const CLOCK_SYNC_TEXT = {
   text_size: px(24)
 }
 
-/** Waiting, failure and no-tokens messages; wraps, so it spans the middle. */
+/**
+ * Waiting, failure and no-tokens messages; wraps, so it spans the middle. Tall
+ * enough for the German failure message at this size.
+ */
 export const STATUS_TEXT = {
-  x: px(48),
-  y: px(133),
-  w: px(370),
-  h: px(200),
-  text_size: px(32)
+  x: px(43),
+  y: px(83),
+  w: px(380),
+  h: px(300),
+  text_size: px(34)
 }

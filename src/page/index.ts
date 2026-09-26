@@ -253,7 +253,8 @@ function createStatusText() {
   lastStatusKind = undefined
   statusText = createWidget(widget.TEXT, {
     ...Styles.STATUS_TEXT,
-    color: toZeppColor(scheme().secondaryColor),
+    /* Primary, not secondary: the darkened amber was too dim to read. */
+    color: toZeppColor(scheme().primaryColor),
     align_h: align.CENTER_H,
     align_v: align.CENTER_V,
     text_style: text_style.WRAP,
