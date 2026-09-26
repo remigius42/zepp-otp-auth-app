@@ -26,3 +26,16 @@ export const DIAG_SETTINGS_KEY = "diag"
 
 /** The index of the Token awaiting delete confirmation, absent when none. */
 export const PENDING_DELETE_INDEX_SETTINGS_KEY = "pendingDeleteIndex"
+
+/**
+ * The Manual Entry fields' text, per field; each field's error message is
+ * kept under the same key plus `Error`. All absent once a Token is added.
+ */
+export const MANUAL_ENTRY_SETTINGS_KEYS = {
+  label: "manualLabel",
+  issuer: "manualIssuer",
+  secret: "manualSecret",
+  algorithm: "manualAlgorithm",
+  digits: "manualDigits",
+  period: "manualPeriod"
+} as const
