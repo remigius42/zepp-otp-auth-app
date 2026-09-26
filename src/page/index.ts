@@ -1,7 +1,8 @@
 import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
+import { getText } from "@zos/i18n"
 import { localStorage } from "@zos/storage"
-import { align, createWidget, prop, text_style, widget } from "@zos/ui"
+import { align, createWidget, event, prop, text_style, widget } from "@zos/ui"
 import {
   ColorSchemeName,
   ColorSchemes,
@@ -13,6 +14,7 @@ import {
   type PeerMessage
 } from "../shared/PeerMessage"
 import { parseStats, recordPull } from "../shared/syncStats"
+import { pageStatus, type PullState } from "./pageStatus"
 import { applySync, INITIAL_SYNC_STATE } from "./syncState"
 import { tokenView } from "./tokenView"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
@@ -22,8 +24,9 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * `SCROLL_LIST` of all Tokens is Phase 3.
  *
  * Sync per the ADR-0002 amendment: `onInit` pulls the Token set, `onCall`
- * receives pushes while the page is open. What to show lives in
- * `./tokenView`; this file is widget and ZML wiring only.
+ * receives pushes while the page is open. A failed pull is retried by tapping
+ * the status or on `onResume` (ADR-0003 amendment). What to show lives in
+ * `./tokenView` and `./pageStatus`; this file is widget and ZML wiring only.
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
@@ -47,28 +50,80 @@ const scheme = ColorSchemes[ColorSchemeName.default]
 const SYNC_STATS_STORAGE_KEY = "syncStats"
 
 let state = INITIAL_SYNC_STATE
+let pull: PullState = "pending"
+/** `this.request` of the page, which `pull` needs outside the lifecycle. */
+let request:
+  | ((
+      data: { method: string; params: Record<string, unknown> },
+      options: { timeout: number }
+    ) => Promise<unknown>)
+  | undefined
+let statusText: ReturnType<typeof createWidget> | undefined
 let displayNameText: ReturnType<typeof createWidget> | undefined
 let codeText: ReturnType<typeof createWidget> | undefined
 let countdownText: ReturnType<typeof createWidget> | undefined
 let timer: ReturnType<typeof setInterval> | undefined
 
 function refresh() {
+  const status = pageStatus({ pull, tokens: state.tokens })
   const token = state.tokens?.[0]
-  if (token === undefined) {
-    displayNameText?.setProperty(prop.MORE, { text: "" })
-    codeText?.setProperty(prop.MORE, { text: "" })
-    if (state.tokens !== undefined) showStatus("no tokens")
+  if (status.kind !== "tokens" || token === undefined) {
+    setText(displayNameText, "")
+    setText(codeText, "")
+    setText(countdownText, "")
+    setText(statusText, "msgid" in status ? getText(status.msgid) : "")
     return
   }
 
   const view = tokenView(token, Date.now(), state.driftSeconds)
-  displayNameText?.setProperty(prop.MORE, { text: view.name })
-  codeText?.setProperty(prop.MORE, { text: view.code })
-  countdownText?.setProperty(prop.MORE, { text: `${view.secondsRemaining}s` })
+  setText(statusText, "")
+  setText(displayNameText, view.name)
+  setText(codeText, view.code)
+  setText(countdownText, `${view.secondsRemaining}s`)
 }
 
-function showStatus(text: string) {
-  countdownText?.setProperty(prop.MORE, { text })
+function setText(
+  textWidget: ReturnType<typeof createWidget> | undefined,
+  text: string
+) {
+  textWidget?.setProperty(prop.MORE, { text })
+}
+
+/** The launch pull, also used to retry; records the outcome in Sync Stats. */
+function pullTokens() {
+  if (request === undefined) return
+  pull = "pending"
+  refresh()
+  const startedAt = Date.now()
+  /* The typings claim `getItem` returns `void` (§3.8). */
+  const stats = parseStats(
+    localStorage.getItem(SYNC_STATS_STORAGE_KEY) as unknown as
+      | string
+      | undefined
+  )
+  const record = (outcome: "synced" | "failed", ms: number) =>
+    localStorage.setItem(
+      SYNC_STATS_STORAGE_KEY,
+      JSON.stringify(recordPull(stats, outcome, ms))
+    )
+  request(
+    { method: GET_TOKENS_METHOD, params: { syncStats: stats } },
+    { timeout: SYNC_TIMEOUT_MS }
+  )
+    .then(result => {
+      const elapsed = Date.now() - startedAt
+      console.log(`page synced in ${elapsed} ms`)
+      record("synced", elapsed)
+      pull = "synced"
+      receive(result as PeerMessage)
+    })
+    .catch((error: unknown) => {
+      const elapsed = Date.now() - startedAt
+      console.log(`page request failed after ${elapsed} ms: ${String(error)}`)
+      record("failed", elapsed)
+      pull = "failed"
+      refresh()
+    })
 }
 
 function receive(message: PeerMessage) {
@@ -92,44 +147,11 @@ function stopTicking() {
 Page(
   BasePage({
     onInit() {
-      const startedAt = Date.now()
-      /* The typings claim `getItem` returns `void` (§3.8). */
-      const stats = parseStats(
-        localStorage.getItem(SYNC_STATS_STORAGE_KEY) as unknown as
-          | string
-          | undefined
-      )
-      const record = (outcome: "synced" | "failed", ms: number) =>
-        localStorage.setItem(
-          SYNC_STATS_STORAGE_KEY,
-          JSON.stringify(recordPull(stats, outcome, ms))
-        )
       /* zml.d.ts declares `request(data)` alone, but the runtime takes
        * `(data, options)` and forwards `timeout` (dist/zml-page.js). */
-      const request = this.request as (
-        data: { method: string; params: Record<string, unknown> },
-        options: { timeout: number }
-      ) => Promise<unknown>
-      request
-        .call(
-          this,
-          { method: GET_TOKENS_METHOD, params: { syncStats: stats } },
-          { timeout: SYNC_TIMEOUT_MS }
-        )
-        .then(result => {
-          const elapsed = Date.now() - startedAt
-          console.log(`page synced in ${elapsed} ms`)
-          record("synced", elapsed)
-          receive(result as PeerMessage)
-        })
-        .catch((error: unknown) => {
-          const elapsed = Date.now() - startedAt
-          console.log(
-            `page request failed after ${elapsed} ms: ${String(error)}`
-          )
-          record("failed", elapsed)
-          showStatus(`sync failed, ${elapsed} ms`)
-        })
+      const pageRequest = this.request as NonNullable<typeof request>
+      request = (data, options) => pageRequest.call(this, data, options)
+      pullTokens()
     },
 
     onCall(data: { method: string; params: unknown }) {
@@ -176,7 +198,19 @@ Page(
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text_style: text_style.NONE,
-        text: "waiting for phone"
+        text: ""
+      })
+
+      statusText = createWidget(widget.TEXT, {
+        ...Styles.STATUS_TEXT,
+        color: toZeppColor(scheme.secondaryColor),
+        align_h: align.CENTER_H,
+        align_v: align.CENTER_V,
+        text_style: text_style.WRAP,
+        text: ""
+      })
+      statusText.addEventListener(event.CLICK_UP, () => {
+        if (pull === "failed") pullTokens()
       })
 
       refresh()
@@ -184,6 +218,7 @@ Page(
     },
 
     onResume() {
+      if (pull === "failed" && state.tokens === undefined) pullTokens()
       refresh()
       startTicking()
     },

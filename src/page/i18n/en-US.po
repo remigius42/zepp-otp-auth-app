@@ -12,3 +12,12 @@ msgstr "Retrieving tokens..."
 
 msgid "Retrieving tokens... Is your device connected?"
 msgstr "Retrieving tokens... Is your device connected?"
+
+msgid "Waiting for your phone..."
+msgstr "Waiting for your phone..."
+
+msgid "Phone not reachable. Keep Bluetooth on and the Zepp app running. Tap to retry."
+msgstr "Phone not reachable. Keep Bluetooth on and the Zepp app running. Tap to retry."
+
+msgid "Add Tokens in the Zepp app."
+msgstr "Add Tokens in the Zepp app."

@@ -29,3 +29,12 @@ export const COUNTDOWN_TEXT = {
   h: px(50),
   text_size: px(28)
 }
+
+/** Waiting, failure and no-tokens messages; wraps, so it spans the middle. */
+export const STATUS_TEXT = {
+  x: px(48),
+  y: px(133),
+  w: px(370),
+  h: px(200),
+  text_size: px(32)
+}
