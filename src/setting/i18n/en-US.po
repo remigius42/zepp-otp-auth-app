@@ -129,3 +129,12 @@ msgstr "Not an otpauth:// URI. If it was copied from a share menu, check that \"
 
 msgid "Paste otpauth:// URI"
 msgstr "Paste otpauth:// URI"
+
+msgid "Sync Stats: none yet. Open OTP Auth on the watch."
+msgstr "Sync Stats: none yet. Open OTP Auth on the watch."
+
+msgid "Sync Stats: @pulls Syncs, @failures failed"
+msgstr "Sync Stats: @pulls Syncs, @failures failed"
+
+msgid ", median @median ms"
+msgstr ", median @median ms"

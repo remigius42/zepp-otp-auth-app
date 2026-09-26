@@ -6,6 +6,7 @@ import {
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY
 } from "../shared/settingsKeys"
+import { asSyncStats } from "../shared/syncStats"
 import { tokensForSync } from "../shared/tokens"
 
 type SettingsStorage = { getItem(key: string): string | undefined }
@@ -48,4 +49,16 @@ export function messageForSettingsChange(
   nowMs: number
 ): SyncMessage | undefined {
   return SYNCED_KEYS.includes(key) ? syncMessage(storage, nowMs) : undefined
+}
+
+/**
+ * The value for the Sync Stats settings key, from the params of the watch's
+ * launch pull, or `undefined` if they carry none. Storing it wakes the Side
+ * Service again but pushes nothing — the key is not synced.
+ */
+export function syncStatsToStore(params: unknown): string | undefined {
+  const syncStats = asSyncStats(
+    (params as { syncStats?: unknown } | undefined)?.syncStats
+  )
+  return syncStats === undefined ? undefined : JSON.stringify(syncStats)
 }

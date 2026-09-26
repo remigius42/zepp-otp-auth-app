@@ -10,7 +10,11 @@ import {
   URI_PASTE_ERROR_SETTINGS_KEY,
   URI_PASTE_INPUT_SETTINGS_KEY
 } from "../../shared/settingsKeys"
-import { messageForSettingsChange, syncMessage } from "../sync"
+import {
+  messageForSettingsChange,
+  syncMessage,
+  syncStatsToStore
+} from "../sync"
 
 const TOKEN = {
   label: "john",
@@ -80,4 +84,19 @@ describe("messageForSettingsChange", () => {
       messageForSettingsChange(key, storageWith([TOKEN]), NOW_MS)
     ).toBeUndefined()
   })
+})
+
+describe("syncStatsToStore", () => {
+  it("stores the Sync Stats the watch sent with its pull", () => {
+    const syncStats = { pulls: 3, failures: 1, latenciesMs: [400, 500] }
+
+    expect(syncStatsToStore({ syncStats })).toBe(JSON.stringify(syncStats))
+  })
+
+  it.each([undefined, {}, { syncStats: { pulls: "3" } }])(
+    "stores nothing for %j",
+    params => {
+      expect(syncStatsToStore(params)).toBeUndefined()
+    }
+  )
 })

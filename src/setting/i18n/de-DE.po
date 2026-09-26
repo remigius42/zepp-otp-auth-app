@@ -131,3 +131,12 @@ msgstr "Keine otpauth://-URI. Falls sie über ein Teilen-Menü kopiert wurde: Pr
 
 msgid "Paste otpauth:// URI"
 msgstr "otpauth://-URI einfügen"
+
+msgid "Sync Stats: none yet. Open OTP Auth on the watch."
+msgstr "Sync-Statistik: noch keine. Öffnen Sie OTP Auth auf der Uhr."
+
+msgid "Sync Stats: @pulls Syncs, @failures failed"
+msgstr "Sync-Statistik: @pulls Syncs, @failures fehlgeschlagen"
+
+msgid ", median @median ms"
+msgstr ", Median @median ms"

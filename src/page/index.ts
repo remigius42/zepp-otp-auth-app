@@ -1,5 +1,6 @@
 import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
+import { localStorage } from "@zos/storage"
 import { align, createWidget, prop, text_style, widget } from "@zos/ui"
 import {
   ColorSchemeName,
@@ -11,6 +12,7 @@ import {
   PEER_MESSAGE_METHOD,
   type PeerMessage
 } from "../shared/PeerMessage"
+import { parseStats, recordPull } from "../shared/syncStats"
 import { applySync, INITIAL_SYNC_STATE } from "./syncState"
 import { tokenView } from "./tokenView"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
@@ -40,6 +42,9 @@ const SCREEN_ON_MS = 60_000
 const SYNC_TIMEOUT_MS = 10_000
 
 const scheme = ColorSchemes[ColorSchemeName.default]
+
+/** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
+const SYNC_STATS_STORAGE_KEY = "syncStats"
 
 let state = INITIAL_SYNC_STATE
 let displayNameText: ReturnType<typeof createWidget> | undefined
@@ -88,6 +93,17 @@ Page(
   BasePage({
     onInit() {
       const startedAt = Date.now()
+      /* The typings claim `getItem` returns `void` (§3.8). */
+      const stats = parseStats(
+        localStorage.getItem(SYNC_STATS_STORAGE_KEY) as unknown as
+          | string
+          | undefined
+      )
+      const record = (outcome: "synced" | "failed", ms: number) =>
+        localStorage.setItem(
+          SYNC_STATS_STORAGE_KEY,
+          JSON.stringify(recordPull(stats, outcome, ms))
+        )
       /* zml.d.ts declares `request(data)` alone, but the runtime takes
        * `(data, options)` and forwards `timeout` (dist/zml-page.js). */
       const request = this.request as (
@@ -97,11 +113,13 @@ Page(
       request
         .call(
           this,
-          { method: GET_TOKENS_METHOD, params: {} },
+          { method: GET_TOKENS_METHOD, params: { syncStats: stats } },
           { timeout: SYNC_TIMEOUT_MS }
         )
         .then(result => {
-          console.log(`page synced in ${Date.now() - startedAt} ms`)
+          const elapsed = Date.now() - startedAt
+          console.log(`page synced in ${elapsed} ms`)
+          record("synced", elapsed)
           receive(result as PeerMessage)
         })
         .catch((error: unknown) => {
@@ -109,6 +127,7 @@ Page(
           console.log(
             `page request failed after ${elapsed} ms: ${String(error)}`
           )
+          record("failed", elapsed)
           showStatus(`sync failed, ${elapsed} ms`)
         })
     },
