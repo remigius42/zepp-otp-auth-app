@@ -6,7 +6,7 @@
 // first. Non-TypeScript files (app.json, *.po, assets) are copied verbatim.
 
 import { build, context } from "esbuild"
-import { cp, mkdir, readFile, rm } from "node:fs/promises"
+import { cp, mkdir, readdir, readFile, rm } from "node:fs/promises"
 import { glob } from "node:fs/promises"
 import { dirname, join, relative } from "node:path"
 
@@ -64,9 +64,24 @@ const options = {
   logLevel: "info"
 }
 
+/**
+ * Empty the output directory without removing the directory itself.
+ *
+ * `zeus` is run from inside `build/zeus`, so a shell or a `zeus bridge` session
+ * usually has it as its working directory. Deleting and recreating it leaves
+ * those processes holding a deleted inode, and every subsequent command fails
+ * with `ENOENT: uv_cwd`. Clearing the contents keeps the inode stable.
+ */
+async function emptyOutDir() {
+  await mkdir(OUT, { recursive: true })
+  const entries = await readdir(OUT)
+  await Promise.all(
+    entries.map(entry => rm(join(OUT, entry), { recursive: true, force: true }))
+  )
+}
+
 await assertAppJsonReferencesJs()
-await rm(OUT, { recursive: true, force: true })
-await mkdir(OUT, { recursive: true })
+await emptyOutDir()
 await copyAssets()
 
 if (watch) {
