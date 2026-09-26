@@ -411,6 +411,52 @@ The substantive one: this is the same lesson as §3.2, §3.7 and §4.2, arriving
 from a fourth direction. **Prose, typings, library source and runtime are four
 different accounts of this platform, and only the last one is authoritative.**
 
+### 3.9 Getting a build onto the watch, and the four hours it cost
+
+Not a design question, but the first genuinely expensive surprise of the port,
+and none of it is in the effort estimate. Recorded because the failures were
+all misattributed at first, and because every message involved was actively
+misleading.
+
+**Three independent problems, presenting as one.**
+
+1. **The Zeus CLI and the Zepp app must be the same _account_, not the same
+   email address.** The phone was signed in with Google SSO; `zeus login` opens
+   Zepp's universal login, which takes **email and password only — there is no
+   third-party sign-in**. Registering a fresh account with the same address
+   creates a different userID, and both `zeus preview` and `zeus bridge` pair by
+   account. Zepp documents the workaround — bind an email to the SSO account,
+   log out, use Forgot Password to set a password — but only on a page about the
+   _Simulator_ (`guides/faq/third-party-login.md`), and nothing connects it to
+   the CLI.
+2. **`appId` must be one nobody else owns.** `1000001` was invented while
+   scaffolding. The watch rejected every package carrying it. Zepp assigns
+   appIds at registration and the 1000000+ block is where assigned IDs live — so
+   that number is somebody's app. The template range (`20001`+) is free.
+3. The app icon was below the documented minimum size. Harmless, but it was the
+   only defect the build itself flagged, which made it the obvious suspect and
+   cost a cycle.
+
+**What the messages actually say.** The appId collision surfaces as
+`Failed to unzip package` when installing from a preview QR, and as
+`Install lite app result: failed` over the developer bridge. The account
+mismatch surfaces as `No connectable online App or Simulator`. Not one of the
+three names the field, the account or the file at fault.
+
+**What worked: bisect against a stock template.** Building the Zeus
+`hello-world` template unmodified and installing _that_ split the problem in one
+step — it installed, so device, account and relay were fine and the fault was in
+our package. Copying `build/zeus` to a scratch directory and patching one
+manifest field per copy then isolated `appId` in a single round. Reading error
+messages would never have got there.
+
+**Two tools worth keeping.** `zeus bridge` beats the preview QR for iteration:
+it pushes over the established connection instead of a CDN download, and it
+streams device logs into the terminal. And the relay's client list can be read
+directly by shimming the CLI's WebSocket — `{"type":"debug"}` is the phone,
+`{"type":"development"}` is the CLI, and seeing both is the only reliable proof
+that the accounts match.
+
 ## 4. The QR code workaround — the part that breaks
 
 ### 4.1 How it works today
