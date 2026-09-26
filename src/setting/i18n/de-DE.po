@@ -140,3 +140,12 @@ msgstr "Sync-Statistik: @pulls Syncs, @failures fehlgeschlagen"
 
 msgid ", median @median ms"
 msgstr ", Median @median ms"
+
+msgid "Amber on black"
+msgstr "Bernstein auf Schwarz"
+
+msgid "White on black"
+msgstr "Weiss auf Schwarz"
+
+msgid "Black on white"
+msgstr "Schwarz auf Weiss"
