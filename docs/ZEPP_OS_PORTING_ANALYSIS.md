@@ -866,12 +866,15 @@ your `document` mock — expect overall coverage to drop noticeably).
 **Actual hours, recorded per phase. The numbers above are the original estimate and
 stay unedited** — the write-up compares against them.
 
-| Phase    | Estimate | Actual | Where the difference went                                                                                                                     |
-| -------- | -------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Spike | 4 h      | ~6 h   | ≥1 h of device deploys that `check:engine` would have caught on the laptop; ≥0.5 h of blank Settings App pages (§3.6.1); 0.5 h account (§3.9) |
+| Phase             | Estimate | Actual | Where the difference went                                                                                                                                                                                                              |
+| ----------------- | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Spike          | 4 h      | ~6 h   | ≥1 h of device deploys that `check:engine` would have caught on the laptop; ≥0.5 h of blank Settings App pages (§3.6.1); 0.5 h account (§3.9)                                                                                          |
+| 2. Vertical slice | 12 h     | ~1.9 h | Under, not over: ~0.7 h design review, ~0.4 h building test-first, ~0.8 h on-device fixes — Settings App lacks `URL`, `base32-decode` fails there, screen-off exits the app. Estimated from commit and log timestamps, less 1 h dinner |
 
-Revising the estimate is deferred until after Phase 2, the first phase with real
-integration risk. 1.5× on a 4 h spike is too little evidence to scale 43 h by.
+Revising the estimate was deferred until after Phase 2. Two phases now point
+in opposite directions — 1.5× over, then ~6× under — so no single factor
+applies. The pattern is that building is cheaper than estimated and hardware
+friction is the variable; the remaining numbers stay as the original baseline.
 
 ## 6. Tooling assessment
 
