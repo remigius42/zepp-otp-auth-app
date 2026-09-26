@@ -30,15 +30,15 @@ const TEXT_W = px(354) - TEXT_X
 export const ROW = {
   height: px(96),
   arc: { x: 0, y: px(16), w: ARC_SIZE, h: ARC_SIZE },
-  name: { x: TEXT_X, y: px(4), w: TEXT_W, h: px(36), text_size: px(26) },
-  code: { x: TEXT_X, y: px(40), w: TEXT_W, h: px(52), text_size: px(44) }
+  name: { x: TEXT_X, y: px(2), w: TEXT_W, h: px(42), text_size: px(32) },
+  code: { x: TEXT_X, y: px(44), w: TEXT_W, h: px(50), text_size: px(44) }
 }
 
 /** The enlarged Token view (`shouldUseLargeTokenView`). */
 export const LARGE_ROW = {
   height: px(140),
   arc: { x: 0, y: px(38), w: ARC_SIZE, h: ARC_SIZE },
-  name: { x: TEXT_X, y: px(6), w: TEXT_W, h: px(44), text_size: px(32) },
+  name: { x: TEXT_X, y: px(4), w: TEXT_W, h: px(48), text_size: px(38) },
   code: { x: TEXT_X, y: px(52), w: TEXT_W, h: px(80), text_size: px(52) }
 }
 

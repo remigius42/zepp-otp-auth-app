@@ -215,7 +215,8 @@ function rowConfig() {
   })
   const secondary = toZeppColor(colors.secondaryColor)
   const texts = [
-    text("name", row.name, secondary),
+    /* Primary, not secondary: the darkened colors were too dim to read. */
+    text("name", row.name, toZeppColor(colors.primaryColor)),
     text("code", row.code, toZeppColor(colors.primaryColor))
   ]
   const images = []
