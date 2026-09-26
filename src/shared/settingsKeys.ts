@@ -20,3 +20,6 @@ export const COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY = "compensateClockDrift"
 
 /** The watch's Sync Stats as last reported with a launch pull, JSON-encoded. */
 export const SYNC_STATS_SETTINGS_KEY = "syncStats"
+
+/** The watch's diagnostic trail as last reported with a launch pull. */
+export const DIAG_SETTINGS_KEY = "diag"

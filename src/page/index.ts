@@ -9,6 +9,7 @@ import {
   PEER_MESSAGE_METHOD,
   type PeerMessage
 } from "../shared/PeerMessage"
+import { appendDiag, parseDiag } from "../shared/diagTrail"
 import { parseStats, recordPull } from "../shared/syncStats"
 import { pageStatus, type PullState } from "./pageStatus"
 import { applySync, INITIAL_SYNC_STATE } from "./syncState"
@@ -46,6 +47,9 @@ const CLOCK_SYNC_MESSAGE_MS = 3500
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
 
+/** `localStorage` key of the diagnostic trail (`shared/diagTrail`). */
+const DIAG_STORAGE_KEY = "diag"
+
 let state = INITIAL_SYNC_STATE
 let pull: PullState = "pending"
 /** `this.request` of the page, which `pull` needs outside the lifecycle. */
@@ -62,9 +66,38 @@ let displayNameText: ReturnType<typeof createWidget> | undefined
 let codeText: ReturnType<typeof createWidget> | undefined
 let countdownText: ReturnType<typeof createWidget> | undefined
 let timer: ReturnType<typeof setInterval> | undefined
+let lastStatusKind: string | undefined
+
+/** `getItem` as it behaves; the typings claim it returns `void` (§3.8). */
+function readStorage(key: string) {
+  return localStorage.getItem(key) as unknown as string | undefined
+}
+
+/** Appends to the diagnostic trail, which reaches the bridge log. */
+function diag(entry: string) {
+  localStorage.setItem(
+    DIAG_STORAGE_KEY,
+    JSON.stringify(
+      appendDiag(parseDiag(readStorage(DIAG_STORAGE_KEY)), entry, Date.now())
+    )
+  )
+}
+
+/** Runs `fn`, recording any throw in the trail instead of losing it. */
+function guarded(name: string, fn: () => void) {
+  try {
+    fn()
+  } catch (error) {
+    diag(`${name} threw ${String(error)}`)
+  }
+}
 
 function refresh() {
   const status = pageStatus({ pull, tokens: state.tokens })
+  if (status.kind !== lastStatusKind) {
+    lastStatusKind = status.kind
+    diag(`status ${status.kind}`)
+  }
   const token = state.tokens?.[0]
   if (status.kind !== "tokens" || token === undefined) {
     setText(displayNameText, "")
@@ -114,41 +147,47 @@ function pullTokens() {
   pull = "pending"
   refresh()
   const startedAt = Date.now()
-  /* The typings claim `getItem` returns `void` (§3.8). */
-  const stats = parseStats(
-    localStorage.getItem(SYNC_STATS_STORAGE_KEY) as unknown as
-      | string
-      | undefined
-  )
+  diag("pull")
+  const stats = parseStats(readStorage(SYNC_STATS_STORAGE_KEY))
   const record = (outcome: "synced" | "failed", ms: number) =>
     localStorage.setItem(
       SYNC_STATS_STORAGE_KEY,
       JSON.stringify(recordPull(stats, outcome, ms))
     )
   request(
-    { method: GET_TOKENS_METHOD, params: { syncStats: stats } },
+    {
+      method: GET_TOKENS_METHOD,
+      params: {
+        syncStats: stats,
+        diag: parseDiag(readStorage(DIAG_STORAGE_KEY))
+      }
+    },
     { timeout: SYNC_TIMEOUT_MS }
   )
     .then(result => {
       const elapsed = Date.now() - startedAt
-      console.log(`page synced in ${elapsed} ms`)
       record("synced", elapsed)
+      /* The trail went out with this pull; start the next one afresh. */
+      localStorage.setItem(DIAG_STORAGE_KEY, "[]")
+      diag(`synced in ${elapsed} ms`)
       pull = "synced"
-      receive(result as PeerMessage)
+      guarded("receive", () => receive(result as PeerMessage))
     })
     .catch((error: unknown) => {
       const elapsed = Date.now() - startedAt
-      console.log(`page request failed after ${elapsed} ms: ${String(error)}`)
       record("failed", elapsed)
+      diag(
+        `failed after ${elapsed} ms: ${JSON.stringify(error)} ${String(error)}`
+      )
       pull = "failed"
-      refresh()
+      guarded("refresh", refresh)
     })
 }
 
 function receive(message: PeerMessage) {
   const now = Date.now()
   state = applySync(state, message, now)
-  console.log(`sync drift ${state.driftSeconds} s`)
+  diag(`drift ${state.driftSeconds} s`)
   if (state.showClockSync) clockSyncMessageUntilMs = now + CLOCK_SYNC_MESSAGE_MS
   applyColorScheme()
   refresh()
@@ -156,7 +195,7 @@ function receive(message: PeerMessage) {
 
 function startTicking() {
   stopTicking()
-  timer = setInterval(refresh, 1000)
+  timer = setInterval(() => guarded("tick", refresh), 1000)
 }
 
 function stopTicking() {
@@ -173,81 +212,91 @@ Page(
        * `(data, options)` and forwards `timeout` (dist/zml-page.js). */
       const pageRequest = this.request as NonNullable<typeof request>
       request = (data, options) => pageRequest.call(this, data, options)
-      pullTokens()
+      diag("init")
+      guarded("pull", pullTokens)
     },
 
     onCall(data: { method: string; params: unknown }) {
       if (data.method === PEER_MESSAGE_METHOD) {
-        console.log("page received push")
-        receive(data.params as PeerMessage)
+        diag("push")
+        guarded("receive", () => receive(data.params as PeerMessage))
       }
     },
 
     build() {
-      setPageBrightTime({ brightTime: SCREEN_ON_MS })
+      diag("build")
+      guarded("build", () => {
+        setPageBrightTime({ brightTime: SCREEN_ON_MS })
 
-      /* Final colors are set by `applyColorScheme` once all widgets exist. */
-      background = createWidget(widget.FILL_RECT, {
-        x: 0,
-        y: 0,
-        w: Styles.SCREEN.width,
-        h: Styles.SCREEN.height,
-        angle: 0,
-        radius: 0,
-        color: 0
-      })
+        /* Final colors are set by `applyColorScheme` once all widgets exist. */
+        background = createWidget(widget.FILL_RECT, {
+          x: 0,
+          y: 0,
+          w: Styles.SCREEN.width,
+          h: Styles.SCREEN.height,
+          angle: 0,
+          radius: 0,
+          color: 0
+        })
 
-      displayNameText = createWidget(widget.TEXT, {
-        ...Styles.DISPLAY_NAME_TEXT,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.NONE,
-        text: ""
-      })
+        displayNameText = createWidget(widget.TEXT, {
+          ...Styles.DISPLAY_NAME_TEXT,
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.NONE,
+          text: ""
+        })
 
-      codeText = createWidget(widget.TEXT, {
-        ...Styles.CODE_TEXT,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.NONE,
-        text: ""
-      })
+        codeText = createWidget(widget.TEXT, {
+          ...Styles.CODE_TEXT,
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.NONE,
+          text: ""
+        })
 
-      countdownText = createWidget(widget.TEXT, {
-        ...Styles.COUNTDOWN_TEXT,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.NONE,
-        text: ""
-      })
+        countdownText = createWidget(widget.TEXT, {
+          ...Styles.COUNTDOWN_TEXT,
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.NONE,
+          text: ""
+        })
 
-      statusText = createWidget(widget.TEXT, {
-        ...Styles.STATUS_TEXT,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.WRAP,
-        text: ""
-      })
-      statusText.addEventListener(event.CLICK_UP, () => {
-        if (pull === "failed") pullTokens()
-      })
+        statusText = createWidget(widget.TEXT, {
+          ...Styles.STATUS_TEXT,
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.WRAP,
+          text: ""
+        })
+        statusText.addEventListener(event.CLICK_UP, () => {
+          diag(`tap while ${pull}`)
+          if (pull === "failed") guarded("pull", pullTokens)
+        })
 
-      applyColorScheme()
-      refresh()
-      startTicking()
+        applyColorScheme()
+        refresh()
+        startTicking()
+      })
     },
 
     onResume() {
-      if (pull === "failed" && state.tokens === undefined) pullTokens()
-      refresh()
-      startTicking()
+      diag("resume")
+      guarded("resume", () => {
+        if (pull === "failed" && state.tokens === undefined) pullTokens()
+        refresh()
+        startTicking()
+      })
     },
 
     onPause() {
+      diag("pause")
       stopTicking()
     },
 
     onDestroy() {
+      diag("destroy")
       stopTicking()
     }
   })
