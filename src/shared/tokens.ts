@@ -46,6 +46,21 @@ export function addTokenFromUri(
 const isSameToken = (a: TotpConfig, b: TotpConfig) =>
   a.label === b.label && a.issuer === b.issuer
 
+/**
+ * The Token set to Sync: the stored Tokens, re-validated so that one bad
+ * Token can never reach — and break — the watch's list (ADR-0007).
+ */
+export function tokensForSync(storedTokens: string | undefined): TotpConfig[] {
+  return parseTokens(storedTokens).filter(
+    token => validateConfig(token).size === 0
+  )
+}
+
 function parseTokens(storedTokens: string | undefined): TotpConfig[] {
-  return storedTokens ? (JSON.parse(storedTokens) as TotpConfig[]) : []
+  if (!storedTokens) return []
+  try {
+    return JSON.parse(storedTokens) as TotpConfig[]
+  } catch {
+    return []
+  }
 }

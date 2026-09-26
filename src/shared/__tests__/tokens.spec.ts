@@ -1,6 +1,6 @@
 /* spell-checker:ignore HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ */
 
-import { addTokenFromUri } from "../tokens"
+import { addTokenFromUri, tokensForSync } from "../tokens"
 
 const SECRET = "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
 
@@ -79,4 +79,27 @@ describe("addTokenFromUri", () => {
       })
     }
   )
+})
+
+describe("tokensForSync", () => {
+  it.each([undefined, "", "{not json"])("yields no Tokens for %j", stored => {
+    expect(tokensForSync(stored)).toEqual([])
+  })
+
+  it("drops invalid Tokens and keeps the rest", () => {
+    const valid = {
+      label: "a",
+      issuer: "A",
+      secret: SECRET,
+      algorithm: "SHA1",
+      digits: "6",
+      period: "30"
+    }
+    const stored = JSON.stringify([
+      valid,
+      { ...valid, label: "b", algorithm: "SHA512" }
+    ])
+
+    expect(tokensForSync(stored)).toEqual([valid])
+  })
 })
