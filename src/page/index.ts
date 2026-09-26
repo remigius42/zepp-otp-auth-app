@@ -3,11 +3,7 @@ import { setPageBrightTime } from "@zos/display"
 import { getText } from "@zos/i18n"
 import { localStorage } from "@zos/storage"
 import { align, createWidget, event, prop, text_style, widget } from "@zos/ui"
-import {
-  ColorSchemeName,
-  ColorSchemes,
-  toZeppColor
-} from "../shared/ColorSchemes"
+import { ColorSchemes, toZeppColor } from "../shared/ColorSchemes"
 import {
   GET_TOKENS_METHOD,
   PEER_MESSAGE_METHOD,
@@ -44,7 +40,8 @@ const SCREEN_ON_MS = 60_000
 /** Shorter than ZML's 60 s default, so a Side Service that never answers shows. */
 const SYNC_TIMEOUT_MS = 10_000
 
-const scheme = ColorSchemes[ColorSchemeName.default]
+/** Fitbit showed "Synchronizing clock..." this long after a correction. */
+const CLOCK_SYNC_MESSAGE_MS = 3500
 
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
@@ -58,6 +55,8 @@ let request:
       options: { timeout: number }
     ) => Promise<unknown>)
   | undefined
+let clockSyncMessageUntilMs = 0
+let background: ReturnType<typeof createWidget> | undefined
 let statusText: ReturnType<typeof createWidget> | undefined
 let displayNameText: ReturnType<typeof createWidget> | undefined
 let codeText: ReturnType<typeof createWidget> | undefined
@@ -75,11 +74,31 @@ function refresh() {
     return
   }
 
-  const view = tokenView(token, Date.now(), state.driftSeconds)
+  const now = Date.now()
+  const view = tokenView(token, now, state.driftSeconds)
   setText(statusText, "")
   setText(displayNameText, view.name)
   setText(codeText, view.code)
-  setText(countdownText, `${view.secondsRemaining}s`)
+  setText(
+    countdownText,
+    now < clockSyncMessageUntilMs
+      ? getText("Synchronizing clock...")
+      : `${view.secondsRemaining}s`
+  )
+}
+
+/** Colors every widget from the synced color scheme. */
+function applyColorScheme() {
+  const scheme = ColorSchemes[state.settings.colorScheme]
+  const primary = toZeppColor(scheme.primaryColor)
+  const secondary = toZeppColor(scheme.secondaryColor)
+  background?.setProperty(prop.MORE, {
+    color: toZeppColor(scheme.backgroundColor)
+  })
+  codeText?.setProperty(prop.MORE, { color: primary })
+  for (const textWidget of [displayNameText, countdownText, statusText]) {
+    textWidget?.setProperty(prop.MORE, { color: secondary })
+  }
 }
 
 function setText(
@@ -127,8 +146,11 @@ function pullTokens() {
 }
 
 function receive(message: PeerMessage) {
-  state = applySync(state, message, Date.now())
+  const now = Date.now()
+  state = applySync(state, message, now)
   console.log(`sync drift ${state.driftSeconds} s`)
+  if (state.showClockSync) clockSyncMessageUntilMs = now + CLOCK_SYNC_MESSAGE_MS
+  applyColorScheme()
   refresh()
 }
 
@@ -164,19 +186,19 @@ Page(
     build() {
       setPageBrightTime({ brightTime: SCREEN_ON_MS })
 
-      createWidget(widget.FILL_RECT, {
+      /* Final colors are set by `applyColorScheme` once all widgets exist. */
+      background = createWidget(widget.FILL_RECT, {
         x: 0,
         y: 0,
         w: Styles.SCREEN.width,
         h: Styles.SCREEN.height,
         angle: 0,
         radius: 0,
-        color: toZeppColor(scheme.backgroundColor)
+        color: 0
       })
 
       displayNameText = createWidget(widget.TEXT, {
         ...Styles.DISPLAY_NAME_TEXT,
-        color: toZeppColor(scheme.secondaryColor),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text_style: text_style.NONE,
@@ -185,7 +207,6 @@ Page(
 
       codeText = createWidget(widget.TEXT, {
         ...Styles.CODE_TEXT,
-        color: toZeppColor(scheme.primaryColor),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text_style: text_style.NONE,
@@ -194,7 +215,6 @@ Page(
 
       countdownText = createWidget(widget.TEXT, {
         ...Styles.COUNTDOWN_TEXT,
-        color: toZeppColor(scheme.secondaryColor),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text_style: text_style.NONE,
@@ -203,7 +223,6 @@ Page(
 
       statusText = createWidget(widget.TEXT, {
         ...Styles.STATUS_TEXT,
-        color: toZeppColor(scheme.secondaryColor),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
         text_style: text_style.WRAP,
@@ -213,6 +232,7 @@ Page(
         if (pull === "failed") pullTokens()
       })
 
+      applyColorScheme()
       refresh()
       startTicking()
     },
