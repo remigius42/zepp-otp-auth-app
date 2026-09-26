@@ -56,7 +56,7 @@ function refresh() {
     return
   }
 
-  const view = tokenView(token)
+  const view = tokenView(token, Date.now(), state.driftSeconds)
   displayNameText?.setProperty(prop.MORE, { text: view.name })
   codeText?.setProperty(prop.MORE, { text: view.code })
   countdownText?.setProperty(prop.MORE, { text: `${view.secondsRemaining}s` })

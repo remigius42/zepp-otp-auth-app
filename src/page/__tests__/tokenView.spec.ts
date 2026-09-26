@@ -13,15 +13,17 @@ const RFC_TOKEN = {
 }
 
 describe("tokenView", () => {
-  afterEach(() => {
-    vi.useRealTimers()
+  it("shows the Display Name, the formatted Code and the seconds left", () => {
+    expect(tokenView(RFC_TOKEN, 59_000, 0)).toEqual({
+      name: "GitHub (john)",
+      code: "9428 7082",
+      secondsRemaining: 1
+    })
   })
 
-  it("shows the Display Name, the formatted Code and the seconds left", () => {
-    vi.useFakeTimers({ now: 59_000 })
-
-    expect(tokenView(RFC_TOKEN)).toEqual({
-      name: "GitHub (john)",
+  it("shifts Code and countdown by the clock drift", () => {
+    /* The watch is 2.5 s behind the phone: at its 56.5 s it is 59 s. */
+    expect(tokenView(RFC_TOKEN, 56_500, 2.5)).toMatchObject({
       code: "9428 7082",
       secondsRemaining: 1
     })

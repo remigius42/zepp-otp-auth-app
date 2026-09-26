@@ -14,7 +14,8 @@ import { base16decode } from "./base16codec"
 export function totp(
   totpConfig: TotpConfig,
   clockDriftSeconds = 0,
-  isForNextPeriod = false
+  isForNextPeriod = false,
+  nowMs = Date.now()
 ) {
   const {
     secret,
@@ -30,7 +31,8 @@ export function totp(
   const messageHexString = counterHexString(
     period,
     isForNextPeriod,
-    clockDriftSeconds
+    clockDriftSeconds,
+    nowMs
   )
   const keyBytes = new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
   const hash = hmacDigest(base16decode(messageHexString), keyBytes, algorithm)
@@ -58,11 +60,12 @@ export function totp(
 function counterHexString(
   period: number,
   isForNextPeriod: boolean,
-  clockDriftSeconds: number
+  clockDriftSeconds: number,
+  nowMs: number
 ) {
   const targetPeriod = isForNextPeriod
-    ? currentPeriod(period, clockDriftSeconds) + 1
-    : currentPeriod(period, clockDriftSeconds)
+    ? currentPeriod(period, clockDriftSeconds, nowMs) + 1
+    : currentPeriod(period, clockDriftSeconds, nowMs)
   const periodHexString = targetPeriod.toString(16)
   return padStartWithZeros(periodHexString, 16)
 }
@@ -72,8 +75,12 @@ function counterHexString(
  *
  * @returns current period index starting at 0
  */
-export function currentPeriod(period: number, clockDriftSeconds = 0) {
-  return Math.floor((Date.now() / 1000 + clockDriftSeconds) / period)
+export function currentPeriod(
+  period: number,
+  clockDriftSeconds = 0,
+  nowMs = Date.now()
+) {
+  return Math.floor((nowMs / 1000 + clockDriftSeconds) / period)
 }
 
 /**

@@ -195,6 +195,18 @@ describe("totp", () => {
     vi.useRealTimers()
   })
 
+  it("computes the Code for a given time instead of the clock", () => {
+    const totpConfig: TotpConfig = {
+      label: "some label",
+      secret: RFC6238_TEST_VECTORS_BASE32_SECRETS.SHA1,
+      algorithm: "SHA1",
+      digits: "8",
+      period: "30"
+    }
+
+    expect(totp(totpConfig, 0, false, 59_000)).toBe("94287082")
+  })
+
   it("considers the clock drift", () => {
     vi.useFakeTimers()
     const SOME_SYSTEM_TIME = 42 * 1000
