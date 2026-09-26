@@ -251,10 +251,22 @@ Fitbit had — so persisting would not have been a regression, merely no better.
 ### 3.5 The per-row progress arc has no `SCROLL_LIST` equivalent
 
 An earlier draft of this report said `SCROLL_LIST` items take "text/arc children
-via `TEXT`/`ARC` widgets". **That was wrong.** A `SCROLL_LIST` `item_config`
-declares two child arrays — `text_view` and `image_view` — each binding to a
-data property by `key`. There is no arc child, and no way to nest an arbitrary
-widget inside a row.
+via `TEXT`/`ARC` widgets". **That was wrong.** There is no arc child and no way
+to nest an arbitrary widget inside a row.
+
+**Corrected again, from the typings [types], 2026-09-09.** "Two child arrays,
+`text_view` and `image_view`" was also wrong, and understated what rows can do.
+`ScrollListItemConfigOptions` in `@zeppos/device-types` 4.0 declares **five**
+child arrays: `text_view`, `image_view`, **`fill_view`** (with `radius` and
+`alpha`), plus `layout_view` and `layout_config`. Each still binds to a data
+property by `key`.
+
+`fill_view` matters. A filled, rounded rectangle per row, bound to row data, is
+a native per-row progress **bar** — which is option (c) below without the
+font-glyph gamble, and it would retire ADR-0005's pre-rendered arc frames
+entirely. Whether its geometry is actually data-drivable rather than fixed in
+`item_config` is not answerable from a type declaration, so it goes to the
+spike; see `docs/spike-probes.md`.
 
 This matters because the current design mutates a real arc per row every second:
 `app/ui/tokens.ts` sets `startAngle`/`sweepAngle` on a per-tile `ArcElement`
@@ -280,6 +292,14 @@ decides the design: with `UPDATE_ITEM`, option (a) or (b) is comfortable; with
 whole-array refresh only, the countdown may have to live outside the list
 entirely, or (e) becomes serious. **Resolve this in the spike** — it is cheap on
 hardware and expensive to discover halfway through the UI build.
+
+**A third source now disagrees with both [types].** `@zeppos/device-types` 4.0's
+`IHmUIPropertyType` lists neither `UPDATE_ITEM` **nor** `UPDATE_DATA` — it stops
+at `MORE`, `TEXT`, `DATASET` and the geometry props. So the typings cannot
+adjudicate either, and the question narrows to one only the device can answer:
+which keys does the runtime's `prop` object actually carry? `page/probe/index`
+logs them, settling §3.5 from a transcript rather than from a reading of the
+docs.
 
 ### 3.6 Settings App: only the Token list is a rewrite
 
@@ -368,6 +388,29 @@ solves problems this app does not have — two languages, no runtime switching
 requirement — and would add a dependency plus an `.xlsx` authoring format in
 place of `.po`. Worth remembering it exists if the language count ever grows.
 
+### 3.8 Where `@zeppos/device-types` 4.0 is wrong
+
+§6.2 notes the typings track API level 4 while the device may run Zepp OS 5, and
+that gaps should be expected. Scaffolding Phase 1 turned that from a caveat into
+a list, and the gaps are not all the "missing newer surface" kind — some
+contradict the platform's own documentation and its own libraries. All read from
+`dist/index.d.ts` at 4.0.0 [types]:
+
+| Declaration                  | Gap                                                                                                                    | Consequence                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `Page.Option`                | A closed interface of `state` / `onInit` / `build` / `onDestroy`. No `onResume`, no `onPause`, no index signature      | Registering a lifecycle hook is a type error, so the spike question has to be asked through a cast — `page/probe/index` |
+| `@zos/timer`                 | Exports `createSysTimer` and `stopTimer` only — no `setTimeout` / `clearTimeout`, which is what ZML re-exports from it | The documented timer story and the shipped library disagree, and the typings side with neither                          |
+| `@zos/storage` `getItem`     | Declared as returning `void`; it returns the stored value                                                              | Every read needs a cast                                                                                                 |
+| `IHmUIPropertyType` (`prop`) | No `UPDATE_ITEM`, no `UPDATE_DATA`                                                                                     | §3.5 cannot be settled from the typings                                                                                 |
+| `ScrollListFillViewOptions`  | No `color`, though `item_bg_color` is declared one level up                                                            | A colored `fill_view` is unrepresentable, so the probe builds its `SCROLL_LIST` through a cast                          |
+
+None of these is fatal — each is one cast — but they are worth recording for two
+reasons. The mechanical one: casts around undeclared surface should stay
+annotated with _why_, or they read later as sloppiness rather than as evidence.
+The substantive one: this is the same lesson as §3.2, §3.7 and §4.2, arriving
+from a fourth direction. **Prose, typings, library source and runtime are four
+different accounts of this platform, and only the last one is authoritative.**
+
 ## 4. The QR code workaround — the part that breaks
 
 ### 4.1 How it works today
@@ -446,6 +489,24 @@ based and produces a watch-display-format _file_, not pixel data. Estimate for
 full image QR import: **~4–6 h**, ordinary testable logic, no platform risk.
 `test/qr_codes/generateQrCodes.mjs` ports too, since it uses the same package's
 `Encoder`.
+
+**Bundle cost, measured [build] 2026-09-09.** Both decoders were imported into
+the Side Service and built with `zeus build`, then the emitted `app-side.js` was
+read out of the `.zpk`:
+
+| Side Service contents           | `app-side.js` | `.zpk` |
+| ------------------------------- | ------------- | ------ |
+| Baseline (the current stub)     | 2.0 KB        | 19 KB  |
+| \+ `fast-png` (pulls in `pako`) | 41.5 KB       | 49 KB  |
+| \+ `@nuintun/qrcode` `Decoder`  | 69.2 KB       | 66 KB  |
+| \+ both — i.e. option F in full | 108.9 KB      | 79 KB  |
+
+So option F costs roughly **107 KB** of Side Service bundle, 42 KB gzipped. The
+Side Service runs inside the Zepp phone app rather than on the watch, and no
+documented size limit for it was found, so this is a number to hold against
+store review rather than a device constraint. Two thirds of it is the QR
+decoder, which option E does not need — E's text-format parsing adds
+approximately nothing.
 
 **Where the ecosystem sits.** Every inspectable Zepp OS authenticator
 (`ZoLArk173/Authenticator`, `manujedi/Authenticator`, `Lisoveliy/TOTPFit`)
