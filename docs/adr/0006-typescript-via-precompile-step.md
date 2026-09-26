@@ -58,6 +58,11 @@ failure cannot recur for a future dependency.
   acceptable; `page/index.js` is ~33 KB before bytecode compilation.
 - **Requirement:** anything Zeus must resolve has to stay in `ZEUS_PROVIDED`, or
   esbuild will try to bundle a module that only exists on the device.
+- **Requirement:** every emitted bundle must contain ESM syntax. An entry with
+  no remaining `import`/`export` — `app.js` once ZML is inlined — is wrapped by
+  Zeus's CommonJS plugin, and the wrapper throws on device with
+  `cannot set property 'exports' of undefined`. `src/app.ts` keeps a
+  side-effect `@zos/utils` import for this reason.
 
 ## Considered alternatives
 
@@ -84,6 +89,9 @@ failure cannot recur for a future dependency.
   while the target device is 4.2, so expect gaps in the typings.
 - A `.ts` path accidentally left in `app.json` produces a confusing failure.
   Worth a check in the build script.
+- **With `zeus bridge` attached, Zepp's framework logs every message in full —
+  Secrets included — and streams them through Zepp's relay to the laptop.**
+  Use test Tokens only while debugging over the bridge.
 
 ## Incidental findings from the same investigation
 

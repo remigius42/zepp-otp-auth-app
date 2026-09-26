@@ -33,3 +33,6 @@ export interface UpdateSettingsMessage {
 }
 
 export type PeerMessage = UpdateTokensMessage | UpdateSettingsMessage
+
+/** Device → Side Service request for a Sync; answered with a `TotpConfig[]`. */
+export const GET_TOKENS_METHOD = "GET_TOKENS"

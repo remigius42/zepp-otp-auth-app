@@ -65,9 +65,9 @@ of Tokens, so a single message carrying the array loses nothing.
 ## Amendment, 2026-09-26: the watch pulls on launch
 
 "Phone-initiated" was wrong. Fitbit's companion pushed on `peerSocket` `open`;
-the Side Service has no such event (ADR-0003), and a `settingsChanged` launch
-only fires on settings writes. With Tokens held in memory only (ADR-0004),
-nothing would ever Sync a freshly opened watch app.
+ZML exposes no connection event to the Side Service (ADR-0003), and a
+`settingsChanged` launch only fires on settings writes. With Tokens held in
+memory only (ADR-0004), nothing would ever Sync a freshly opened watch app.
 
 So Sync has two triggers and one payload:
 
@@ -79,3 +79,9 @@ So Sync has two triggers and one payload:
 **Per-Token messages stay rejected.** The per-key trigger makes the _trigger_
 cheaper, not the payload: each write costs a process launch plus one `call`
 either way, and a watch starting empty needs the full set regardless.
+
+**Confirmed on hardware, 2026-09-26.** The device's ZML handshake launches the
+Side Service with `launchType: "peerAppLaunched"`, and closing the watch app
+destroys it again — its lifetime follows the watch app's. The launch pull
+returned the Token in **885 ms** on the first open after install and **417 ms**
+on a reopen; 558 ms after the next install.

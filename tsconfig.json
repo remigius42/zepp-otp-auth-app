@@ -14,6 +14,7 @@
     "skipLibCheck": true,
     "noEmit": true
   },
+  "files": ["node_modules/@zeppos/zml/zml.d.ts"],
   "include": ["src", "bin"],
   "exclude": ["node_modules", "build"]
 }
