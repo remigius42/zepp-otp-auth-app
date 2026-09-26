@@ -1,4 +1,5 @@
 import { BasePage } from "@zeppos/zml/base-page"
+import { setPageBrightTime } from "@zos/display"
 import { align, createWidget, prop, text_style, widget } from "@zos/ui"
 import {
   ColorSchemeName,
@@ -26,6 +27,14 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
  * than `onPause` calls, so `onResume` may not fire on first show (§3.1.1).
  */
+
+/**
+ * How long the screen stays on. By default Zepp OS turns the screen off after
+ * 10 s and exits a Mini Program 10 s after that, which closed the app before
+ * a Code could be typed. Two 30 s Periods; the system resets it when the page
+ * is destroyed.
+ */
+const SCREEN_ON_MS = 60_000
 
 /** Shorter than ZML's 60 s default, so a Side Service that never answers shows. */
 const SYNC_TIMEOUT_MS = 10_000
@@ -113,6 +122,8 @@ Page(
     },
 
     build() {
+      setPageBrightTime({ brightTime: SCREEN_ON_MS })
+
       createWidget(widget.FILL_RECT, {
         x: 0,
         y: 0,
