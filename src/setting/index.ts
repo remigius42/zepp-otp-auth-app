@@ -82,9 +82,13 @@ function settingsSection(storage: SettingsStorage) {
         storeSetting(storage, COLOR_SCHEME_SETTINGS_KEY, value)
       }
     }),
-    textLine(
-      summarizeStats(parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)))
-    )
+    /* A bare `Text` flowed inline after the `Select` on hardware; its own
+     * `View` puts it on a line of its own. */
+    View({ style: { marginTop: "12px" } }, [
+      textLine(
+        summarizeStats(parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)))
+      )
+    ])
   ])
 }
 
