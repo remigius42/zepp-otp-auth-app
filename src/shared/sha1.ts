@@ -12,9 +12,9 @@
  */
 
 /** The 80-word message schedule, shared by every compression. */
-const schedule = new Int32Array(80)
+const schedule = /* @__PURE__ */ new Int32Array(80)
 /** The final, padded block of a message. */
-const tail = new Uint8Array(64)
+const tail = /* @__PURE__ */ new Uint8Array(64)
 
 /** Hash one 64-byte block, whose words are already in `schedule`, into `state`. */
 function compress(state: Int32Array) {

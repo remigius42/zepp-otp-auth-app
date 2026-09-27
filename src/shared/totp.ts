@@ -1,11 +1,11 @@
 /* spellchecker:ignore HOTP typedarrays */
 
 import { hmac } from "@noble/hashes/hmac.js"
-import { sha1 } from "@noble/hashes/legacy.js"
 import { sha256 } from "@noble/hashes/sha2.js"
 import base32decode from "base32-decode"
 import { TotpConfig } from "./TotpConfig"
 import { base16decode } from "./base16codec"
+import { type HmacSha1Key, hmacSha1, hmacSha1Key } from "./sha1"
 
 /**
  * Calculate the current Time-based One-Time Password (TOTP) for a given TOTP
@@ -34,8 +34,7 @@ export function totp(
     clockDriftSeconds,
     nowMs
   )
-  const keyBytes = new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
-  const hash = hmacDigest(base16decode(messageHexString), keyBytes, algorithm)
+  const hash = hmacDigest(base16decode(messageHexString), secret, algorithm)
 
   // Step 2 in https://www.rfc-editor.org/rfc/rfc4226#section-5.3
   const otp = dynamicTruncate(hash)
@@ -121,13 +120,21 @@ function dynamicTruncate(hash: Uint8Array) {
  */
 export const SUPPORTED_ALGORITHMS = ["SHA1", "SHA256"] as const
 
-const HASH_FUNCTIONS: Record<string, typeof sha1 | undefined> = {
-  SHA1: sha1,
-  SHA256: sha256
+/**
+ * Prepared HMAC-SHA1 keys by Secret. The page computes Codes for the same few
+ * Secrets every Period, so each Secret's key blocks are hashed only once.
+ */
+const SHA1_KEYS = new Map<string, HmacSha1Key>()
+
+function decodeSecret(secret: string) {
+  return new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
 }
 
 /**
- * Calculate the HMAC of the given message under the given key.
+ * Calculate the HMAC of the given message under the given Secret.
+ *
+ * SHA-1, which nearly every Token uses, is hand-written in `sha1.ts` because
+ * `@noble/hashes` is too slow on the watch.
  *
  * `@noble/hashes` rather than `crypto-js`: the latter is a UMD bundle whose
  * wrapper resolves its global from module-scope `this`, which is `undefined`
@@ -139,17 +146,23 @@ const HASH_FUNCTIONS: Record<string, typeof sha1 | undefined> = {
  */
 function hmacDigest(
   message: Uint8Array,
-  key: Uint8Array,
+  secret: string,
   algorithm: string
 ): Uint8Array {
-  const hashFunction = HASH_FUNCTIONS[algorithm]
-  if (!hashFunction) {
-    throw new Error(
-      `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
-    )
+  if (algorithm === "SHA1") {
+    let key = SHA1_KEYS.get(secret)
+    if (!key) {
+      key = hmacSha1Key(decodeSecret(secret))
+      SHA1_KEYS.set(secret, key)
+    }
+    return hmacSha1(key, message)
   }
-
-  return hmac(hashFunction, key, message)
+  if (algorithm === "SHA256") {
+    return hmac(sha256, decodeSecret(secret), message)
+  }
+  throw new Error(
+    `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
+  )
 }
 
 /**
