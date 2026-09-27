@@ -1,3 +1,5 @@
+/* spell-checker:ignore MJUXILTMPEXTEWRWMNFEITY */
+
 import { gettext } from "i18n"
 import { ColorSchemeName } from "../shared/ColorSchemes"
 import { settingsFromStorage } from "../shared/settings"
@@ -65,6 +67,7 @@ AppSettingsPage({
         heading(gettext("Tokens")),
         TextInput({
           label: gettext("Paste otpauth:// URI"),
+          subStyle: VALUE_STYLE,
           value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
           onChange: (input: string) => {
             handleUriPaste(settingsStorage, input)
@@ -89,6 +92,7 @@ function tokenRow(storage: SettingsStorage, token: TotpConfig, index: number) {
   return View(ROW_STYLE, [
     TextInput({
       label: getDisplayName({ ...token, displayName: undefined }),
+      subStyle: VALUE_STYLE,
       value: getDisplayName(token),
       onChange: (name: string) => {
         handleRename(storage, index, name)
@@ -173,9 +177,15 @@ function manualEntrySection(storage: SettingsStorage) {
     const error = storage.getItem(manualEntryErrorKey(field))
     return error ? [errorLine(error)] : []
   }
-  const input = (field: ManualEntryField, label: string) => [
+  const input = (
+    field: ManualEntryField,
+    label: string,
+    placeholder: string
+  ) => [
     TextInput({
       label,
+      placeholder,
+      subStyle: VALUE_STYLE,
       value: fields[field],
       onChange: (value: string) => {
         changeManualField(storage, field, value)
@@ -183,9 +193,15 @@ function manualEntrySection(storage: SettingsStorage) {
     }),
     ...errorFor(field)
   ]
-  const select = (field: ManualEntryField, label: string, values: string[]) => [
+  const select = (
+    field: ManualEntryField,
+    label: string,
+    title: string,
+    values: string[]
+  ) => [
     Select({
-      label,
+      label: withValue(label, fields[field]),
+      title,
       options: values.map(value => ({ name: value, value })),
       value: fields[field],
       onChange: (value: string) => {
@@ -196,12 +212,23 @@ function manualEntrySection(storage: SettingsStorage) {
   ]
   return Section({}, [
     heading(gettext("Add token manually")),
-    ...input("label", gettext("Label")),
-    ...input("issuer", gettext("Issuer")),
-    ...input("secret", gettext("Secret in Base32")),
-    ...select("algorithm", gettext("Algorithm"), ["SHA1", "SHA256"]),
-    ...select("digits", gettext("Number of digits"), ["6", "8"]),
-    ...input("period", gettext("Period in seconds")),
+    /* Fitbit's placeholders. */
+    ...input("label", gettext("Label"), "SSH login"),
+    ...input("issuer", gettext("Issuer"), "ACME co."),
+    ...input("secret", gettext("Secret in Base32"), "MJUXILTMPEXTEWRWMNFEITY"),
+    ...select(
+      "algorithm",
+      gettext("Algorithm"),
+      gettext("Select token algorithm"),
+      ["SHA1", "SHA256"]
+    ),
+    ...select(
+      "digits",
+      gettext("Number of digits"),
+      gettext("Select number of digits"),
+      ["6", "8"]
+    ),
+    ...input("period", gettext("Period in seconds"), "30"),
     View(BUTTONS_STYLE, [
       Button({
         label: gettext("Add token"),
@@ -239,6 +266,12 @@ function licensesSection() {
 
 function settingsSection(storage: SettingsStorage) {
   const settings = settingsFromStorage(storage)
+  const schemes = [
+    { name: gettext("Amber on black"), value: ColorSchemeName.default },
+    { name: gettext("White on black"), value: ColorSchemeName.white },
+    { name: gettext("Black on white"), value: ColorSchemeName.black }
+  ]
+  const current = schemes.find(({ value }) => value === settings.colorScheme)
   return Section({}, [
     heading(gettext("Settings")),
     Toggle({
@@ -256,12 +289,9 @@ function settingsSection(storage: SettingsStorage) {
       }
     }),
     Select({
-      label: gettext("Color scheme"),
-      options: [
-        { name: gettext("Amber on black"), value: ColorSchemeName.default },
-        { name: gettext("White on black"), value: ColorSchemeName.white },
-        { name: gettext("Black on white"), value: ColorSchemeName.black }
-      ],
+      label: withValue(gettext("Color scheme"), current?.name ?? ""),
+      title: gettext("Color scheme"),
+      options: schemes,
       value: settings.colorScheme,
       onChange: (value: ColorSchemeName) => {
         storeSetting(storage, COLOR_SCHEME_SETTINGS_KEY, value)
@@ -276,6 +306,20 @@ function settingsSection(storage: SettingsStorage) {
     ])
   ])
 }
+
+/**
+ * A `Select` shows its label alone on hardware, never the chosen option, so
+ * the label carries it.
+ */
+function withValue(label: string, value: string) {
+  return value === "" ? label : `${label}: ${value}`
+}
+
+/**
+ * A `TextInput` shows its value as sub-text under the label; styled as in
+ * Zeus's `todo-list` template.
+ */
+const VALUE_STYLE = { color: "#333", fontSize: "14px" }
 
 function errorLine(message: string) {
   return typeof Text === "function"
