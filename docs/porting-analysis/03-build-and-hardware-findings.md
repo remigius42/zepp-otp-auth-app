@@ -258,6 +258,27 @@ same directory embedded them for every device. Nothing on disk held the old
 catalog, so the bridge must keep it in memory. Cleaning the build output
 would not help. Restarting the bridge before installing does.
 
+## 3.16 The fifth device session: faster HMAC, full-screen Token [device]
+
+Observed 2026-09-27 on the same watch with 12 Tokens.
+
+1. **The hand-written HMAC-SHA1 removes most of the Period-boundary stall.**
+   In laptop QuickJS one HMAC went from 337 to 69 µs, and a prepared key per
+   Secret halves the work again. On the watch the rollover looked faster,
+   and the list only rarely skipped a beat, where §3.14 saw up to 2.9 s.
+   This is an impression, not a measurement: the diagnostic trail is gone.
+2. **Back from a pushed page, the list comes back at its top.** Setting
+   `LIST_TOP` on the `SCROLL_LIST` did not restore the tapped row, so that
+   code is removed. Whether Zepp re-creates the list page or the property is
+   ignored was not told apart.
+3. **The Test Tokens all shared one Secret**, and the full-screen page
+   tracked its Token by Secret. So a move or delete on the phone showed
+   whichever Token then held the row. Issuer and Label are unique (the
+   duplicate check), so the page now tracks those. Test data with distinct
+   Secrets would have caught this on the laptop.
+4. **Renames, the enlarged view and fresh launches behave.** A swipe back
+   does not pull again, and re-opening the app does.
+
 ---
 
 ← Previous: [3.0–3.8 Target platform mapping](./03-platform-mapping.md)\

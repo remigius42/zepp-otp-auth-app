@@ -12,7 +12,7 @@ const REPO = "https://github.com/remigius42/zepp-otp-auth-app"
 const PORTING_ANALYSIS = [
   ["README", "1–2. Verdict and the current app"],
   ["03-platform-mapping", "3.0–3.8 Target platform mapping"],
-  ["03-build-and-hardware-findings", "3.9–3.15 Build and hardware findings"],
+  ["03-build-and-hardware-findings", "3.9–3.16 Build and hardware findings"],
   ["04-qr-workaround", "4. The QR code workaround"],
   ["05-effort-estimate", "5. Effort estimate"],
   ["06-tooling", "6. Tooling assessment"],
