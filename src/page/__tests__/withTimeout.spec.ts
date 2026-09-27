@@ -22,10 +22,14 @@ describe("withTimeout", () => {
    * ZML was given a timeout. */
   it("rejects once the time is up and the promise has not settled", async () => {
     const result = withTimeout(new Promise(() => {}), 1000)
-    const assertion = expect(result).rejects.toThrow("timed out after 1000 ms")
+    /* Caught before the timers run, so the rejection is never unhandled. */
+    const outcome = result.then(
+      () => undefined,
+      (error: unknown) => error
+    )
 
     await vi.advanceTimersByTimeAsync(1000)
 
-    await assertion
+    expect(await outcome).toEqual(new Error("timed out after 1000 ms"))
   })
 })

@@ -4,8 +4,8 @@ export function getDisplayName(
   { label, issuer, displayName }: TotpConfig,
   includeLabelAndIssuer = false
 ) {
-  const formatLabelAndIssuer = (label: string, issuer?: string) =>
-    issuer ? `${issuer} (${label})` : label
+  const formatLabelAndIssuer = (name: string, service?: string) =>
+    service ? `${service} (${name})` : name
 
   if (displayName) {
     if (includeLabelAndIssuer) {

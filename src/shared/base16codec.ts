@@ -20,7 +20,7 @@ export function base16encode(buffer: ArrayBuffer | Uint8Array) {
     ("0" + byteValue.toString(16).toUpperCase()).slice(-2)
   const byteArray = new Uint8Array(buffer)
   const hexString = byteArray.reduce(
-    (hexString: string, byteValue: number) => hexString + byteToHex(byteValue),
+    (hex: string, byteValue: number) => hex + byteToHex(byteValue),
     ""
   )
   return hexString

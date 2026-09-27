@@ -17,7 +17,13 @@
     "typescript/no-explicit-any": "error",
     "no-console": "off",
     "unicorn/consistent-function-scoping": "off",
-    "vitest/require-to-throw-message": "off"
+    "vitest/require-to-throw-message": "off",
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["_options"]
+      }
+    ]
   },
   "overrides": [
     {

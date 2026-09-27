@@ -19,7 +19,7 @@ describe("createCodeCache", () => {
   })
 
   it("computes a Code once per Period, not on every tick", () => {
-    const compute = vi.fn(totp)
+    const compute = vi.fn<typeof totp>(totp)
     const code = createCodeCache(compute)
 
     code(RFC_TOKEN, 0, 31_000)
@@ -31,7 +31,7 @@ describe("createCodeCache", () => {
   })
 
   it("computes again once the Period ends", () => {
-    const compute = vi.fn(totp)
+    const compute = vi.fn<typeof totp>(totp)
     const code = createCodeCache(compute)
 
     code(RFC_TOKEN, 0, 59_000)
@@ -43,7 +43,7 @@ describe("createCodeCache", () => {
   /* Fitbit's `TokenPasswordCache` pre-computes at random, which stacked
    * several HMACs into one tick: 1331 ms with 10 Tokens on hardware. */
   it("computes the next Period's Code ahead, one Token per tick", () => {
-    const compute = vi.fn(totp)
+    const compute = vi.fn<typeof totp>(totp)
     const code = createCodeCache(compute)
     const other = { ...RFC_TOKEN, label: "jane" }
 
@@ -65,7 +65,7 @@ describe("createCodeCache", () => {
   })
 
   it("computes no current Code at the Period boundary once ahead", () => {
-    const compute = vi.fn(totp)
+    const compute = vi.fn<typeof totp>(totp)
     const code = createCodeCache(compute)
 
     code(RFC_TOKEN, 0, 31_000)
@@ -87,7 +87,7 @@ describe("createCodeCache", () => {
   })
 
   it("forgets the Codes of Tokens no longer synced", () => {
-    const compute = vi.fn(totp)
+    const compute = vi.fn<typeof totp>(totp)
     const code = createCodeCache(compute)
     const other = { ...RFC_TOKEN, label: "jane" }
     code(RFC_TOKEN, 0, 31_000)
