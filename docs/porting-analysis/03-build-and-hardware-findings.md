@@ -197,7 +197,7 @@ Pruning would mean a separate build for every device type, for no gain.
 
 ## 3.14 Phase 4's second device session [device]
 
-Observed 2026-09-27 on an Active 2 with 12 Tokens. The fixes are unverified.
+Observed 2026-09-27 on an Active 2 with 12 Tokens. §3.15 verifies the fixes.
 
 1. **One HMAC takes about 300 ms on the watch.** With one Code computed
    ahead per tick, the slowest tick in one visit was 321 ms, which is one
@@ -227,6 +227,27 @@ Observed 2026-09-27 on an Active 2 with 12 Tokens. The fixes are unverified.
    only the final value.** The §3.11 fix for URI Paste therefore never
    worked: the field went from `""` to `""` and kept the pasted URI. The
    removal now waits 300 ms.
+
+## 3.15 Phase 4's third device session [device]
+
+Observed 2026-09-27 on the same watch. It verifies every §3.14 fix:
+
+1. **The tapped retry works.** Bluetooth was off at launch, and the pull
+   failed after 165 ms with ZML's `ble disconnect`. About 5 s after Bluetooth
+   came back, one tap synced in 977 ms. Re-opening ZML's transport is
+   enough, so the fallback of asking the user to re-open the app is not
+   needed. The diagnostic trail that showed this is removed.
+2. **Toggling the enlarged view re-launches the page once.**
+3. **The URI Paste field clears after an add**, and its dialog opens empty.
+4. **A fresh `npm run build` carries the current `de-DE` catalog.**
+
+Two Settings App layout issues turned up; the fixes are unverified:
+
+1. **Two `Select`s in a row ran their labels together.** Algorithm and
+   Number of digits read as one line. Now each one gets a `View` of its own,
+   the fix that already worked for `Text` and `Link`.
+2. **The URI Paste field blended into the text around it**, and now has
+   margins above and below.
 
 ---
 
