@@ -1,0 +1,85 @@
+# spell-checker:ignore GEZDGNBVGY3TQOJQ
+# The relevant documentation can be found at
+# yamllint disable rule:line-length
+# - https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#creating-issue-forms
+# - https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+# yamllint enable rule:line-length
+
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping to make this project better and for taking the
+        time to fill out this bug report!
+
+        **Never post a real Secret, `otpauth://` URI or `zeus bridge` log from
+        your own accounts.** The bridge log contains every synced Secret.
+        Reproduce with a test Token instead, e.g. the Secret
+        `GEZDGNBVGY3TQOJQ`. For security issues, see the
+        [security policy](https://github.com/remigius42/zepp-otp-auth-app/security/policy).
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where does the problem show?
+      options:
+        - Watch app (Token list or full-screen Token)
+        - Settings App (in the Zepp phone app)
+        - Sync between phone and watch
+        - Building or installing
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: |
+        What you did, what you expected, and what happened instead. Screenshots
+        help, as long as they show test Tokens only.
+    validations:
+      required: true
+  - type: input
+    id: watch
+    attributes:
+      label: Watch model and Zepp OS version
+      placeholder: Amazfit Active 2 (round), Zepp OS 5.0
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone OS and Zepp app version
+      placeholder: Android 16, Zepp 9.5.0
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: OTP Auth version
+      description: The version in the Settings App's license section, or a commit.
+    validations:
+      required: false
+  - type: checkboxes
+    id: formalities
+    attributes:
+      label: Formalities
+      description: |
+        By submitting this issue
+
+        - you agree to follow the
+          [Code of Conduct](https://github.com/remigius42/zepp-otp-auth-app/blob/main/CODE_OF_CONDUCT.md)
+          of this project
+        - you confirm that you have had a look at the
+          [existing issues](https://github.com/remigius42/zepp-otp-auth-app/issues)
+          and you are certain that this issue would not be a duplicate
+      options:
+        - label: This issue contains no real Secret, `otpauth://` URI or bridge log
+          required: true
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+        - label: I confirm that I have looked at the already reported issues and I am sure that this issue would not be a duplicate
+          required: true
