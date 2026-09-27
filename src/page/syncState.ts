@@ -58,3 +58,23 @@ export function applySync(
         CLOCK_SYNC_THRESHOLD_SECONDS
   }
 }
+
+/**
+ * Whether a Sync from `previous` to `next` Settings must re-launch the page,
+ * since colors and row sizes are fixed at widget creation. A color change
+ * always does: the status text is colored too. A size change only once the
+ * list exists — otherwise the list is created in the new size anyway. The
+ * enlarged view is not stored, so a re-launched page starts without it, and
+ * relaunching on that first Sync looped.
+ */
+export function needsRelaunch(
+  previous: AppSettings,
+  next: AppSettings,
+  hasList: boolean
+): boolean {
+  return (
+    next.colorScheme !== previous.colorScheme ||
+    (hasList &&
+      next.shouldUseLargeTokenView !== previous.shouldUseLargeTokenView)
+  )
+}

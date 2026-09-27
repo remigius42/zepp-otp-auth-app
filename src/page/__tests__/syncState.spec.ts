@@ -2,7 +2,7 @@
 
 import { ColorSchemeName } from "../../shared/ColorSchemes"
 import type { SyncMessage } from "../../shared/PeerMessage"
-import { applySync, initialSyncState } from "../syncState"
+import { applySync, initialSyncState, needsRelaunch } from "../syncState"
 
 const TOKEN = {
   label: "john",
@@ -87,5 +87,40 @@ describe("applySync", () => {
     expect(applySync(drifted, sync(1_003.2), NOW_MS).showClockSync).toBe(false)
     expect(applySync(drifted, sync(1_003.25), NOW_MS).showClockSync).toBe(true)
     expect(applySync(drifted, sync(1_001.75), NOW_MS).showClockSync).toBe(true)
+  })
+})
+
+describe("needsRelaunch", () => {
+  const AMBER = {
+    colorScheme: ColorSchemeName.default,
+    shouldUseLargeTokenView: false
+  }
+
+  it("relaunches on a color scheme change, since the status is colored at creation", () => {
+    expect(
+      needsRelaunch(
+        AMBER,
+        { ...AMBER, colorScheme: ColorSchemeName.white },
+        false
+      )
+    ).toBe(true)
+  })
+
+  it("relaunches on a row-size change once the list exists", () => {
+    expect(
+      needsRelaunch(AMBER, { ...AMBER, shouldUseLargeTokenView: true }, true)
+    ).toBe(true)
+  })
+
+  /* The enlarged view is not stored, so a re-launched page starts without it
+   * and saw a change again on its first Sync: "Waiting…" in a loop. */
+  it("creates the list in the new size instead when there is none yet", () => {
+    expect(
+      needsRelaunch(AMBER, { ...AMBER, shouldUseLargeTokenView: true }, false)
+    ).toBe(false)
+  })
+
+  it("stays when nothing that fixes the layout changed", () => {
+    expect(needsRelaunch(AMBER, { ...AMBER }, true)).toBe(false)
   })
 })

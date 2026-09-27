@@ -24,7 +24,7 @@ import { parseStats, recordPull } from "../shared/syncStats"
 import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
 import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
-import { applySync, initialSyncState } from "./syncState"
+import { applySync, initialSyncState, needsRelaunch } from "./syncState"
 import { msUntilNextTick } from "./tick"
 import { withTimeout } from "./withTimeout"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
@@ -355,8 +355,7 @@ function pullTokens() {
 
 function receive(message: PeerMessage) {
   const now = Date.now()
-  const previousScheme = state.settings.colorScheme
-  const previousLarge = state.settings.shouldUseLargeTokenView
+  const previous = state.settings
   state = applySync(state, message, now)
   diag(`drift ${state.driftSeconds} s`)
   /* A toast rather than our own text: the round screen is too narrow near
@@ -364,8 +363,7 @@ function receive(message: PeerMessage) {
   if (state.showClockSync) {
     showToast({ content: getText("Synchronizing clock...") })
   }
-  const schemeChanged = state.settings.colorScheme !== previousScheme
-  if (schemeChanged) {
+  if (state.settings.colorScheme !== previous.colorScheme) {
     localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, state.settings.colorScheme)
   }
   /* Before `build` there are no widgets yet; `build` creates them colored. */
@@ -373,10 +371,7 @@ function receive(message: PeerMessage) {
   /* Re-created in place, the list took the new arcs but kept its old text
    * colors; a freshly opened page colors correctly, so re-launch it. It pulls
    * the new Settings itself. */
-  if (
-    schemeChanged ||
-    state.settings.shouldUseLargeTokenView !== previousLarge
-  ) {
+  if (needsRelaunch(previous, state.settings, list !== undefined)) {
     diag("relaunch")
     replace({ url: "page/index" })
     return
