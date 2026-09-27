@@ -25,6 +25,8 @@ export default defineConfig({
         // averaged away — see docs/porting-analysis/06-tooling.md §6.3.
         "src/page/index.ts",
         "src/page/index.r.layout.ts",
+        "src/page/token.ts",
+        "src/page/token.r.layout.ts",
         "src/setting/index.ts",
         // Entry-point shims. These only register a lifecycle object with a Zepp
         // global, so there is nothing to assert. Keep them shims: anything

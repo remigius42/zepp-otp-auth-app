@@ -23,6 +23,10 @@ declare module "zosLoader:./index.[pf].layout.js" {
   const styles: typeof import("./page/index.r.layout")
   export = styles
 }
+declare module "zosLoader:./token.[pf].layout.js" {
+  const styles: typeof import("./page/token.r.layout")
+  export = styles
+}
 
 /** Documented, and in the 4.0 typings' `HmUI` namespace, but not exported. */
 declare module "@zos/ui" {

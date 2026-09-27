@@ -2,7 +2,7 @@ import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
 import { getText } from "@zos/i18n"
 import { showToast } from "@zos/interaction"
-import { replace } from "@zos/router"
+import { push, replace } from "@zos/router"
 import { localStorage } from "@zos/storage"
 import {
   align,
@@ -13,6 +13,7 @@ import {
   text_style,
   widget
 } from "@zos/ui"
+import type { AppSettings } from "../shared/AppSettings"
 import { ColorSchemes, toZeppColor } from "../shared/ColorSchemes"
 import {
   GET_TOKENS_METHOD,
@@ -23,7 +24,13 @@ import { parseStats, recordPull } from "../shared/syncStats"
 import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
 import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
-import { applySync, initialSyncState, needsRelaunch } from "./syncState"
+import { session } from "./session"
+import {
+  applySync,
+  COLOR_SCHEME_STORAGE_KEY,
+  initialSyncState,
+  needsRelaunch
+} from "./syncState"
 import { msUntilNextTick } from "./tick"
 import { withTimeout } from "./withTimeout"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
@@ -42,6 +49,9 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * re-launches the page, since row colors and sizes are fixed at creation.
  * Otherwise Syncs and ticks patch only the changed rows (`UPDATE_ITEM`): a
  * whole-list update scrolls back to the top (ADR-0005).
+ *
+ * Tapping a row opens it on the Token page (`./token`). The Sync state lives
+ * in the session (`./session`), which both pages share.
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
@@ -62,9 +72,6 @@ const SYNC_TIMEOUT_MS = 10_000
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
 
-/** `localStorage` key of the last Sync's color scheme (ADR-0004 amendment). */
-const COLOR_SCHEME_STORAGE_KEY = "colorScheme"
-
 /** The row layout's only `type_id`. */
 const ROW_TYPE = 1
 
@@ -72,7 +79,11 @@ const ROW_TYPE = 1
  * Runtime props the 4.0 typings lack (analysis §3.5.1), and `setProperty`
  * for props other than `MORE`, which the typings admit alone.
  */
-const listProp = prop as unknown as { UPDATE_DATA: number; UPDATE_ITEM: number }
+const listProp = prop as unknown as {
+  UPDATE_DATA: number
+  UPDATE_ITEM: number
+  LIST_TOP: number
+}
 type Widget = ReturnType<typeof createWidget>
 type UntypedWidget = {
   setProperty(property: number, value: unknown): boolean
@@ -143,8 +154,24 @@ function showList() {
     ...Styles.LIST,
     item_config: [rowConfig()],
     item_config_count: 1,
-    ...listData(rows)
+    ...listData(rows),
+    /* The runtime passes `(list, index, data_key)`, as Zepp's own templates
+     * use it; the typings declare a single event (§3.8). */
+    item_click_func: ((_list: unknown, index: number) =>
+      openToken(index)) as unknown as () => void
   })
+  /* Back from the Token page, Zepp may have created this page anew; scroll to
+   * the row that was opened rather than to the top. */
+  const top = session().listTop
+  if (top !== undefined && top < rows.length) {
+    untyped(list).setProperty(listProp.LIST_TOP, { index: top })
+  }
+}
+
+/** Only the row index goes through the router: see `rowFromParams`. */
+function openToken(index: number) {
+  session().listTop = index
+  push({ url: "page/token", params: String(index) })
 }
 
 /** `UPDATE_ITEM` for the rows that differ; the rest stay untouched. */
@@ -329,6 +356,7 @@ function receive(message: PeerMessage) {
   const now = Date.now()
   const previous = state.settings
   state = applySync(state, message, now)
+  session().sync = state
   /* A toast rather than our own text: the round screen is too narrow near
    * the top, and the message was cut off there. */
   if (state.showClockSync) {
@@ -337,11 +365,28 @@ function receive(message: PeerMessage) {
   if (state.settings.colorScheme !== previous.colorScheme) {
     localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, state.settings.colorScheme)
   }
+  update(previous)
+}
+
+/**
+ * Takes a Sync the Token page received while this page stayed alive beneath
+ * it; if Zepp created this page anew instead, `onInit` took it.
+ */
+function adoptSession() {
+  const synced = session().sync
+  if (synced === undefined || synced === state) return
+  const previous = state.settings
+  state = synced
+  update(previous)
+}
+
+/** Shows `state` after a Sync that replaced the `previous` Settings. */
+function update(previous: AppSettings) {
   /* Before `build` there are no widgets yet; `build` creates them colored. */
   if (statusText === undefined) return
   /* Re-created in place, the list took the new arcs but kept its old text
-   * colors; a freshly opened page colors correctly, so re-launch it. It pulls
-   * the new Settings itself. */
+   * colors; a freshly opened page colors correctly, so re-launch it. It takes
+   * the new Settings from the session. */
   if (needsRelaunch(previous, state.settings, list !== undefined)) {
     replace({ url: "page/index" })
     return
@@ -377,10 +422,19 @@ Page(
        * `(data, options)` and forwards `timeout` (dist/zml-page.js). */
       const pageRequest = this.request as NonNullable<typeof request>
       request = (data, options) => pageRequest.call(this, data, options)
-      pullTokens()
+      /* Back from the Token page or re-launched, the Tokens are in memory
+       * already, and a pull would count as a launch in the Sync Stats. */
+      const synced = session().sync
+      if (synced === undefined) pullTokens()
+      else state = synced
     },
 
+    /* While the Token page is open, it takes the pushes: Zepp may have
+     * destroyed this page beneath it, and ZML then drops this `onCall`. If
+     * this page stayed alive instead, a re-launch here would replace the
+     * Token page; `onResume` catches up. */
     onCall(data: { method: string; params: unknown }) {
+      if (session().tokenOpen) return
       if (data.method === PEER_MESSAGE_METHOD) {
         receive(data.params as PeerMessage)
       }
@@ -406,6 +460,7 @@ Page(
     },
 
     onResume() {
+      adoptSession()
       startTicking()
     },
 

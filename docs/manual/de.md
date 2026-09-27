@@ -102,6 +102,9 @@ laufende Zepp-App.
   tippen Sie dann auf die Meldung, um es erneut zu versuchen.
 - **«Fügen Sie Tokens in der Zepp-App hinzu.»**: noch keine Tokens.
 
+Tippen Sie auf ein Token, um es allein und mit grösserem Code anzuzeigen. Mit
+der Zurück-Wischgeste kehren Sie zur Liste zurück.
+
 Jeder Code wird auf der Uhr berechnet. Mit vielen Tokens, mehr als etwa acht,
 reagiert die Liste womöglich träge.
 

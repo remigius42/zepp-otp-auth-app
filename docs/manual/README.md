@@ -89,6 +89,9 @@ them from your phone, so the phone needs Bluetooth on and the Zepp app running.
   message to try again.
 - **"Add Tokens in the Zepp app."**: no Tokens yet.
 
+Tap a Token to show it alone, with a larger Code. Swipe back to return to the
+list.
+
 Each Code is computed on the watch. With many Tokens, more than about eight,
 the list may respond sluggishly.
 

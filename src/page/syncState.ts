@@ -14,6 +14,9 @@ export interface SyncState {
   showClockSync: boolean
 }
 
+/** `localStorage` key of the last Sync's color scheme (ADR-0004 amendment). */
+export const COLOR_SCHEME_STORAGE_KEY = "colorScheme"
+
 /** Fitbit's threshold for announcing a clock correction. */
 const CLOCK_SYNC_THRESHOLD_SECONDS = 0.75
 

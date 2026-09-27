@@ -24,7 +24,7 @@
     "default": {
       "module": {
         "page": {
-          "pages": ["page/index"]
+          "pages": ["page/index", "page/token"]
         },
         "app-side": {
           "path": "app-side/index"
