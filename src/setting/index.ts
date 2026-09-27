@@ -193,15 +193,9 @@ function manualEntrySection(storage: SettingsStorage) {
     }),
     ...errorFor(field)
   ]
-  const select = (
-    field: ManualEntryField,
-    label: string,
-    title: string,
-    values: string[]
-  ) => [
+  const select = (field: ManualEntryField, label: string, values: string[]) => [
     Select({
       label: withValue(label, fields[field]),
-      title,
       options: values.map(value => ({ name: value, value })),
       value: fields[field],
       onChange: (value: string) => {
@@ -216,18 +210,8 @@ function manualEntrySection(storage: SettingsStorage) {
     ...input("label", gettext("Label"), "SSH login"),
     ...input("issuer", gettext("Issuer"), "ACME co."),
     ...input("secret", gettext("Secret in Base32"), "MJUXILTMPEXTEWRWMNFEITY"),
-    ...select(
-      "algorithm",
-      gettext("Algorithm"),
-      gettext("Select token algorithm"),
-      ["SHA1", "SHA256"]
-    ),
-    ...select(
-      "digits",
-      gettext("Number of digits"),
-      gettext("Select number of digits"),
-      ["6", "8"]
-    ),
+    ...select("algorithm", gettext("Algorithm"), ["SHA1", "SHA256"]),
+    ...select("digits", gettext("Number of digits"), ["6", "8"]),
     ...input("period", gettext("Period in seconds"), "30"),
     View(BUTTONS_STYLE, [
       Button({
@@ -258,7 +242,8 @@ function licensesSection() {
         textLine(
           [`${name}@${version}`, license, copyright, repository]
             .filter(Boolean)
-            .join(", ")
+            .join(", "),
+          SPACED
         )
     )
   ])
@@ -290,7 +275,6 @@ function settingsSection(storage: SettingsStorage) {
     }),
     Select({
       label: withValue(gettext("Color scheme"), current?.name ?? ""),
-      title: gettext("Color scheme"),
       options: schemes,
       value: settings.colorScheme,
       onChange: (value: ColorSchemeName) => {
@@ -308,8 +292,8 @@ function settingsSection(storage: SettingsStorage) {
 }
 
 /**
- * A `Select` shows its label alone on hardware, never the chosen option, so
- * the label carries it.
+ * A `Select` shows the chosen option only after the page's first rebuild —
+ * on first view its field is empty — so the label carries it too.
  */
 function withValue(label: string, value: string) {
   return value === "" ? label : `${label}: ${value}`
@@ -339,14 +323,17 @@ function heading(title: string) {
     : textLine(title)
 }
 
+/** Space above a line, to set it apart from the one before. */
+const SPACED = { style: { marginTop: "12px" } }
+
 function link(url: string, label: string) {
   return typeof Link === "function"
-    ? View({}, [Link({ source: url }, label)])
-    : textLine(`${label}: ${url}`)
+    ? View(SPACED, [Link({ source: url }, label)])
+    : textLine(`${label}: ${url}`, SPACED)
 }
 
-function textLine(text: string) {
+function textLine(text: string, props = {}) {
   return typeof Text === "function"
-    ? View({}, [Text({}, text)])
+    ? View(props, [Text({}, text)])
     : TextInput({ label: text, disabled: true })
 }
