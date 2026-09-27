@@ -204,8 +204,10 @@ Observed 2026-09-27 on an Active 2 with 12 Tokens. The fixes are unverified.
    HMAC. In another visit it was **2910 ms**: opened late in a Period, most
    next Codes were not ready at the boundary, and they were all computed in
    one tick. `UPDATE_ITEM`s stayed at 13 ms. Computing ahead can't prevent this
-   at this HMAC cost. Scrolling sticks now and then, so the manual keeps its
-   note about more than about eight Tokens.
+   at this HMAC cost. Showing a placeholder until each Code is ready would
+   cap the tick, but a list with rows missing their Code is worse than a list
+   that is slow for a moment, so the stall stays. Scrolling sticks now and
+   then, and the manual keeps its note about more than about eight Tokens.
 2. **Toggling the enlarged view re-launched the page forever.** The color
    scheme is stored on the watch and the enlarged view is not, so the
    re-launched page started without it, saw a change again on its first Sync
