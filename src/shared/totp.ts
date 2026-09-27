@@ -1,11 +1,10 @@
 /* spellchecker:ignore HOTP typedarrays */
 
-import { hmac } from "@noble/hashes/hmac.js"
-import { sha256 } from "@noble/hashes/sha2.js"
 import base32decode from "base32-decode"
 import { TotpConfig } from "./TotpConfig"
 import { base16decode } from "./base16codec"
-import { type HmacSha1Key, hmacSha1, hmacSha1Key } from "./sha1"
+import { hmacSha1, hmacSha1Key } from "./sha1"
+import { hmacSha256, hmacSha256Key } from "./sha256"
 
 /**
  * Calculate the current Time-based One-Time Password (TOTP) for a given TOTP
@@ -120,11 +119,30 @@ function dynamicTruncate(hash: Uint8Array) {
  */
 export const SUPPORTED_ALGORITHMS = ["SHA1", "SHA256"] as const
 
+/** An HMAC under one prepared key. */
+type PreparedHmac = (message: Uint8Array) => Uint8Array
+
+/** Prepares a key once for any number of HMACs, per algorithm. */
+const PREPARE_HMAC: Record<
+  string,
+  ((key: Uint8Array) => PreparedHmac) | undefined
+> = {
+  SHA1: key => {
+    const prepared = hmacSha1Key(key)
+    return message => hmacSha1(prepared, message)
+  },
+  SHA256: key => {
+    const prepared = hmacSha256Key(key)
+    return message => hmacSha256(prepared, message)
+  }
+}
+
 /**
- * Prepared HMAC-SHA1 keys by Secret. The page computes Codes for the same few
- * Secrets every Period, so each Secret's key blocks are hashed only once.
+ * Prepared HMACs by algorithm and Secret. The page computes Codes for the
+ * same few Secrets every Period, so each Secret's key blocks are hashed only
+ * once.
  */
-const SHA1_KEYS = new Map<string, HmacSha1Key>()
+const HMAC_BY_SECRET = new Map<string, PreparedHmac>()
 
 function decodeSecret(secret: string) {
   return new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
@@ -133,10 +151,10 @@ function decodeSecret(secret: string) {
 /**
  * Calculate the HMAC of the given message under the given Secret.
  *
- * SHA-1, which nearly every Token uses, is hand-written in `sha1.ts` because
- * `@noble/hashes` is too slow on the watch.
+ * The hashes are hand-written (`./sha1`, `./sha256`) because `@noble/hashes`
+ * is too slow on the watch.
  *
- * `@noble/hashes` rather than `crypto-js`: the latter is a UMD bundle whose
+ * Neither is `crypto-js`, which the Fitbit app used: it is a UMD bundle whose
  * wrapper resolves its global from module-scope `this`, which is `undefined`
  * under ESM. The Zeus bundler's CommonJS interop then initializes
  * `lib-typedarrays` before `core` has finished, and the library throws on the
@@ -149,20 +167,19 @@ function hmacDigest(
   secret: string,
   algorithm: string
 ): Uint8Array {
-  if (algorithm === "SHA1") {
-    let key = SHA1_KEYS.get(secret)
-    if (!key) {
-      key = hmacSha1Key(decodeSecret(secret))
-      SHA1_KEYS.set(secret, key)
+  const cacheKey = `${algorithm} ${secret}`
+  let prepared = HMAC_BY_SECRET.get(cacheKey)
+  if (!prepared) {
+    const prepare = PREPARE_HMAC[algorithm]
+    if (!prepare) {
+      throw new Error(
+        `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
+      )
     }
-    return hmacSha1(key, message)
+    prepared = prepare(decodeSecret(secret))
+    HMAC_BY_SECRET.set(cacheKey, prepared)
   }
-  if (algorithm === "SHA256") {
-    return hmac(sha256, decodeSecret(secret), message)
-  }
-  throw new Error(
-    `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
-  )
+  return prepared(message)
 }
 
 /**
