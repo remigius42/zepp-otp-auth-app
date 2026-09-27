@@ -661,6 +661,35 @@ between them — the bundler. Same conclusion as §3.2, §3.7, §4.2 and §3.8:
 **only the device is authoritative.** This one cost the crypto core of the app
 being non-functional on hardware while every test on the laptop stayed green.
 
+### 3.11 Parity on hardware: what the S2–S4 session found [device]
+
+Observed 2026-09-27 on an Active 2 with 12 Tokens. None of these showed in
+tests; each cost a device run.
+
+1. **A removed settings key reads back as `null`, not `undefined`.** The
+   typings say `string | undefined`. `Number(null)` is `0`, so a cleared
+   "pending delete" index pointed at the first Token forever — it showed its
+   delete confirmation instead of ↑ ↓ ✕.
+2. **A Settings App `TextInput` resets only when its `value` changes.** URI
+   Paste cleared its key on success, but the value went from `""` to `""`, so
+   the field kept the pasted URI — Secret included. Writing the input before
+   removing it makes the value change.
+3. **Computing Codes on every tick is the port's own regression.** The Fitbit
+   app caches each Code per Period and pre-computes the next one at random
+   (`TokenPasswordCache`); the port ran one HMAC per Token per second. With
+   11 Tokens the slowest tick took **2973 ms** and blocked scrolling. The
+   cache is ported now; whether 12 `UPDATE_ITEM`s per tick are cheap enough
+   is still unmeasured.
+4. **ZML's handshake can throw synchronously.** `request()` calls `fork()`,
+   which sends the handshake outside its own `try`; when `ble.send` fails just
+   after Bluetooth returns, the throw escapes `request()` instead of rejecting
+   its promise. A caller that only handles rejection is left waiting forever.
+5. **The round screen is narrow at the top.** At y ≈ 30 px the 466 px circle is
+   only ~228 px wide; a 300 px text band there cut the clock-sync message off.
+   It is a system toast now.
+6. **Every Sync as `UPDATE_DATA` jumps the list to the top** — the same effect
+   §3.5.1 found for ticks. Syncs that keep the row count now patch rows too.
+
 ## 4. The QR code workaround — the part that breaks
 
 ### 4.1 How it works today

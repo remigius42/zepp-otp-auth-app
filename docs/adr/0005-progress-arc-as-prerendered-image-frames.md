@@ -113,3 +113,17 @@ less than once a second, which is acceptable since they are rare.
 The cost is small: 90 frames took 553 KB unpacked and 150 KB in the device
 `.zab`, far below the ~1.5 MB of uncompressed TGA feared above, because the
 flat-colored frames compress well.
+
+## Amendment, 2026-09-27: the fallback stays unused
+
+The first 12-Token run hit the 250 ms trigger hard: the slowest tick took
+2973 ms. The frames weren't the cause, though: every tick ran one HMAC per
+Token, which the Fitbit app never did (analysis §3.11). With the Code cache in
+place, **`ARC_FALLBACK` stays `false`.** The countdown fallback would not help
+anyway: `23s` also changes every row every second, so it costs the same
+`UPDATE_ITEM`s as a frame swap. The frames rendered, 8-digit Codes fit beside
+them, and the trail now times the `UPDATE_ITEM`s separately. If they alone
+pass 250 ms, the answer is fewer updates per tick, not text instead of
+images.
+
+The `.zab` with 60 frames is 2.44 MB (1.57 MB with 30).
