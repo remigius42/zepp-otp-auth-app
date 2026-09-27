@@ -1,11 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+<svg xmlns="http://www.w3.org/2000/svg" width="248" height="248" viewBox="0 0 80 80">
+  <!-- Zepp OS launcher icon: an opaque 240 px circle in a 248 px canvas,
+       leaving a 4 px transparent safe area on every side. -->
   <defs>
     <mask id="hole">
       <rect width="80" height="80" fill="#fff"/>
       <circle cx="40" cy="40" r="22.2" fill="#000"/>
     </mask>
   </defs>
-  <g fill="#ffd502">
+  <circle cx="40" cy="40" r="38.709677" fill="#ffd502"/>
+  <g fill="#000" transform="translate(40 40) scale(0.8) translate(-40 -40)">
     <g mask="url(#hole)">
       <circle cx="40" cy="40" r="27.8"/>
       <rect x="23.35" y="7.5" width="33.3" height="20"/>
