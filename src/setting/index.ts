@@ -255,7 +255,7 @@ function licensesSection() {
           [`${name}@${version}`, license, copyright, repository]
             .filter(Boolean)
             .join(", "),
-          SPACED
+          spaced()
         )
     )
   ])
@@ -335,13 +335,19 @@ function heading(title: string) {
     : textLine(title)
 }
 
-/** Space above a line, to set it apart from the one before. */
-const SPACED = { style: { marginTop: "12px" } }
+/**
+ * Space above a line, to set it apart from the one before. A fresh object
+ * per call: one shared by every line showed its margin only after a rebuild,
+ * while `View`s with their own style object were spaced from the start.
+ */
+function spaced() {
+  return { style: { margin: "12px 0 0 0" } }
+}
 
 function link(url: string, label: string) {
   return typeof Link === "function"
-    ? View(SPACED, [Link({ source: url }, label)])
-    : textLine(`${label}: ${url}`, SPACED)
+    ? View(spaced(), [Link({ source: url }, label)])
+    : textLine(`${label}: ${url}`, spaced())
 }
 
 function textLine(text: string, props = {}) {
