@@ -166,7 +166,7 @@ function introductionSection() {
     heading(gettext("Introduction")),
     textLine(gettext("Welcome to the OTP Auth App!")),
     link(
-      "https://github.com/remigius42/zepp-otp-auth-app/tree/main/docs/manual",
+      "https://remigius42.github.io/zepp-otp-auth-app/manual/README",
       gettext("User documentation")
     ),
     link(

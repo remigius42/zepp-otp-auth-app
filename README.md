@@ -41,6 +41,9 @@ These are deliberate and reasoned; each links to the decision record.
 
 ## Documentation
 
+The [documentation site](https://remigius42.github.io/zepp-otp-auth-app/)
+collects the manual, the decision records and the porting analysis.
+
 - [User manual](./docs/manual/README.md) ([Deutsch](./docs/manual/de.md))
 - [Porting analysis](./docs/porting-analysis/README.md) — what ports, what
   doesn't, and what the platform actually does as opposed to what its
