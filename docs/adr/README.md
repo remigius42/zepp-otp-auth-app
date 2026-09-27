@@ -5,6 +5,7 @@ it rejected. Later findings are added as dated amendments rather than by
 rewriting the original decision.
 
 - **0001** [Enrollment: local file import, never a hosted scanner](./0001-local-file-enrollment-no-hosted-scanner.md)
+  - Amended 2026-09-27: no file import after all
 - **0002** [`@zeppos/zml` as the Sync transport, and one message per Sync](./0002-zml-transport-and-single-token-message.md)
   - Amended 2026-09-26: the watch pulls on launch
   - Amended 2026-09-26: what the one message carries

@@ -23,7 +23,7 @@ Part of the [porting analysis](./README.md).
 4. **Polish (10 h)** — round-screen tuning, i18n, docs (including the enrollment
    guidance in §4.5), packaging.
 5. **Optional, after parity** — `otpauth-migration://` Bulk Import, import-only
-   (§7.3, +4–6 h).
+   (§7.3, +4–6 h). Dropped 2026-09-27 (ADR-0001 amendment).
 6. **Optional** — additional device targets.
 
 ---

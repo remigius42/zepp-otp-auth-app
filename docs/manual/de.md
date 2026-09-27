@@ -53,19 +53,24 @@ hinzugefügt ist.
   Authenticator-App installiert, öffnet die Kamera womöglich stattdessen diese.
 - **iOS**: Die Kamera-App meldet bei diesen Codes oft «Keine verwendbaren Daten
   gefunden». Verwenden Sie Live Text auf einem Foto des QR-Codes oder einen
-  QR-Leser, der den Rohtext zeigt.
+  QR-Leser, der den Rohtext zeigt. Löschen Sie das Foto danach: Es enthält den
+  Schlüssel, und Ihre Fotomediathek wird womöglich in die Cloud gesichert.
 - **Bevorzugen Sie Leser, die auf dem Telefon arbeiten.** Google Lens lädt das
   Bild zu Google hoch und damit den Schlüssel. Die Kamera-Apps der Hersteller
   dekodieren auf dem Telefon.
 - Manche Apps kopieren die URI prozentkodiert, beginnend mit `otpauth%3A`. OTP
   Auth meldet das; kopieren Sie sie aus einem anderen Leser oder fügen Sie das
   Token manuell hinzu.
+- Die URI bleibt nach dem Einfügen in der Zwischenablage. Kopieren Sie danach
+  etwas anderes.
 
 ### Nicht unterstützt
 
 - **SHA-512-Tokens.** Selten und noch nicht unterstützt. OTP Auth meldet das,
   statt ein Token hinzuzufügen, das falsche Codes zeigen würde.
-- **Tokens aus einem QR-Bild oder einer Exportdatei hinzufügen.** Geplant.
+- **Tokens aus einem QR-Bild oder einer Exportdatei hinzufügen.** Bewusst
+  weggelassen: Beides lässt Ihre Schlüssel unverschlüsselt auf dem Telefon
+  liegen, wo Backups und andere Apps sie erreichen.
 
 ## Tokens verwalten
 

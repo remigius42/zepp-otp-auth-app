@@ -46,16 +46,22 @@ field empties once the Token is added.
   authenticator app is installed, the camera may open that app instead.
 - **iOS**: the Camera app often reports "No usable data found" for these codes.
   Use Live Text on a photo of the QR code, or a QR reader that shows raw text.
+  Delete the photo afterwards: it holds the Secret, and your photo library may
+  be backed up to the cloud.
 - **Prefer readers that work on your phone.** Google Lens uploads the image to
   Google, and with it the Secret. Stock camera apps decode on the phone.
 - Some apps copy the URI percent-escaped, starting with `otpauth%3A`. OTP Auth
   says so; copy it from another reader or add the Token manually.
+- The URI stays on your clipboard after you paste it. Copy something else
+  afterwards.
 
 ### Not supported
 
 - **SHA-512 Tokens.** Rare, and not supported yet. OTP Auth says so instead of
   adding a Token that would show wrong Codes.
-- **Adding a Token from a QR image or an export file.** Planned.
+- **Adding Tokens from a QR image or an export file.** Left out on purpose:
+  both keep your Secrets unencrypted on the phone, where backups and other apps
+  can reach them.
 
 ## Managing Tokens
 

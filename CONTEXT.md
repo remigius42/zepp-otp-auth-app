@@ -67,7 +67,8 @@ Entry but sends the **Secret** through the clipboard.
 
 **Bulk Import**:
 Enrollment of many **Tokens** at once from an authenticator's export payload,
-e.g. `otpauth-migration://`. Import only — there is no export.
+e.g. `otpauth-migration://`. Import only — there is no export. Not planned:
+only password-protected exports would qualify (ADR-0001 amendment).
 _Avoid_: migration (ambiguous with SDK version migration), transfer.
 
 ### Moving tokens to the watch

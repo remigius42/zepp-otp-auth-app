@@ -100,3 +100,26 @@ originally made QR look impossible here.
   the file-input capability and the portability of the decoder were absent from
   the docs and present in the source and in shipped apps. Verify limits against
   source or a shipped artifact before recording one as a constraint.
+
+## Amendment, 2026-09-27: no file import after all
+
+Both file-import paths are dropped. Enrollment stays Manual Entry and URI
+Paste.
+
+The objections above are about where the Secret goes. They miss where it
+stays. A plain export file holds every Secret unencrypted in phone storage,
+usually in Downloads, where backups copy it and any app with storage access
+can read it, long after the import. A QR image is worse: the only way to get
+an authenticator's export QR into a file is a screenshot, and gallery apps
+upload screenshots to the cloud by default. Importing either would teach users
+to create such files. URI Paste only passes the Secret through the clipboard.
+
+**Encrypted exports would not have this flaw.** Aegis and 2FAS can
+password-protect theirs. Importing only those is the one form of Bulk Import
+left open. It would need the key derivation and AES-GCM to run in the Side
+Service, and a password field whose value never reaches settings storage.
+That is several hours of work, to be done only if manual Enrollment proves
+tedious in use.
+
+The "Consequences" above still hold where they concern hosting and the
+documentation. The ones about image import no longer apply.

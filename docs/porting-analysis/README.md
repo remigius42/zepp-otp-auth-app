@@ -45,6 +45,9 @@ as manual key entry plus `otpauth://` URI paste. File-based import is **not** in
 that number: text-format import is ~3–4 h (§4.3 option E) and image QR decode a
 further ~4–6 h (option F), both scheduled after parity.
 
+**Amended 2026-09-27: neither import ships.** Export files and QR screenshots
+keep Secrets unencrypted on the phone; see the ADR-0001 amendment.
+
 ## 2. What the current app is made of
 
 | Layer                              | Files                                                                      | LOC (prod)   | Fate                                                                                                               |

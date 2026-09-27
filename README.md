@@ -28,15 +28,15 @@ Zepp OS. It is **work in progress** and not yet released.
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Target      | Amazfit Active 2 (round), API_LEVEL 4.2. Builds also cover the other round Zepp OS devices, since layouts scale from a design width |
 | Implemented | Feature parity with the Fitbit app except for the differences below: Token list, Settings App, phone-to-watch Sync, Enrollment      |
-| Pending     | Hardware check of the latest fixes, distribution, SHA-512, importing from files and QR images                                       |
+| Pending     | Hardware check of the latest fixes, distribution, SHA-512                                                                           |
 
 ## Differences from the Fitbit app
 
 These are deliberate and reasoned; each links to the decision record.
 
-- **No one-tap QR enrollment.** Zepp OS has no image picker. Enrollment is
-  manual entry or pasting an `otpauth://` URI; importing from a file, including
-  QR images, is planned —
+- **No QR enrollment.** Zepp OS has no image picker. Enrollment is manual
+  entry or pasting an `otpauth://` URI. Importing export files or QR images is
+  left out on purpose, because both keep Secrets unencrypted on the phone —
   [ADR-0001](./docs/adr/0001-local-file-enrollment-no-hosted-scanner.md)
 - **Tokens are not stored on the watch.** They live in memory and are synced on
   every connection, so the watch needs your phone in range —
