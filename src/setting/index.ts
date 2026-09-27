@@ -201,15 +201,19 @@ function manualEntrySection(storage: SettingsStorage) {
     }),
     ...errorFor(field)
   ]
+  /* Two bare `Select`s in a row ran their labels together on hardware; a
+   * `View` apiece puts each on a line of its own. */
   const select = (field: ManualEntryField, label: string, values: string[]) => [
-    Select({
-      label: withValue(label, fields[field]),
-      options: values.map(value => ({ name: value, value })),
-      value: fields[field],
-      onChange: (value: string) => {
-        changeManualField(storage, field, value)
-      }
-    }),
+    View({}, [
+      Select({
+        label: withValue(label, fields[field]),
+        options: values.map(value => ({ name: value, value })),
+        value: fields[field],
+        onChange: (value: string) => {
+          changeManualField(storage, field, value)
+        }
+      })
+    ]),
     ...errorFor(field)
   ]
   return Section({}, [
