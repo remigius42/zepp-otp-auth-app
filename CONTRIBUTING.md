@@ -22,7 +22,9 @@ uphold this code.
    pre-commit hook runs on every commit. `.gitleaks.toml` allows only the
    public test Secrets the tests use.
 4. An IDE. [Visual Studio Code](https://code.visualstudio.com/) is the preferred
-   option.
+   option; it offers the extensions in
+   [.vscode/extensions.json](.vscode/extensions.json) when you open the
+   repository.
 5. A Zepp account and the Zepp phone app, to pair a watch and enable developer
    mode. Building does not need an account; installing on a device does.
 

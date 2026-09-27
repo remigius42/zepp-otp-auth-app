@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "davidanson.vscode-markdownlint",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "gruntfuggly.todo-tree",
+    "mrorz.language-gettext",
+    "nhoizey.gremlins",
+    "oxc.oxc-vscode",
+    "redhat.vscode-yaml",
+    "stkb.rewrap",
+    "streetsidesoftware.code-spell-checker",
+    "vitest.explorer"
+  ]
+}
