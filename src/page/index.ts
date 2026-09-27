@@ -23,7 +23,7 @@ import { parseStats, recordPull } from "../shared/syncStats"
 import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
 import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
-import { applySync, INITIAL_SYNC_STATE } from "./syncState"
+import { applySync, initialSyncState } from "./syncState"
 import { msUntilNextTick } from "./tick"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
@@ -61,6 +61,9 @@ const SYNC_TIMEOUT_MS = 10_000
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
 
+/** `localStorage` key of the last Sync's color scheme (ADR-0004 amendment). */
+const COLOR_SCHEME_STORAGE_KEY = "colorScheme"
+
 /** `localStorage` key of the diagnostic trail (`shared/diagTrail`). */
 const DIAG_STORAGE_KEY = "diag"
 
@@ -79,7 +82,7 @@ type UntypedWidget = {
 }
 const untyped = (target: Widget) => target as unknown as UntypedWidget
 
-let state = INITIAL_SYNC_STATE
+let state = initialSyncState(readStorage(COLOR_SCHEME_STORAGE_KEY))
 let pull: PullState = "pending"
 /** `this.request` of the page, which `pull` needs outside the lifecycle. */
 let request:
@@ -354,9 +357,13 @@ function receive(message: PeerMessage) {
   if (state.showClockSync) {
     showToast({ content: getText("Synchronizing clock...") })
   }
+  const schemeChanged = state.settings.colorScheme !== previousScheme
+  if (schemeChanged) {
+    localStorage.setItem(COLOR_SCHEME_STORAGE_KEY, state.settings.colorScheme)
+  }
   /* Before `build` there are no widgets yet; `build` creates them colored. */
   if (statusText === undefined) return
-  if (state.settings.colorScheme !== previousScheme) {
+  if (schemeChanged) {
     applyColorScheme()
     createStatusText()
   }

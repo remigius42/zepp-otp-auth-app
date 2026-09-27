@@ -105,3 +105,14 @@ The watch counts launches, failed pulls and the last 20 pull latencies in
 reinstall is acceptable. Each pull sends them along, and the Settings App
 shows them as one line (**Sync Stats**). So the `device:os.local_storage`
 permission stays.
+
+## Amendment, 2026-09-27: the watch remembers the color scheme
+
+The "first ~0.5 s in the default scheme" cost above proved worse on hardware:
+"Waiting for your phone..." showed amber on black before every first Sync,
+then flipped to the chosen scheme, and with the no-tokens message it flipped
+right in front of the user. The watch now keeps the color scheme of the last
+Sync in `localStorage` and starts in it. The phone stays the source of truth:
+every Sync overwrites the stored scheme, and a reinstall that loses it only
+brings the flip back once. The enlarged view is still not stored, since the
+waiting message doesn't use it.

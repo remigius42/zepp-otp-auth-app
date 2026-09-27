@@ -17,14 +17,25 @@ export interface SyncState {
 /** Fitbit's threshold for announcing a clock correction. */
 const CLOCK_SYNC_THRESHOLD_SECONDS = 0.75
 
-export const INITIAL_SYNC_STATE: SyncState = {
-  tokens: undefined,
-  settings: {
-    colorScheme: ColorSchemeName.default,
-    shouldUseLargeTokenView: false
-  },
-  driftSeconds: 0,
-  showClockSync: false
+/**
+ * The state before the first Sync. The color scheme is the one the watch
+ * remembers from the last Sync, so the waiting message does not flip color;
+ * anything else stays in memory only (ADR-0004).
+ */
+export function initialSyncState(storedScheme: string | undefined): SyncState {
+  return {
+    tokens: undefined,
+    settings: {
+      colorScheme: Object.values(ColorSchemeName).includes(
+        storedScheme as ColorSchemeName
+      )
+        ? (storedScheme as ColorSchemeName)
+        : ColorSchemeName.default,
+      shouldUseLargeTokenView: false
+    },
+    driftSeconds: 0,
+    showClockSync: false
+  }
 }
 
 /** The state after receiving `message` at the watch's time `nowMs`. */

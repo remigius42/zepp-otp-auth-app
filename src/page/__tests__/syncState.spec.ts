@@ -2,7 +2,7 @@
 
 import { ColorSchemeName } from "../../shared/ColorSchemes"
 import type { SyncMessage } from "../../shared/PeerMessage"
-import { applySync, INITIAL_SYNC_STATE } from "../syncState"
+import { applySync, initialSyncState } from "../syncState"
 
 const TOKEN = {
   label: "john",
@@ -29,7 +29,9 @@ function sync(phoneEpochSeconds?: number): SyncMessage {
   }
 }
 
-describe("INITIAL_SYNC_STATE", () => {
+const INITIAL_SYNC_STATE = initialSyncState(undefined)
+
+describe("initialSyncState", () => {
   it("has no Tokens yet, the default Settings and no drift", () => {
     expect(INITIAL_SYNC_STATE).toEqual({
       tokens: undefined,
@@ -41,6 +43,23 @@ describe("INITIAL_SYNC_STATE", () => {
       showClockSync: false
     })
   })
+
+  /* "Waiting for your phone..." was amber before every first Sync, whatever
+   * the scheme, and then flipped. */
+  it("starts in the color scheme the watch remembers", () => {
+    expect(initialSyncState(ColorSchemeName.black).settings.colorScheme).toBe(
+      ColorSchemeName.black
+    )
+  })
+
+  it.each([null, "", "purple"])(
+    "falls back to the default scheme for %j",
+    stored => {
+      expect(initialSyncState(stored as string).settings.colorScheme).toBe(
+        ColorSchemeName.default
+      )
+    }
+  )
 })
 
 describe("applySync", () => {
