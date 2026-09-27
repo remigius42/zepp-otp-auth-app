@@ -14,8 +14,26 @@ watch actually did, and where the correction is recorded.
 The **Source** column is the interesting one. The platform has four accounts of
 itself — the prose documentation, the `@zeppos/device-types` typings, the
 library and toolchain source, and the runtime on the watch — and each dead end
-below is a case of trusting one of the first three over the last. "Habit" means
-an assumption carried over from the Fitbit app without checking.
+below is a case of trusting one of the first three over the last, or of not
+asking any of them. The column uses these values:
+
+- **Prose**: Zepp's developer documentation, read as written.
+- **Typings**: `@zeppos/device-types` 4.0, taken as a description of the
+  runtime.
+- **Source**: the source of a library or of the toolchain — ZML, zpm,
+  `@noble/hashes`, `crypto-js` — reasoned about rather than run on the device.
+- **Toolchain**: how Zeus and zpm process the project, assumed from their
+  configuration rather than from a device build.
+- **Habit**: an assumption carried over from the Fitbit app, or from browser
+  and Node development, without checking it here.
+- **Guess**: a plausible reading with nothing behind it, stated as fact.
+- **Design**: our own decision, sound on paper and wrong on the watch.
+- **Observation**: a hardware observation that was real but misread.
+- **Community**, **Press**, **Search summary**: third-hand accounts — a forum
+  inference, a news article, a search engine's summary.
+- **Unstated**: the analysis gave no source for the claim.
+- **Plan**, **Estimate**: what was scheduled or costed, overtaken by what
+  happened.
 
 Entries recorded only in commit history carry the commit hashes; the rest name
 the section or decision record.
