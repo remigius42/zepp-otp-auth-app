@@ -45,6 +45,9 @@ msgstr "Gültigkeitsdauer in Sekunden"
 msgid "Please help support this app by donating a coffee"
 msgstr "Bitte unterstützen Sie diese App mit einem Kaffee"
 
+msgid "Reset Sync Stats"
+msgstr "Sync-Statistik zurücksetzen"
+
 msgid "Reset to defaults"
 msgstr "Zurücksetzen auf Standardwerte"
 

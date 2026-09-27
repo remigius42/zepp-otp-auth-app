@@ -7,6 +7,7 @@ import {
   COLOR_SCHEME_SETTINGS_KEY,
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
+  SYNC_STATS_BASELINE_SETTINGS_KEY,
   SYNC_STATS_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY,
   URI_PASTE_ERROR_SETTINGS_KEY,
@@ -28,7 +29,11 @@ import {
   type ManualEntryField
 } from "./manualEntry"
 import { storeSetting } from "./storeSetting"
-import { summarizeStats } from "./syncStatsSummary"
+import {
+  resetSyncStats,
+  statsSinceReset,
+  summarizeStats
+} from "./syncStatsSummary"
 import {
   cancelDelete,
   confirmDelete,
@@ -301,8 +306,21 @@ function diagnosticsSection(storage: SettingsStorage) {
   return Section({}, [
     heading(gettext("Diagnostics")),
     textLine(
-      summarizeStats(parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)))
-    )
+      summarizeStats(
+        statsSinceReset(
+          parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)),
+          parseStats(storage.getItem(SYNC_STATS_BASELINE_SETTINGS_KEY))
+        )
+      )
+    ),
+    View(spaced(), [
+      Button({
+        label: gettext("Reset Sync Stats"),
+        onClick: () => {
+          resetSyncStats(storage)
+        }
+      })
+    ])
   ])
 }
 

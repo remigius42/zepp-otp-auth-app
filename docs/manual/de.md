@@ -116,6 +116,8 @@ reagiert die Liste womöglich träge.
 
 Die **Sync-Statistik** zeigt, wie oft die Uhr ihre Tokens geholt hat, wie oft
 das fehlschlug und wie lange es dauerte. Das hilft beim Melden von Problemen.
+**Sync-Statistik zurücksetzen** beginnt die Zählung von vorn, etwa nach einem
+Test.
 
 ## Sicherheitshinweise
 

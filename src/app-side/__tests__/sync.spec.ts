@@ -5,6 +5,7 @@ import {
   COLOR_SCHEME_SETTINGS_KEY,
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
+  SYNC_STATS_BASELINE_SETTINGS_KEY,
   SYNC_STATS_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY,
   URI_PASTE_ERROR_SETTINGS_KEY,
@@ -78,7 +79,8 @@ describe("messageForSettingsChange", () => {
   it.each([
     URI_PASTE_INPUT_SETTINGS_KEY,
     URI_PASTE_ERROR_SETTINGS_KEY,
-    SYNC_STATS_SETTINGS_KEY
+    SYNC_STATS_SETTINGS_KEY,
+    SYNC_STATS_BASELINE_SETTINGS_KEY
   ])("does not push when %s changed", key => {
     expect(
       messageForSettingsChange(key, storageWith([TOKEN]), NOW_MS)

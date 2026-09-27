@@ -21,6 +21,12 @@ export const COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY = "compensateClockDrift"
 /** The watch's Sync Stats as last reported with a launch pull, JSON-encoded. */
 export const SYNC_STATS_SETTINGS_KEY = "syncStats"
 
+/**
+ * The Sync Stats as they were at the last reset, JSON-encoded; absent before
+ * the first. The watch keeps counting, so a reset only moves this baseline.
+ */
+export const SYNC_STATS_BASELINE_SETTINGS_KEY = "syncStatsBaseline"
+
 /** The index of the Token awaiting delete confirmation, absent when none. */
 export const PENDING_DELETE_INDEX_SETTINGS_KEY = "pendingDeleteIndex"
 

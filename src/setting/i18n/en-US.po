@@ -43,6 +43,9 @@ msgstr "Period in seconds"
 msgid "Please help support this app by donating a coffee"
 msgstr "Please help support this app by donating a coffee"
 
+msgid "Reset Sync Stats"
+msgstr "Reset Sync Stats"
+
 msgid "Reset to defaults"
 msgstr "Reset to defaults"
 

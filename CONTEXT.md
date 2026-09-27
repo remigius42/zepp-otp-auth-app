@@ -91,8 +91,8 @@ _Avoid_: transfer, update, push, transmission.
 
 **Sync Stats**:
 How many watch launches Synced and how many failed, plus recent Sync latencies.
-Diagnostic evidence for the Store On Watch decision; shown read-only in the
-**Settings App**.
+Diagnostic evidence for the Store On Watch decision; shown in the **Settings
+App**, which can reset them.
 _Avoid_: connection status (dropped — see ADR-0003), health, telemetry.
 
 **Store On Watch**:

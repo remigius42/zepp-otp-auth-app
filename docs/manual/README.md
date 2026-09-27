@@ -100,7 +100,8 @@ the list may respond sluggishly.
 ## Diagnostics
 
 **Sync Stats** show how often the watch fetched its Tokens, how often that
-failed, and how long it took. They help with reporting problems.
+failed, and how long it took. They help with reporting problems. **Reset Sync
+Stats** starts counting afresh, for example after testing.
 
 ## Security notes
 
