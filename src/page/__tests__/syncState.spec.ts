@@ -2,7 +2,12 @@
 
 import { ColorSchemeName } from "../../shared/ColorSchemes"
 import type { SyncMessage } from "../../shared/PeerMessage"
-import { applySync, initialSyncState, needsRelaunch } from "../syncState"
+import {
+  applySync,
+  asSyncMessage,
+  initialSyncState,
+  needsRelaunch
+} from "../syncState"
 
 const TOKEN = {
   label: "john",
@@ -60,6 +65,50 @@ describe("initialSyncState", () => {
       )
     }
   )
+})
+
+describe("asSyncMessage", () => {
+  it("accepts a Sync as the Side Service sends it", () => {
+    expect(asSyncMessage(sync(1_002.5))).toEqual(sync(1_002.5))
+    expect(asSyncMessage(sync())).toEqual(sync())
+  })
+
+  it("keeps a Token's optional Issuer and Display Name", () => {
+    const named = { ...TOKEN, displayName: "Work" }
+
+    expect(asSyncMessage({ ...sync(), tokens: [named] })?.tokens).toEqual([
+      named
+    ])
+  })
+
+  /* The phone validates before it sends; the watch only keeps a malformed
+   * message from crashing the page. */
+  it.each([
+    ["nothing", undefined],
+    ["a string", "SYNC_MESSAGE"],
+    ["another type", { ...sync(), type: "UPDATE_TOKENS" }],
+    ["no Tokens", { ...sync(), tokens: undefined }],
+    [
+      "a Token without a Secret",
+      { ...sync(), tokens: [{ ...TOKEN, secret: 1 }] }
+    ],
+    [
+      "a Token with a non-string Issuer",
+      { ...sync(), tokens: [{ ...TOKEN, issuer: 1 }] }
+    ],
+    ["no Settings", { ...sync(), settings: undefined }],
+    [
+      "an unknown color scheme",
+      { ...sync(), settings: { ...SETTINGS, colorScheme: "purple" } }
+    ],
+    [
+      "a non-boolean enlarged view",
+      { ...sync(), settings: { ...SETTINGS, shouldUseLargeTokenView: "yes" } }
+    ],
+    ["a non-numeric phone clock", { ...sync(), phoneEpochSeconds: "now" }]
+  ])("rejects %s", (_name, value) => {
+    expect(asSyncMessage(value)).toBeUndefined()
+  })
 })
 
 describe("applySync", () => {

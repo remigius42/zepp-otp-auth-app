@@ -12,6 +12,7 @@ import { rowView, type RowView } from "./rowView"
 import { session } from "./session"
 import {
   applySync,
+  asSyncMessage,
   COLOR_SCHEME_STORAGE_KEY,
   type SyncState
 } from "./syncState"
@@ -176,9 +177,10 @@ Page(
     },
 
     onCall(data: { method: string; params: unknown }) {
-      if (data.method === PEER_MESSAGE_METHOD) {
-        receive(data.params as PeerMessage)
-      }
+      if (data.method !== PEER_MESSAGE_METHOD) return
+      /* A malformed push is dropped; the state before it stays. */
+      const message = asSyncMessage(data.params)
+      if (message !== undefined) receive(message)
     },
 
     build() {

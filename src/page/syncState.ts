@@ -41,6 +41,60 @@ export function initialSyncState(storedScheme: string | undefined): SyncState {
   }
 }
 
+/**
+ * `value` if it has the shape of a `SyncMessage`, else `undefined`. The Side
+ * Service validates every Token before it sends (`tokensForSync`); this
+ * checks the shape only, so a malformed message is ignored rather than
+ * crashing the page. The phone checks the Sync Stats the same way.
+ */
+export function asSyncMessage(value: unknown): SyncMessage | undefined {
+  if (typeof value !== "object" || value === null) return undefined
+  const { type, tokens, settings, phoneEpochSeconds } = value as Record<
+    string,
+    unknown
+  >
+  if (type !== "SYNC_MESSAGE") return undefined
+  if (!Array.isArray(tokens) || !tokens.every(isTotpConfig)) return undefined
+  if (!isAppSettings(settings)) return undefined
+  if (
+    phoneEpochSeconds !== undefined &&
+    typeof phoneEpochSeconds !== "number"
+  ) {
+    return undefined
+  }
+  return {
+    type,
+    tokens,
+    settings,
+    ...(phoneEpochSeconds === undefined ? {} : { phoneEpochSeconds })
+  }
+}
+
+function isTotpConfig(value: unknown): value is TotpConfig {
+  if (typeof value !== "object" || value === null) return false
+  const token = value as Record<string, unknown>
+  return (
+    ["label", "secret", "algorithm", "digits", "period"].every(
+      key => typeof token[key] === "string"
+    ) &&
+    ["issuer", "displayName"].every(
+      key => token[key] === undefined || typeof token[key] === "string"
+    )
+  )
+}
+
+function isAppSettings(value: unknown): value is AppSettings {
+  if (typeof value !== "object" || value === null) return false
+  const { colorScheme, shouldUseLargeTokenView } = value as Record<
+    string,
+    unknown
+  >
+  return (
+    Object.values(ColorSchemeName).includes(colorScheme as ColorSchemeName) &&
+    typeof shouldUseLargeTokenView === "boolean"
+  )
+}
+
 /** The state after receiving `message` at the watch's time `nowMs`. */
 export function applySync(
   state: SyncState,

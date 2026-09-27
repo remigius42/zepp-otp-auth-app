@@ -27,6 +27,7 @@ import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
 import { session } from "./session"
 import {
   applySync,
+  asSyncMessage,
   COLOR_SCHEME_STORAGE_KEY,
   initialSyncState,
   needsRelaunch
@@ -328,10 +329,13 @@ function pullTokens() {
     SYNC_TIMEOUT_MS
   )
     .then(result => {
+      /* A malformed answer counts as a failed pull, like no answer. */
+      const message = asSyncMessage(result)
+      if (message === undefined) throw new Error("malformed Sync")
       const elapsed = Date.now() - startedAt
       record("synced", elapsed)
       pull = "synced"
-      receive(result as PeerMessage)
+      receive(message)
     })
     .catch(() => {
       const elapsed = Date.now() - startedAt
@@ -424,9 +428,10 @@ Page(
      * Token page; `onResume` catches up. */
     onCall(data: { method: string; params: unknown }) {
       if (session().tokenOpen) return
-      if (data.method === PEER_MESSAGE_METHOD) {
-        receive(data.params as PeerMessage)
-      }
+      if (data.method !== PEER_MESSAGE_METHOD) return
+      /* A malformed push is dropped; the state before it stays. */
+      const message = asSyncMessage(data.params)
+      if (message !== undefined) receive(message)
     },
 
     build() {
