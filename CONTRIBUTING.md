@@ -18,9 +18,12 @@ uphold this code.
    While not strictly necessary, you might want to use a Node environment
    manager like [nvm](https://github.com/nvm-sh/nvm), which installs the
    required version based on `.nvmrc` automatically.
-3. An IDE. [Visual Studio Code](https://code.visualstudio.com/) is the preferred
+3. [gitleaks](https://github.com/gitleaks/gitleaks#installing), which the
+   pre-commit hook runs on every commit. `.gitleaks.toml` allows only the
+   public test Secrets the tests use.
+4. An IDE. [Visual Studio Code](https://code.visualstudio.com/) is the preferred
    option.
-4. A Zepp account and the Zepp phone app, to pair a watch and enable developer
+5. A Zepp account and the Zepp phone app, to pair a watch and enable developer
    mode. Building does not need an account; installing on a device does.
 
 ### Setup instructions

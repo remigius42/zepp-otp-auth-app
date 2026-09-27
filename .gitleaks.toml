@@ -1,0 +1,12 @@
+# spell-checker:ignore GEZDGNBVGY3TQOJQ HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ
+
+# Gitleaks' default rules, minus the public test Secrets the tests use.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public test Secrets: the RFC 4226/6238 vector and the Key URI Format example"
+regexes = [
+  '''^GEZDGNBVGY3TQOJQ(GEZDGNBVGY3TQOJQ)?$''',
+  '''^HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ$''',
+]
