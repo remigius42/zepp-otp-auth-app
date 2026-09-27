@@ -35,15 +35,23 @@ your `document` mock — expect overall coverage to drop noticeably).
 **Actual hours, recorded per phase. The numbers above are the original estimate and
 stay unedited** — the write-up compares against them.
 
-| Phase             | Estimate | Actual | Where the difference went                                                                                                                                                                                                              |
-| ----------------- | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Spike          | 4 h      | ~6 h   | ≥1 h of device deploys that `check:engine` would have caught on the laptop; ≥0.5 h of blank Settings App pages (§3.6.1); 0.5 h account (§3.9)                                                                                          |
-| 2. Vertical slice | 12 h     | ~1.9 h | Under, not over: ~0.7 h design review, ~0.4 h building test-first, ~0.8 h on-device fixes — Settings App lacks `URL`, `base32-decode` fails there, screen-off exits the app. Estimated from commit and log timestamps, less 1 h dinner |
+| Phase             | Estimate | Actual | Where the difference went                                                                                                                                                                                                                                                                       |
+| ----------------- | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Spike          | 4 h      | ~6 h   | ≥1 h of device deploys that `check:engine` would have caught on the laptop; ≥0.5 h of blank Settings App pages (§3.6.1); 0.5 h account (§3.9)                                                                                                                                                   |
+| 2. Vertical slice | 12 h     | ~1.9 h | Under, not over: ~0.7 h design review, ~0.4 h building test-first, ~0.8 h on-device fixes — Settings App lacks `URL`, `base32-decode` fails there, screen-off exits the app. Estimated from commit and log timestamps, less 1 h dinner                                                          |
+| 3. Parity         | 25 h     | ~2.8 h | ~1.3 h building test-first, ~1.5 h in two rounds of on-device fixes: illegible text, Settings App lines running together, the launch pull sent before any widget existed, the list scrolling back to the top, a retry that hung after Bluetooth returned. Excludes the design session before it |
+| 4. Polish         | 10 h     | ~2.1 h | Nearly all of it in four device sessions and their fixes (§3.12, 3.14, 3.15): a re-launch loop, ZML's Bluetooth transport, Settings App layout quirks, a stale catalog from a long-running bridge. The manual, translations and release docs took minutes each                                  |
+| Scaffolding       | —        | ~1.3 h | Not estimated: secret scanning, CI, the documentation site, dependency audit                                                                                                                                                                                                                    |
 
 Revising the estimate was deferred until after Phase 2. Two phases now point
 in opposite directions — 1.5× over, then ~6× under — so no single factor
 applies. The pattern is that building is cheaper than estimated and hardware
 friction is the variable; the remaining numbers stay as the original baseline.
+
+After Phase 4 the pattern holds: 12.8 h against 51 h for the four phases,
+about a quarter. Only the spike ran over. From Phase 2 on, building
+test-first took the smaller share of each phase, and device rounds took the
+rest.
 
 ---
 
