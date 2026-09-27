@@ -41,7 +41,7 @@ import { handleUriPaste, type SettingsStorage } from "./uriPaste"
 
 /**
  * Settings App, in Fitbit's order: Introduction, Tokens (URI Paste and the
- * Token list), Manual Entry, Settings, licenses. Logic lives in `./uriPaste`,
+ * Token list), Manual Entry, Settings, then our own Diagnostics, licenses. Logic lives in `./uriPaste`,
  * `./tokenList`, `./manualEntry`, `./storeSetting` and `./syncStatsSummary`;
  * this file only renders.
  *
@@ -90,6 +90,7 @@ AppSettingsPage({
       ]),
       manualEntrySection(settingsStorage),
       settingsSection(settingsStorage),
+      diagnosticsSection(settingsStorage),
       licensesSection()
     ])
   }
@@ -292,14 +293,16 @@ function settingsSection(storage: SettingsStorage) {
       onChange: (value: ColorSchemeName) => {
         storeSetting(storage, COLOR_SCHEME_SETTINGS_KEY, value)
       }
-    }),
-    /* A bare `Text` flowed inline after the `Select` on hardware; its own
-     * `View` puts it on a line of its own. */
-    View({ style: { marginTop: "12px" } }, [
-      textLine(
-        summarizeStats(parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)))
-      )
-    ])
+    })
+  ])
+}
+
+function diagnosticsSection(storage: SettingsStorage) {
+  return Section({}, [
+    heading(gettext("Diagnostics")),
+    textLine(
+      summarizeStats(parseStats(storage.getItem(SYNC_STATS_SETTINGS_KEY)))
+    )
   ])
 }
 

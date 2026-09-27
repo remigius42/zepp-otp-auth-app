@@ -13,6 +13,9 @@ msgstr "Color scheme"
 msgid "Compensate clock drift"
 msgstr "Compensate clock drift"
 
+msgid "Diagnostics"
+msgstr "Diagnostics"
+
 msgid "Enlarge token information"
 msgstr "Enlarge token information"
 

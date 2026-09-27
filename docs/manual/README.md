@@ -96,8 +96,11 @@ the list may respond sluggishly.
   difference. When the correction changes noticeably, the watch shows
   "Synchronizing clock...". On by default.
 - **Color scheme**: amber on black, white on black, or black on white.
-- **Sync Stats**: how often the watch fetched its Tokens, how often that
-  failed, and how long it took. It helps with reporting problems.
+
+## Diagnostics
+
+**Sync Stats** show how often the watch fetched its Tokens, how often that
+failed, and how long it took. They help with reporting problems.
 
 ## Security notes
 
