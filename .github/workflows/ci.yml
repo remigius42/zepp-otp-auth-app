@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # commitlint and gitleaks check the whole history
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Check for Git conflict markers and whitespace errors
+        run: git diff --check
+      - name: Scan for secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install npm packages
+        run: npm ci
+      - name: Check commit messages
+        run: npx commitlint --from "$(git rev-list --max-parents=0 HEAD)" --to HEAD
+      - name: Check licenses of the production dependencies
+        run: npm run check-licenses
+      # The engine check in `lint` bundles the Settings App, which imports
+      # this generated, gitignored file.
+      - name: Generate licenses data
+        run: npm run generate-licenses-data
+      - name: Lint (Prettier, cspell, markdownlint, oxlint, tsc, engine check)
+        run: npm run lint
+      - name: Test
+        run: npx vitest run --coverage
+      - name: Build
+        run: npm run build
+      - name: Upload the .zab
+        uses: actions/upload-artifact@v4
+        with:
+          name: OTP Auth Zepp app
+          path: build/zeus/dist/*.zab
+          retention-days: 14
