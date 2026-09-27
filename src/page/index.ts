@@ -25,6 +25,7 @@ import { pageStatus, type PullState } from "./pageStatus"
 import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
 import { applySync, initialSyncState } from "./syncState"
 import { msUntilNextTick } from "./tick"
+import { withTimeout } from "./withTimeout"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
 /**
@@ -323,9 +324,10 @@ function pullTokens() {
   /* ZML's handshake can throw synchronously — `ble.send` failing just after
    * Bluetooth returns — which left the pull pending for good: "waiting"
    * forever, and taps retry only a failed pull. Inside `then`, the throw
-   * becomes a failed pull like any other. */
-  Promise.resolve()
-    .then(() =>
+   * becomes a failed pull like any other. ZML's timeout did not fire for a
+   * pull sent right after Bluetooth returned, hence our own. */
+  withTimeout(
+    Promise.resolve().then(() =>
       send(
         {
           method: GET_TOKENS_METHOD,
@@ -336,7 +338,9 @@ function pullTokens() {
         },
         { timeout: SYNC_TIMEOUT_MS }
       )
-    )
+    ),
+    SYNC_TIMEOUT_MS
+  )
     .then(result => {
       const elapsed = Date.now() - startedAt
       record("synced", elapsed)
