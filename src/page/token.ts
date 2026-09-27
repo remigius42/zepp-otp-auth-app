@@ -31,8 +31,12 @@ import * as Styles from "zosLoader:./token.[pf].layout.js"
  * The ticker starts and stops as in `./index`.
  */
 
-/** As on the list: the system resets it when the page is destroyed. */
-const SCREEN_ON_MS = 60_000
+/**
+ * Longer than the list's 60 s: a Token opened alone is one being typed, and
+ * 60 s felt short on hardware. Three 30 s Periods; the system resets it when
+ * the page is destroyed.
+ */
+const SCREEN_ON_MS = 90_000
 
 type Widget = ReturnType<typeof createWidget>
 type UntypedWidget = { setProperty(property: number, value: unknown): boolean }
