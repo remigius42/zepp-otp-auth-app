@@ -170,6 +170,31 @@ Observed 2026-09-27 on an Active 2 with 10 Tokens. Fixes are unverified.
    above its label, and a `TextInput`'s `placeholder` shows only in its edit
    dialog.
 
+## 3.13 What "intermediate products" in a `.zab` are [build]
+
+Every `npm run build` ends in a Notice: a package that "includes intermediate
+products" authorizes Zepp to repackage it for other devices, and
+`zeus prune --ip` removes them. Neither the Notice nor the docs say what they
+are. Unpacking the `.zab` does.
+
+**What is in it.** Next to one `.zpk` per target device (six for our
+`app.json`, across the NXP, APOLLO and ZPS CPUs) sits a `.ip-package` of about
+310 KB, named in `manifest.json` as `bundleInfo.csc`. It is a zip of
+`build/zeus` from before QJSC turns the JavaScript into bytecode: the bundled
+`.js` per module, `app.json`, the assets, and the `.js.map` files, whose
+`sourcesContent` embeds our TypeScript sources. So Zepp can compile the app
+again for a device that did not exist when we built it.
+
+**When it is there.** zeus-cli 1.9.3 turns `ip` on by default in production
+mode only, and zpm writes `.ip-package` only for production builds. The Notice
+prints on every production build, whether or not the package ends up in the
+`.zab`. A `.zab` that `zeus dev` or `zeus preview` left in `dist/` has neither
+the extra devices nor the package. Check which one you are about to upload.
+
+**Why we keep it.** The app is GPL-3.0 and its source is public, so the
+Notice's license grant gives Zepp nothing it could not already take.
+Pruning would mean a separate build for every device type, for no gain.
+
 ---
 
 ← Previous: [3.0–3.8 Target platform mapping](./03-platform-mapping.md)\
