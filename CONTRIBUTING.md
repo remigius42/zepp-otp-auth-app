@@ -44,6 +44,9 @@ uphold this code.
   oxlint and `tsc --noEmit`
 - `npm run lint:fix` fixes what can be fixed automatically
 - `npm run build` compiles and produces an installable `.zab`
+- `npm run bridge` builds, then starts `zeus bridge` for installing on a
+  watch. Start it afresh for every install: a running bridge keeps the
+  catalogs it started with
 - `npm run dev` compiles and starts the Zeus development server
 - `npm run compile:watch` recompiles on change, for running alongside `zeus dev`
 - `npm run docs:dev` serves the documentation site (`docs/`) with live reload;

@@ -16,6 +16,7 @@
     "prepare": "husky",
     "compile": "node bin/compile.mjs",
     "compile:watch": "node bin/compile.mjs --watch",
+    "bridge": "npm run build && cd build/zeus && zeus bridge",
     "build": "npm run generate-licenses-data && npm run generate-arc-frames && npm run compile && npm run check:engine && cd build/zeus && zeus build",
     "dev": "npm run generate-arc-frames && npm run compile && cd build/zeus && zeus dev",
     "preview": "npm run generate-arc-frames && npm run compile && cd build/zeus && zeus preview",
