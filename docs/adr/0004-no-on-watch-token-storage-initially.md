@@ -116,3 +116,38 @@ Sync in `localStorage` and starts in it. The phone stays the source of truth:
 every Sync overwrites the stored scheme, and a reinstall that loses it only
 brings the flip back once. The enlarged view is still not stored, since the
 waiting message doesn't use it.
+
+## Amendment, 2026-09-27: what "the phone is the safer place" rests on
+
+The Tokens sit in plaintext in the Zepp app's settings storage, so the
+decision above assumes that storage stays on the phone. Zepp's documentation
+presents `settingsStorage` as phone-local key-value storage shared by the
+Settings App and the Side Service, and describes no cloud sync for it: the
+only documented way for Side Service data to reach a server is the Side
+Service calling `fetch` itself ([Settings Storage
+API](https://docs.zepp.com/docs/reference/side-service-api/settings-storage/),
+[Side Service
+introduction](https://docs.zepp.com/docs/1.0/guides/framework/side-service/intro/)).
+It does not promise the opposite either, and whether the Zepp app's own
+backups (Android auto backup, iCloud) include it is undocumented.
+
+**Unverified.** The check: enroll a test Token, uninstall and reinstall the
+Zepp app, sign in again, open the Settings App. A Token that is back came
+through Zepp's servers or a backup; then the sentence above is wrong and this
+decision needs revisiting. Until then, treat "phone-local" as the
+documentation's claim, not ours.
+
+Two smaller consequences of the same store, accepted rather than fixed:
+
+- **Manual Entry drafts persist.** The Settings App has no state between
+  renders other than settings storage, so a Secret typed into Manual Entry
+  sits under `manualSecret` until Add or Reset to defaults. It is the same
+  plaintext store as the Token set, so this adds nothing new to expose.
+- **The watch forgets deleted Tokens.** Tokens are memory-only, but the
+  prepared HMAC keys and cached Codes are keyed by Secret and were kept until
+  the app exited. Every Sync now drops the entries of Tokens it no longer
+  carries (`retainTokens`).
+
+URI Paste keeps nothing: the pasted text leaves settings storage once it has
+rendered, on error as on success, and the parser's error messages never quote
+the input, since both the settings key and the bridge log would show it.
