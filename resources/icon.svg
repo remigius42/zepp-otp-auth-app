@@ -4,13 +4,13 @@
   <defs>
     <mask id="hole">
       <rect width="80" height="80" fill="#fff"/>
-      <circle cx="40" cy="40" r="22.2" fill="#000"/>
+      <circle cx="40" cy="40" r="20.8" fill="#000"/>
     </mask>
   </defs>
   <circle cx="40" cy="40" r="38.709677" fill="#ffd502"/>
-  <g fill="#000" transform="translate(40 40) scale(0.8) translate(-40 -40)">
+  <g fill="#000" transform="translate(40 40) scale(0.9) translate(-40 -40)">
     <g mask="url(#hole)">
-      <circle cx="40" cy="40" r="27.8"/>
+      <circle cx="40" cy="40" r="28.5"/>
       <rect x="23.35" y="7.5" width="33.3" height="20"/>
       <rect x="23.35" y="52.5" width="33.3" height="20.02"/>
     </g>
