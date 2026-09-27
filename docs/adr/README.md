@@ -22,3 +22,4 @@ rewriting the original decision.
 - **0006** [TypeScript sources, compiled to JavaScript before Zeus sees them](./0006-typescript-via-precompile-step.md)
   - Amended 2026-09-26: the step also bundles dependencies
 - **0007** [The watch has no BigInt, so SHA-512 is unsupported until vendored](./0007-no-bigint-on-the-watch.md)
+  - Amended 2026-09-27: SHA-512 is back, and every hash is our own

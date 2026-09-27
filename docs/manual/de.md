@@ -66,8 +66,6 @@ hinzugefügt ist.
 
 ### Nicht unterstützt
 
-- **SHA-512-Tokens.** Selten und noch nicht unterstützt. OTP Auth meldet das,
-  statt ein Token hinzuzufügen, das falsche Codes zeigen würde.
 - **Tokens aus einem QR-Bild oder einer Exportdatei hinzufügen.** Bewusst
   weggelassen: Beides lässt Ihre Schlüssel unverschlüsselt auf dem Telefon
   liegen, wo Backups und andere Apps sie erreichen.

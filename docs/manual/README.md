@@ -57,8 +57,6 @@ field empties once the Token is added.
 
 ### Not supported
 
-- **SHA-512 Tokens.** Rare, and not supported yet. OTP Auth says so instead of
-  adding a Token that would show wrong Codes.
 - **Adding Tokens from a QR image or an export file.** Left out on purpose:
   both keep your Secrets unencrypted on the phone, where backups and other apps
   can reach them.

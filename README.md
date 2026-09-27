@@ -28,7 +28,7 @@ Zepp OS. It is **work in progress** and not yet released.
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Target      | Amazfit Active 2 (round), API_LEVEL 4.2. Builds also cover the other round Zepp OS devices, since layouts scale from a design width |
 | Implemented | Feature parity with the Fitbit app except for the differences below: Token list, Settings App, phone-to-watch Sync, Enrollment      |
-| Pending     | Hardware check of the latest fixes, distribution, SHA-512                                                                           |
+| Pending     | Hardware check of the latest fixes, distribution                                                                                    |
 
 ## Differences from the Fitbit app
 

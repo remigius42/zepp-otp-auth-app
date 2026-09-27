@@ -45,3 +45,21 @@ with an unhelpful `TypeError: not a function`. The app therefore supports
 - The RFC 6238 SHA-512 vectors stay in `totp.spec.ts` as rejection cases;
   moving them back is the acceptance criterion for restoring it.
 - Belongs in the README and the write-up next to ADR-0003 and ADR-0004.
+
+## Amendment, 2026-09-27: SHA-512 is back, and every hash is our own
+
+The option rejected above as engineering, hand-rolling all three HMACs, is
+what happened. On the watch, one noble HMAC-SHA1 took about 300 ms, and a
+Period boundary with 12 Tokens stalled the list (§3.14). A hand-written SHA-1
+was about five times faster in laptop QuickJS (§3.16). With that code in
+place, SHA-256 and SHA-512 were a small step further. SHA-512 keeps each
+64-bit word as two 32-bit halves, so it needs no BigInt at all.
+
+- **SHA-512 Tokens are accepted again.** The RFC 6238 SHA-512 vectors are
+  back among the acceptance tests. Enrollment still validates the algorithm,
+  with rules 1, 3 and 4 above; rule 2's SHA-512 message is gone.
+- **`@noble/hashes` is only used in tests**, where it cross-checks the three
+  hashes on randomized inputs. The published test vectors (FIPS 180-4,
+  RFC 2202, RFC 4231) check them too.
+- The platform constraint stands: no device bundle may contain BigInt, and
+  `npm run check:engine` enforces it.
