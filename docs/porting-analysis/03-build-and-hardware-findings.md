@@ -221,8 +221,8 @@ Observed 2026-09-27 on an Active 2 with 12 Tokens. §3.15 verifies the fixes.
 4. **The bridge-installed build carried a stale Settings App catalog.** The
    `.zab` that `zeus bridge` installed had the new `gettext` call but an old
    `de-DE` catalog, so the Tokens description showed in English. A fresh
-   `npm run build` embeds the current one. Where the stale catalog came from
-   is unknown.
+   `npm run build` embeds the current one. §3.15 found where the stale
+   catalog came from.
 5. **Setting a Settings App value and removing it in one handler renders
    only the final value.** The §3.11 fix for URI Paste therefore never
    worked: the field went from `""` to `""` and kept the pasted URI. The
@@ -248,6 +248,15 @@ Two Settings App layout issues turned up; the fixes are unverified:
    the fix that already worked for `Text` and `Link`.
 2. **The URI Paste field blended into the text around it**, and now has
    margins above and below.
+
+The fourth session, the same day, found where §3.14's stale catalog came from.
+**A long-running `zeus bridge` installs its own build, with new code but the
+catalogs it read when it started.** The installed Settings App showed a new
+heading in English. Its `.zab`, a single-device package, carried the
+`gettext` call but none of the new `de-DE` entries. A `zeus build` from the
+same directory embedded them for every device. Nothing on disk held the old
+catalog, so the bridge must keep it in memory. Cleaning the build output
+would not help. Restarting the bridge before installing does.
 
 ---
 
