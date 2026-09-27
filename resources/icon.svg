@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <mask id="hole">
+      <rect width="80" height="80" fill="#fff"/>
+      <circle cx="40" cy="40" r="22.2" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#ffd502">
+    <g mask="url(#hole)">
+      <circle cx="40" cy="40" r="27.8"/>
+      <rect x="23.35" y="7.5" width="33.3" height="20"/>
+      <rect x="23.35" y="52.5" width="33.3" height="20.02"/>
+    </g>
+    <g transform="matrix(1.11,0,0,1.11,-4.4,-4.4319318)">
+      <rect x="30.879238" y="36.464836" width="18.241524" height="14.829749"/>
+      <path d="m 32.813969,36.550846 c -0.0035,-10.424487 14.292414,-10.322032 14.372063,-0.06356 l -2.902092,-0.02074 c -0.03143,-6.537845 -8.535436,-6.409275 -8.568112,0.127116 z"/>
+    </g>
+  </g>
+</svg>
