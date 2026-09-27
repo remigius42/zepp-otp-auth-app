@@ -100,6 +100,8 @@ let rows: RowView[] = []
 let timer: ReturnType<typeof setTimeout> | undefined
 let lastStatusKind: string | undefined
 let maxTickMs = 0
+/** The `UPDATE_ITEM` share of the slowest tick, apart from computing rows. */
+let maxUpdateMs = 0
 
 /** `getItem` as it behaves; the typings claim it returns `void` (§3.8). */
 function readStorage(key: string) {
@@ -283,6 +285,7 @@ function tick() {
   const startedAt = Date.now()
   if (list !== undefined) {
     const next = currentRows()
+    const updatesStartedAt = Date.now()
     for (const index of changedRows(rows, next)) {
       untyped(list).setProperty(listProp.UPDATE_ITEM, {
         index,
@@ -290,6 +293,7 @@ function tick() {
       })
     }
     rows = next
+    maxUpdateMs = Math.max(maxUpdateMs, Date.now() - updatesStartedAt)
   }
   untyped(clockSyncText as Widget).setProperty(
     prop.TEXT,
@@ -375,8 +379,11 @@ function stopTicking() {
     clearTimeout(timer)
     timer = undefined
   }
-  if (maxTickMs > 0) diag(`slowest tick ${maxTickMs} ms`)
+  if (maxTickMs > 0) {
+    diag(`slowest tick ${maxTickMs} ms, slowest updates ${maxUpdateMs} ms`)
+  }
   maxTickMs = 0
+  maxUpdateMs = 0
 }
 
 Page(
