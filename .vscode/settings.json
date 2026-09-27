@@ -6,7 +6,7 @@
   "editor.formatOnSave": false,
   "editor.guides.bracketPairs": true,
   "editor.rulers": [{ "column": 80 }],
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "rewrap.reformat": true,
-  "rewrap.wrappingColumn": 80,
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "rewrap.wrappingColumn": 80
 }
