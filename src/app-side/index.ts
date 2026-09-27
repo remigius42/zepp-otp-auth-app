@@ -9,7 +9,8 @@ import { messageForSettingsChange, syncMessage, syncStatsToStore } from "./sync"
  * watch's launch pull) and `call` (the push on a Token change), per the
  * ADR-0002 amendment.
  *
- * `console.log` here does not reach `zeus bridge`; see TODO.md.
+ * `console.log` here does not reach `zeus bridge`; a settings write does
+ * (porting analysis §3.6.1).
  */
 AppSideService(
   BaseSideService({

@@ -57,8 +57,8 @@ async function copyAssets() {
  * German for Swiss phones. On a `de-CH` phone the Settings App's `gettext`
  * returned the msgid: the runtime matches the locale exactly and ignores the
  * `en-US` fallback. So `de-CH` gets `de-DE`'s translations, copied at build
- * time so the two cannot drift. Whether this works is Phase 3's S1 hardware
- * check; see TODO.md.
+ * time so the two cannot drift. Confirmed on hardware; see the porting
+ * analysis §3.7.
  */
 const LOCALE_ALIASES = { "de-DE": ["de-CH"] }
 

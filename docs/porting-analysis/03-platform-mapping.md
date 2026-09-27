@@ -254,7 +254,7 @@ a native per-row progress **bar** — which is option (c) below without the
 font-glyph gamble, and it would retire ADR-0005's pre-rendered arc frames
 entirely. Whether its geometry is actually data-drivable rather than fixed in
 `item_config` is not answerable from a type declaration, so it goes to the
-spike; see `docs/spike-probes.md`.
+spike. §3.5.1 has the answer: it is not.
 
 This matters because the current design mutates a real arc per row every second:
 `app/ui/tokens.ts` sets `startAngle`/`sweepAngle` on a per-tile `ArcElement`

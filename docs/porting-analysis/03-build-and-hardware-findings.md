@@ -83,8 +83,8 @@ SHA-256/512 are inside it, and HMAC-SHA1 is unaffected by SHA-1's collision
 weaknesses. The swap is ~15 lines in `totp.ts` and **all 36 TOTP tests pass
 unchanged**, RFC vectors included, across all three algorithms.
 
-This also closes the open question TODO.md filed under "decide consciously
-rather than inherit": `crypto-js` was the app's only cryptographic dependency,
+This also closes the open question of what to "decide consciously rather than
+inherit": `crypto-js` was the app's only cryptographic dependency,
 inherited from `fitbit-otp-auth-app`, and officially discontinued. The platform
 forced the decision earlier than planned and in the same direction.
 
