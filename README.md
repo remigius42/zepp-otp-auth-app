@@ -19,6 +19,7 @@ Zepp OS. It is **work in progress** and not yet released.
   <img width="169" height="169" src="docs/assets/screenshots/normal_white.png" alt="Token list with white color scheme" />
   <img width="169" height="169" src="docs/assets/screenshots/normal_black.png" alt="Token list with black color scheme" />
   <img width="169" height="169" src="docs/assets/screenshots/enlarged_default.png" alt="Enlarged token list with default color scheme" />
+  <img width="169" height="169" src="docs/assets/screenshots/add_tokens.png" alt="Add tokens message on device" />
 </div>
 
 ## Status
