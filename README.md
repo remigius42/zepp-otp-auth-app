@@ -12,15 +12,15 @@ then generates codes without needing a connection to anything.
 
 This is a port of
 [fitbit-otp-auth-app](https://github.com/remigius42/fitbit-otp-auth-app) to
-Zepp OS. It is **work in progress** and not yet usable.
+Zepp OS. It is **work in progress** and not yet released.
 
 ## Status
 
 | Area        | State                                                                                                                               |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Target      | Amazfit Active 2 (round), API_LEVEL 4.2. Builds also cover the other round Zepp OS devices, since layouts scale from a design width |
-| Implemented | TOTP core, key URI parsing, validation and formatting, with tests                                                                   |
-| Outstanding | Token list, settings app, phone-to-watch sync, enrollment                                                                           |
+| Implemented | Feature parity with the Fitbit app except for the differences below: Token list, Settings App, phone-to-watch Sync, Enrollment      |
+| Outstanding | Polish, release process, SHA-512, importing from files and QR images                                                                |
 
 ## Differences from the Fitbit app
 
@@ -41,6 +41,7 @@ These are deliberate and reasoned; each links to the decision record.
 
 ## Documentation
 
+- [User manual](./docs/manual/README.md) ([Deutsch](./docs/manual/de.md))
 - [Porting analysis](./docs/ZEPP_OS_PORTING_ANALYSIS.md) — what ports, what
   doesn't, and what the platform actually does as opposed to what its
   documentation says
