@@ -131,11 +131,16 @@ introduction](https://docs.zepp.com/docs/1.0/guides/framework/side-service/intro
 It does not promise the opposite either, and whether the Zepp app's own
 backups (Android auto backup, iCloud) include it is undocumented.
 
-**Unverified.** The check: enroll a test Token, uninstall and reinstall the
-Zepp app, sign in again, open the Settings App. A Token that is back came
-through Zepp's servers or a backup; then the sentence above is wrong and this
-decision needs revisiting. Until then, treat "phone-local" as the
-documentation's claim, not ours.
+**Checked once, 2026-09-27, weak signal.** A test Token was enrolled, the
+Zepp phone app uninstalled and reinstalled from the store, and the account
+signed in again: the Settings App came up empty. That is consistent with
+phone-local storage but proves little — a sideloaded developer app may be
+treated differently from a Store Listing, no OS backup was forced in
+between, and only one phone platform was tried. A Token that _had_ come back
+would have been conclusive the other way. Treat "phone-local" as the
+documentation's claim with one observation behind it, and repeat the check
+after a Store Listing, with OS app backup disabled beforehand so Zepp's own
+servers are the only channel left.
 
 Two smaller consequences of the same store, accepted rather than fixed:
 
