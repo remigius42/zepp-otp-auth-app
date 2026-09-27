@@ -6,7 +6,6 @@ import { settingsFromStorage } from "../shared/settings"
 import {
   COLOR_SCHEME_SETTINGS_KEY,
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
-  DIAG_SETTINGS_KEY,
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
   SYNC_STATS_BASELINE_SETTINGS_KEY,
   SYNC_STATS_SETTINGS_KEY,
@@ -15,7 +14,6 @@ import {
   URI_PASTE_INPUT_SETTINGS_KEY
 } from "../shared/settingsKeys"
 import appJson from "../app.json"
-import { parseDiag } from "../shared/diagTrail"
 import { parseStats } from "../shared/syncStats"
 import { parseTokens } from "../shared/tokens"
 import type { TotpConfig } from "../shared/TotpConfig"
@@ -314,11 +312,6 @@ function diagnosticsSection(storage: SettingsStorage) {
           parseStats(storage.getItem(SYNC_STATS_BASELINE_SETTINGS_KEY))
         )
       )
-    ),
-    /* Temporary, with `shared/diagTrail`: the watch's timings, readable on
-     * the phone. Not translated. */
-    ...parseDiag(storage.getItem(DIAG_SETTINGS_KEY)).map(entry =>
-      textLine(entry)
     ),
     View(spaced(), [
       Button({

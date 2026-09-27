@@ -4,7 +4,6 @@ import { ColorSchemeName } from "../../shared/ColorSchemes"
 import {
   COLOR_SCHEME_SETTINGS_KEY,
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
-  DIAG_SETTINGS_KEY,
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
   SYNC_STATS_BASELINE_SETTINGS_KEY,
   SYNC_STATS_SETTINGS_KEY,
@@ -13,7 +12,6 @@ import {
   URI_PASTE_INPUT_SETTINGS_KEY
 } from "../../shared/settingsKeys"
 import {
-  diagToStore,
   messageForSettingsChange,
   syncMessage,
   syncStatsToStore
@@ -82,8 +80,7 @@ describe("messageForSettingsChange", () => {
     URI_PASTE_INPUT_SETTINGS_KEY,
     URI_PASTE_ERROR_SETTINGS_KEY,
     SYNC_STATS_SETTINGS_KEY,
-    SYNC_STATS_BASELINE_SETTINGS_KEY,
-    DIAG_SETTINGS_KEY
+    SYNC_STATS_BASELINE_SETTINGS_KEY
   ])("does not push when %s changed", key => {
     expect(
       messageForSettingsChange(key, storageWith([TOKEN]), NOW_MS)
@@ -102,21 +99,6 @@ describe("syncStatsToStore", () => {
     "stores nothing for %j",
     params => {
       expect(syncStatsToStore(params)).toBeUndefined()
-    }
-  )
-})
-
-describe("diagToStore", () => {
-  it("stores the diagnostic trail the watch sent with its pull", () => {
-    expect(diagToStore({ diag: ["1 init", "2 build"] })).toBe(
-      JSON.stringify(["1 init", "2 build"])
-    )
-  })
-
-  it.each([undefined, {}, { diag: [] }, { diag: "init" }])(
-    "stores nothing for %j",
-    params => {
-      expect(diagToStore(params)).toBeUndefined()
     }
   )
 })
