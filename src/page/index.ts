@@ -183,6 +183,8 @@ function showList() {
     ...listData(rows)
   })
   listLook = look
+  /* A recolor once changed the arcs but not the texts (Phase 3). */
+  diag(`list created ${look}`)
 }
 
 /** `UPDATE_ITEM` for the rows that differ; the rest stay untouched. */
