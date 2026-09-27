@@ -112,7 +112,7 @@ reagiert die Liste womöglich träge.
 - **Farbschema**: Bernstein auf Schwarz, Weiss auf Schwarz oder Schwarz auf
   Weiss.
 
-## Diagnose
+## Diagnostik
 
 Die **Sync-Statistik** zeigt, wie oft die Uhr ihre Tokens geholt hat, wie oft
 das fehlschlug und wie lange es dauerte. Das hilft beim Melden von Problemen.
