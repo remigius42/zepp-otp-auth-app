@@ -4,6 +4,7 @@ Copyright 2026 binary poetry gmbh.
 
 [![Licensed under GPL-3.0 or later](https://img.shields.io/github/license/remigius42/zepp-otp-auth-app)](./COPYING)
 ![Current app version](https://img.shields.io/github/package-json/v/remigius42/zepp-otp-auth-app)
+[![CI](https://github.com/remigius42/zepp-otp-auth-app/actions/workflows/ci.yml/badge.svg)](https://github.com/remigius42/zepp-otp-auth-app/actions/workflows/ci.yml)
 
 With `zepp-otp-auth-app` you can keep your [time-based one-time passwords
 (TOTP)](https://en.wikipedia.org/wiki/Time-based_one-time_password) on your
