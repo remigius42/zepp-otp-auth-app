@@ -66,7 +66,15 @@ collects the manual, the decision records and the porting analysis.
 
 ## Contributing
 
-Get started by having a look at [CONTRIBUTING.md](./CONTRIBUTING.md).
+PRs are welcome. Fair warning: this is a side project, built mainly to write
+about what porting an app to Zepp OS is like, and maintained on a best-effort
+basis. Responses and reviews may be slow, and changes that don't fit the
+project are unlikely to be merged.
+[Opening an issue first to discuss](https://github.com/remigius42/zepp-otp-auth-app/issues/new?template=feature_request.yml)
+is the best use of your time.
+
+Please report vulnerabilities privately — see [SECURITY.md](.github/SECURITY.md).
+To get started, have a look at [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Funding
 
