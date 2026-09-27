@@ -14,6 +14,13 @@ This is a port of
 [fitbit-otp-auth-app](https://github.com/remigius42/fitbit-otp-auth-app) to
 Zepp OS. It is **work in progress** and not yet released.
 
+<div style="display:flex; grid-gap: 10px; margin-top:1em; margin-bottom: 1em;">
+  <img width="169" height="169" src="docs/assets/screenshots/normal_default.png" alt="Token list with default color scheme" />
+  <img width="169" height="169" src="docs/assets/screenshots/normal_white.png" alt="Token list with white color scheme" />
+  <img width="169" height="169" src="docs/assets/screenshots/normal_black.png" alt="Token list with black color scheme" />
+  <img width="169" height="169" src="docs/assets/screenshots/enlarged_default.png" alt="Enlarged token list with default color scheme" />
+</div>
+
 ## Status
 
 | Area        | State                                                                                                                               |
