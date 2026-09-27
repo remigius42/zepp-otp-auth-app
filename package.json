@@ -33,7 +33,7 @@
     "generate-licenses-data": "./bin/generate_licenses_data.sh",
     "generate-arc-frames": "node bin/generate-arc-frames.mjs",
     "check-licenses": "license-checker-rseidelsohn --production --onlyAllow \"MIT;ISC;BSD-3-Clause;Apache-2.0;0BSD\" --excludePrivatePackages",
-    "check:engine": "node bin/check-engine.mjs",
+    "check:engine": "(test -f src/setting/licenses.js || npm run generate-licenses-data) && node bin/check-engine.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",

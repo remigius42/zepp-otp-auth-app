@@ -33,10 +33,6 @@ jobs:
         run: npx commitlint --from "$(git rev-list --max-parents=0 HEAD)" --to HEAD
       - name: Check licenses of the production dependencies
         run: npm run check-licenses
-      # The engine check in `lint` bundles the Settings App, which imports
-      # this generated, gitignored file.
-      - name: Generate licenses data
-        run: npm run generate-licenses-data
       - name: Lint (Prettier, cspell, markdownlint, oxlint, tsc, engine check)
         run: npm run lint
       - name: Test
