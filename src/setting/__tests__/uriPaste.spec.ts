@@ -67,16 +67,34 @@ describe("handleUriPaste", () => {
     }
   })
 
-  it("keeps the text, shows the error and leaves the Tokens alone", () => {
+  /* The rejected text may hold a Secret all the same, e.g. a URI with a
+   * typo, so it leaves settings storage like an accepted one. */
+  it("shows the error, clears the text once rendered and leaves the Tokens alone", () => {
     const storage = fakeStorage({ [TOKENS_SETTINGS_KEY]: "[]" })
+    const later: (() => void)[] = []
 
-    handleUriPaste(storage, "not a URI")
+    handleUriPaste(storage, "not a URI", clear => later.push(clear))
 
     expect(storage.items.get(URI_PASTE_INPUT_SETTINGS_KEY)).toBe("not a URI")
     expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).toContain(
       "Error: Not an otpauth:// URI"
     )
+    later.forEach(clear => clear())
+    expect(storage.items.has(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(false)
     expect(storage.items.get(TOKENS_SETTINGS_KEY)).toBe("[]")
+  })
+
+  it("never quotes the rejected text in the error", () => {
+    const storage = fakeStorage()
+
+    handleUriPaste(
+      storage,
+      "otpauth//totp/x?secret=HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
+    )
+
+    expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).not.toContain(
+      "HXDMVJECJJWSRB3HWIZR4IFUGFTMXBOZ"
+    )
   })
 
   it("reports an unexpected failure in the error field", () => {
@@ -93,5 +111,6 @@ describe("handleUriPaste", () => {
     expect(storage.items.get(URI_PASTE_ERROR_SETTINGS_KEY)).toContain(
       "storage exploded"
     )
+    expect(storage.items.has(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(false)
   })
 })

@@ -29,8 +29,10 @@ function parseKeyUri(keyUri: string): KeyUri {
     /^([a-z][a-z0-9+.-]*):\/\/[^/?#]*\/([^?#]*)(?:\?([^#]*))?/i.exec(
       keyUri.trim()
     )
+  /* Neither message quotes the input: it may hold a Secret, and the message
+   * ends up in settings storage and the bridge log. */
   if (!match) {
-    throw Error(`Not a key URI: "${keyUri}"`)
+    throw Error("Not a key URI")
   }
   const [, scheme = "", rawLabel = "", query = ""] = match
   if (scheme.toLowerCase() !== "otpauth") {

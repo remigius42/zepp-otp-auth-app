@@ -28,8 +28,10 @@ function clearLater(clear: () => void) {
 }
 
 /**
- * URI Paste submitted. On success the Token is stored and the field empties,
- * so the Secret does not stay on screen.
+ * URI Paste submitted. The field empties either way, so the pasted text —
+ * which holds the Secret — stays in neither the screen nor settings storage.
+ * On success the Token is stored; otherwise only the error line remains and
+ * the user pastes again.
  */
 export function handleUriPaste(
   storage: SettingsStorage,
@@ -41,7 +43,6 @@ export function handleUriPaste(
   } catch (error) {
     /* The Settings App cannot console.log on hardware, but settings writes
      * reach the bridge log (§3.6.1), so any surprise names its own cause. */
-    storage.setItem(URI_PASTE_INPUT_SETTINGS_KEY, input)
     storage.setItem(URI_PASTE_ERROR_SETTINGS_KEY, String(error))
   }
 }
@@ -55,14 +56,13 @@ function storeResult(
   if ("tokens" in result) {
     storage.setItem(TOKENS_SETTINGS_KEY, JSON.stringify(result.tokens))
     storage.removeItem(URI_PASTE_ERROR_SETTINGS_KEY)
-    /* The field resets only when its value changes; it was "" before the
-     * paste, so it passes through the URI on its way back to "". */
-    storage.setItem(URI_PASTE_INPUT_SETTINGS_KEY, input)
-    schedule(() => {
-      storage.removeItem(URI_PASTE_INPUT_SETTINGS_KEY)
-    })
   } else {
-    storage.setItem(URI_PASTE_INPUT_SETTINGS_KEY, input)
     storage.setItem(URI_PASTE_ERROR_SETTINGS_KEY, result.error)
   }
+  /* The field resets only when its value changes; it was "" before the
+   * paste, so it passes through the URI on its way back to "". */
+  storage.setItem(URI_PASTE_INPUT_SETTINGS_KEY, input)
+  schedule(() => {
+    storage.removeItem(URI_PASTE_INPUT_SETTINGS_KEY)
+  })
 }
