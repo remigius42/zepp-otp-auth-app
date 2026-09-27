@@ -279,6 +279,32 @@ Observed 2026-09-27 on the same watch with 12 Tokens.
 4. **Renames, the enlarged view and fresh launches behave.** A swipe back
    does not pull again, and re-opening the app does.
 
+## 3.17 Hash timings on the watch [device]
+
+Measured 2026-09-27 on the same watch by timing `totp()` at launch: the first
+Code, which prepares the key, then the mean of five more.
+
+| Algorithm | First Code | Each after | Laptop QuickJS, per HMAC |
+| --------- | ---------- | ---------- | ------------------------ |
+| SHA1      | 25 ms      | 12.6 ms    | 69 µs                    |
+| SHA256    | 59 ms      | 29.4 ms    | 78 µs                    |
+| SHA512    | 1675 ms    | 821 ms     | 440 µs                   |
+
+1. **SHA-1 is about 24 times faster than with noble** (~300 ms, §3.14).
+   With 12 SHA-1 Tokens, a Period boundary now costs at most about 150 ms,
+   where it took up to 2.9 s.
+2. **SHA-512 was 28 times slower than SHA-256 on the watch, but only 6 times
+   on the laptop.** The difference is the watch's 2020 QuickJS: this SHA-512
+   called helper functions about 2,000 times per block, for rotations and
+   carries, and SHA-1 and SHA-256 call none. One SHA-512 Token alone made the
+   slowest tick 882 ms, against 63 ms without a boundary. Inlining the
+   helpers made it 1.5 times faster on the laptop (440 → 290 µs). The
+   laptop's newer QuickJS understates call overhead, so the gain on the watch
+   may be larger; it is not yet measured.
+3. **The timing itself blocked the launch.** It ran about 6 s of hashing
+   before the first render, so that launch's Sync took 7.4 s. The start-up
+   stall seen in that session was mostly the measurement.
+
 ---
 
 ← Previous: [3.0–3.8 Target platform mapping](./03-platform-mapping.md)\

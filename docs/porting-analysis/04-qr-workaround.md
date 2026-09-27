@@ -191,5 +191,5 @@ What users will actually do, and what the docs should recommend:
 
 ---
 
-← Previous: [3.9–3.16 Build and hardware findings](./03-build-and-hardware-findings.md)\
+← Previous: [3.9–3.17 Build and hardware findings](./03-build-and-hardware-findings.md)\
 Next: [5. Effort estimate](./05-effort-estimate.md) →
