@@ -2,6 +2,7 @@ import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
 import { getText } from "@zos/i18n"
 import { showToast } from "@zos/interaction"
+import { replace } from "@zos/router"
 import { localStorage } from "@zos/storage"
 import {
   align,
@@ -39,9 +40,9 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  *
  * A Sync that changes the Token count re-supplies the whole list
  * (`UPDATE_DATA`), and one that changes the color scheme or the enlarged view
- * re-creates it, since row colors and sizes are fixed at creation. Otherwise
- * Syncs and ticks patch only the changed rows (`UPDATE_ITEM`): a whole-list
- * update scrolls back to the top (ADR-0005).
+ * re-launches the page, since row colors and sizes are fixed at creation.
+ * Otherwise Syncs and ticks patch only the changed rows (`UPDATE_ITEM`): a
+ * whole-list update scrolls back to the top (ADR-0005).
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
@@ -95,8 +96,6 @@ let request:
 let background: Widget | undefined
 let statusText: Widget | undefined
 let list: Widget | undefined
-/** Scheme and row size the list was created with; a change re-creates it. */
-let listLook: string | undefined
 let rows: RowView[] = []
 let timer: ReturnType<typeof setTimeout> | undefined
 let lastStatusKind: string | undefined
@@ -166,10 +165,9 @@ function render() {
 }
 
 function showList() {
-  const look = `${state.settings.colorScheme} ${state.settings.shouldUseLargeTokenView}`
   const previous = rows
   rows = currentRows()
-  if (list !== undefined && look === listLook) {
+  if (list !== undefined) {
     /* A rename or reorder keeps the row count; patching keeps the scroll
      * position, which `UPDATE_DATA` resets to the top. */
     if (rows.length === previous.length) patchRows(list, previous, rows)
@@ -183,9 +181,6 @@ function showList() {
     item_config_count: 1,
     ...listData(rows)
   })
-  listLook = look
-  /* A recolor once changed the arcs but not the texts (Phase 3). */
-  diag(`list created ${look}`)
 }
 
 /** `UPDATE_ITEM` for the rows that differ; the rest stay untouched. */
@@ -201,7 +196,6 @@ function patchRows(target: Widget, previous: RowView[], next: RowView[]) {
 function removeList() {
   if (list !== undefined) deleteWidget(list)
   list = undefined
-  listLook = undefined
 }
 
 function listData(data: RowView[]) {
@@ -265,11 +259,9 @@ function rowConfig() {
 
 /**
  * The status message, colored at creation: S1 set text and color through
- * `prop.MORE` on a wrapping `TEXT` and nothing showed. Re-created when the
- * color scheme changes.
+ * `prop.MORE` on a wrapping `TEXT` and nothing showed.
  */
 function createStatusText() {
-  if (statusText !== undefined) deleteWidget(statusText)
   lastStatusKind = undefined
   statusText = createWidget(widget.TEXT, {
     ...Styles.STATUS_TEXT,
@@ -364,6 +356,7 @@ function pullTokens() {
 function receive(message: PeerMessage) {
   const now = Date.now()
   const previousScheme = state.settings.colorScheme
+  const previousLarge = state.settings.shouldUseLargeTokenView
   state = applySync(state, message, now)
   diag(`drift ${state.driftSeconds} s`)
   /* A toast rather than our own text: the round screen is too narrow near
@@ -377,9 +370,16 @@ function receive(message: PeerMessage) {
   }
   /* Before `build` there are no widgets yet; `build` creates them colored. */
   if (statusText === undefined) return
-  if (schemeChanged) {
-    applyColorScheme()
-    createStatusText()
+  /* Re-created in place, the list took the new arcs but kept its old text
+   * colors; a freshly opened page colors correctly, so re-launch it. It pulls
+   * the new Settings itself. */
+  if (
+    schemeChanged ||
+    state.settings.shouldUseLargeTokenView !== previousLarge
+  ) {
+    diag("relaunch")
+    replace({ url: "page/index" })
+    return
   }
   render()
 }
@@ -463,6 +463,11 @@ Page(
     onDestroy() {
       diag("destroy")
       stopTicking()
+      /* The page may be re-launched in this same module (`receive`). */
+      background = undefined
+      statusText = undefined
+      list = undefined
+      rows = []
     }
   })
 )
