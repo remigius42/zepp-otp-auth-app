@@ -42,6 +42,12 @@ Tippen Sie auf **Token hinzufügen**. Bei Erfolg leeren sich die Felder, sodass
 der Schlüssel vom Bildschirm verschwindet. **Zurücksetzen auf Standardwerte**
 leert sie, ohne etwas hinzuzufügen.
 
+Ein Tippfehler im Schlüssel ist nicht erkennbar: Ein Schlüssel mit einem
+fehlenden oder vertauschten Zeichen ist immer noch ein gültiger Schlüssel, nur
+ein anderer. OTP Auth nimmt ihn an und zeigt Codes, die der Dienst ablehnt.
+Abgewiesen werden nur Zeichen ausserhalb von `A`–`Z` und `2`–`7`. Prüfen Sie
+den ersten Code beim Dienst, bevor Sie sich auf das Token verlassen.
+
 ### Eine `otpauth://`-URI einfügen
 
 Der QR-Code enthält eine URI, die mit `otpauth://` beginnt. Scannen Sie ihn mit

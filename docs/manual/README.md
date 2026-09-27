@@ -36,6 +36,12 @@ The most private way, since nothing but you and the Zepp app sees the key.
 Tap **Add token**. On success the fields empty, so the Secret leaves the
 screen. **Reset to defaults** empties them without adding anything.
 
+A mistyped Secret is not detectable: a key with a character missing or
+swapped is still a valid key, just a different one, so OTP Auth accepts it and
+shows Codes the service will reject. Only a character outside `A`–`Z` and
+`2`–`7` is refused. Check the first Code against the service before you rely
+on the Token.
+
 ### Paste an `otpauth://` URI
 
 The QR code contains a URI starting with `otpauth://`. Scan it with a QR reader
