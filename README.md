@@ -47,7 +47,7 @@ These are deliberate and reasoned; each links to the decision record.
   documentation says
 - [Glossary](./CONTEXT.md) — the vocabulary this project uses, and the
   ambiguities it deliberately avoids
-- [Decision records](./docs/adr/) — the choices worth not re-litigating
+- [Decision records](./docs/adr/README.md) — the choices worth not re-litigating
 
 ## Contributing
 
