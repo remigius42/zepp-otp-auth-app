@@ -8,8 +8,7 @@ export const SCREEN = {
 
 /**
  * The Token list, inset on every side: the spike showed a row child at
- * `x: px(12)` clipped by the round screen's corner (ADR-0005). The band above
- * holds the clock-sync message.
+ * `x: px(12)` clipped by the round screen's corner (ADR-0005).
  */
 export const LIST = {
   x: px(56),
@@ -44,15 +43,6 @@ export const LARGE_ROW = {
 
 /** ADR-0005's fallback countdown, in the arc's place. */
 export const COUNTDOWN_TEXT_SIZE = px(26)
-
-/** "Synchronizing clock...", in the band above the list. */
-export const CLOCK_SYNC_TEXT = {
-  x: px(83),
-  y: px(8),
-  w: px(300),
-  h: px(44),
-  text_size: px(24)
-}
 
 /**
  * Waiting, failure and no-tokens messages; wraps, so it spans the middle. Tall

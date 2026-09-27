@@ -1,6 +1,7 @@
 import { BasePage } from "@zeppos/zml/base-page"
 import { setPageBrightTime } from "@zos/display"
 import { getText } from "@zos/i18n"
+import { showToast } from "@zos/interaction"
 import { localStorage } from "@zos/storage"
 import {
   align,
@@ -57,9 +58,6 @@ const SCREEN_ON_MS = 60_000
 /** Shorter than ZML's 60 s default, so a Side Service that never answers shows. */
 const SYNC_TIMEOUT_MS = 10_000
 
-/** Fitbit showed "Synchronizing clock..." this long after a correction. */
-const CLOCK_SYNC_MESSAGE_MS = 3500
-
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
 
@@ -90,10 +88,8 @@ let request:
       options: { timeout: number }
     ) => Promise<unknown>)
   | undefined
-let clockSyncMessageUntilMs = 0
 let background: Widget | undefined
 let statusText: Widget | undefined
-let clockSyncText: Widget | undefined
 let list: Widget | undefined
 /** Scheme and row size the list was created with; a change re-creates it. */
 let listLook: string | undefined
@@ -290,9 +286,6 @@ function applyColorScheme() {
   background?.setProperty(prop.MORE, {
     color: toZeppColor(colors.backgroundColor)
   })
-  clockSyncText?.setProperty(prop.MORE, {
-    color: toZeppColor(colors.secondaryColor)
-  })
 }
 
 /** One tick: patch the rows whose Code or arc moved on. */
@@ -305,10 +298,6 @@ function tick() {
     rows = next
     maxUpdateMs = Math.max(maxUpdateMs, Date.now() - updatesStartedAt)
   }
-  untyped(clockSyncText as Widget).setProperty(
-    prop.TEXT,
-    startedAt < clockSyncMessageUntilMs ? getText("Synchronizing clock...") : ""
-  )
   maxTickMs = Math.max(maxTickMs, Date.now() - startedAt)
 }
 
@@ -360,7 +349,11 @@ function receive(message: PeerMessage) {
   const previousScheme = state.settings.colorScheme
   state = applySync(state, message, now)
   diag(`drift ${state.driftSeconds} s`)
-  if (state.showClockSync) clockSyncMessageUntilMs = now + CLOCK_SYNC_MESSAGE_MS
+  /* A toast rather than our own text: the round screen is too narrow near
+   * the top, and the message was cut off there. */
+  if (state.showClockSync) {
+    showToast({ content: getText("Synchronizing clock...") })
+  }
   /* Before `build` there are no widgets yet; `build` creates them colored. */
   if (statusText === undefined) return
   if (state.settings.colorScheme !== previousScheme) {
@@ -427,14 +420,6 @@ Page(
           angle: 0,
           radius: 0,
           color: 0
-        })
-
-        clockSyncText = createWidget(widget.TEXT, {
-          ...Styles.CLOCK_SYNC_TEXT,
-          align_h: align.CENTER_H,
-          align_v: align.CENTER_V,
-          text_style: text_style.NONE,
-          text: ""
         })
 
         applyColorScheme()
