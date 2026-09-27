@@ -9,6 +9,8 @@ ignorePaths:
   - "/.vscode"
   - "/build"
   - "/coverage"
+  - "/docs/.vitepress/cache"
+  - "/docs/.vitepress/dist"
   - "/src/setting/licenses.js"
   - "/cspell.dictionary_swiss-german_project.txt"
 dictionaryDefinitions:
@@ -84,6 +86,7 @@ words:
   - unauditable
   - undercount
   - upstreaming
+  - vitepress
   - vitest
   - watchfaces
   - zepp

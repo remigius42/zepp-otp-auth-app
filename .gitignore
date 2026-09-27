@@ -14,3 +14,7 @@ dist/
 
 # Ignore the generated arc frames
 /src/assets/default.r/arc/
+
+# VitePress build output and cache
+/docs/.vitepress/dist/
+/docs/.vitepress/cache/
