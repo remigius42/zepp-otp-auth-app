@@ -70,15 +70,18 @@ AppSettingsPage({
             "Tap a Token to give it a name of your own. Empty the name to return to its Issuer and Label."
           )
         ),
-        TextInput({
-          label: gettext("Paste otpauth:// URI"),
-          subStyle: VALUE_STYLE,
-          value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
-          onChange: (input: string) => {
-            handleUriPaste(settingsStorage, input)
-          }
-        }),
-        ...(error ? [errorLine(error)] : []),
+        /* Without margins, the field blended into the text around it. */
+        View({ style: { margin: "16px 0" } }, [
+          TextInput({
+            label: gettext("Paste otpauth:// URI"),
+            subStyle: VALUE_STYLE,
+            value: settingsStorage.getItem(URI_PASTE_INPUT_SETTINGS_KEY) ?? "",
+            onChange: (input: string) => {
+              handleUriPaste(settingsStorage, input)
+            }
+          }),
+          ...(error ? [errorLine(error)] : [])
+        ]),
         ...tokens.map((token, index) =>
           index === pending
             ? deleteConfirmationRow(settingsStorage, token)
