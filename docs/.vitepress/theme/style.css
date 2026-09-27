@@ -1,0 +1,32 @@
+/* The binarypoetry.ch palette (01_website's .vitepress/theme/style.css), so
+   the docs read as part of the same site. Only colors and the font are
+   copied; the website's layout rules belong to its own theme. */
+
+:root {
+  --theme-color: oklch(37% 0.075 90deg);
+  --theme-color-2: oklch(52% 0.075 90deg);
+  --theme-color-3: oklch(65% 0.075 90deg);
+  --theme-color-soft: oklch(68% 0.075 90deg / 12%);
+  --theme-color-dark: oklch(88% 0.15 90deg);
+  --theme-color-2-dark: oklch(73% 0.14 90deg);
+  --theme-color-3-dark: oklch(63% 0.13 90deg);
+  --theme-color-soft-dark: oklch(69% 0.14 90deg / 12%);
+  --vp-c-brand-1: var(--theme-color);
+  --vp-c-brand-2: var(--theme-color-2);
+  --vp-c-brand-3: var(--theme-color-3);
+  --vp-c-brand-soft: var(--theme-color-soft);
+
+  /* the default --vp-c-text-3 fails a11y contrast */
+  --vp-code-lang-color: var(--vp-c-text-2);
+}
+
+.dark {
+  --theme-color: var(--theme-color-dark);
+  --theme-color-2: var(--theme-color-2-dark);
+  --theme-color-3: var(--theme-color-3-dark);
+  --theme-color-soft: var(--theme-color-soft-dark);
+}
+
+html {
+  font-family: Arial, Helvetica, sans-serif;
+}
