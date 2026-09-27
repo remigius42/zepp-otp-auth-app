@@ -27,7 +27,7 @@ describe("handleUriPaste", () => {
       [URI_PASTE_ERROR_SETTINGS_KEY]: "earlier error"
     })
 
-    handleUriPaste(storage, URI)
+    handleUriPaste(storage, URI, clear => clear())
 
     expect(JSON.parse(storage.items.get(TOKENS_SETTINGS_KEY) ?? "")).toEqual([
       expect.objectContaining({ label: "john", issuer: "GitHub" })
@@ -37,25 +37,18 @@ describe("handleUriPaste", () => {
   })
 
   /* On hardware the field kept the pasted URI: its value went from "" to ""
-   * and the Settings App only resets a field whose value changes. */
-  it("changes the field's value before clearing it", () => {
+   * and the Settings App only resets a field whose value changes. Changing it
+   * to the URI and back in one handler did not help either — only the final
+   * "" rendered — so it clears after the URI has rendered. */
+  it("shows the URI, then clears it once that has rendered", () => {
     const storage = fakeStorage()
-    const inputValues: (string | undefined)[] = []
-    const recording = {
-      ...storage,
-      setItem: (key: string, value: string) => {
-        storage.setItem(key, value)
-        if (key === URI_PASTE_INPUT_SETTINGS_KEY) inputValues.push(value)
-      },
-      removeItem: (key: string) => {
-        storage.removeItem(key)
-        if (key === URI_PASTE_INPUT_SETTINGS_KEY) inputValues.push(undefined)
-      }
-    }
+    const later: (() => void)[] = []
 
-    handleUriPaste(recording, URI)
+    handleUriPaste(storage, URI, clear => later.push(clear))
 
-    expect(inputValues).toEqual([URI, undefined])
+    expect(storage.items.get(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(URI)
+    later.forEach(clear => clear())
+    expect(storage.items.has(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(false)
   })
 
   it("keeps the text, shows the error and leaves the Tokens alone", () => {
