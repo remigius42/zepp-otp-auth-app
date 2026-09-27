@@ -185,27 +185,36 @@ const tail = /* @__PURE__ */ new Uint8Array(128)
 
 const TWO_32 = 0x100000000
 
-/* 64-bit rotations and shifts right, one function per half. `n` < 32 except
- * where a name says otherwise; rotating by `n` >= 32 swaps the halves. */
-const rotrHi = (hi: number, lo: number, n: number) =>
-  (hi >>> n) | (lo << (32 - n))
-const rotrLo = (hi: number, lo: number, n: number) =>
-  (lo >>> n) | (hi << (32 - n))
-const shrLo = (hi: number, lo: number, n: number) =>
-  (lo >>> n) | (hi << (32 - n))
+/*
+ * The 64-bit rotations below are written out in 32-bit halves: rotating right
+ * by n < 32 takes each half's low bits from the other half; by n >= 32, the
+ * halves swap first and the rotation is by n - 32. Carries out of a low-half
+ * sum are `(sum / TWO_32) | 0`. No helper calls: on the watch's QuickJS a
+ * call costs far more than the arithmetic, and an earlier version with
+ * rotation helpers ran 28 times slower than SHA-256 there.
+ */
 
 /** Hash one 128-byte block, whose words are already loaded, into `state`. */
 function compress(stateHi: Int32Array, stateLo: Int32Array) {
   for (let i = 16; i < 80; i++) {
     let xh = wHi[i - 15] as number
     let xl = wLo[i - 15] as number
-    const s0h = rotrHi(xh, xl, 1) ^ rotrHi(xh, xl, 8) ^ (xh >>> 7)
-    const s0l = rotrLo(xh, xl, 1) ^ rotrLo(xh, xl, 8) ^ shrLo(xh, xl, 7)
+    /* σ0: rotr 1, rotr 8, shr 7. */
+    const s0h =
+      ((xh >>> 1) | (xl << 31)) ^ ((xh >>> 8) | (xl << 24)) ^ (xh >>> 7)
+    const s0l =
+      ((xl >>> 1) | (xh << 31)) ^
+      ((xl >>> 8) | (xh << 24)) ^
+      ((xl >>> 7) | (xh << 25))
     xh = wHi[i - 2] as number
     xl = wLo[i - 2] as number
-    /* rotr 61 = rotr 29 of the swapped halves. */
-    const s1h = rotrHi(xh, xl, 19) ^ rotrLo(xh, xl, 29) ^ (xh >>> 6)
-    const s1l = rotrLo(xh, xl, 19) ^ rotrHi(xh, xl, 29) ^ shrLo(xh, xl, 6)
+    /* σ1: rotr 19, rotr 61, shr 6. */
+    const s1h =
+      ((xh >>> 19) | (xl << 13)) ^ ((xl >>> 29) | (xh << 3)) ^ (xh >>> 6)
+    const s1l =
+      ((xl >>> 19) | (xh << 13)) ^
+      ((xh >>> 29) | (xl << 3)) ^
+      ((xl >>> 6) | (xh << 26))
     const lo =
       (s1l >>> 0) +
       ((wLo[i - 7] as number) >>> 0) +
@@ -216,7 +225,7 @@ function compress(stateHi: Int32Array, stateLo: Int32Array) {
         (wHi[i - 7] as number) +
         s0h +
         (wHi[i - 16] as number) +
-        Math.floor(lo / TWO_32)) |
+        ((lo / TWO_32) | 0)) |
       0
     wLo[i] = lo | 0
   }
@@ -238,32 +247,42 @@ function compress(stateHi: Int32Array, stateLo: Int32Array) {
   let hh = stateHi[7] as number
   let hl = stateLo[7] as number
   for (let i = 0; i < 80; i++) {
-    /* rotr 41 = rotr 9 of the swapped halves. */
-    const sigma1h = rotrHi(eh, el, 14) ^ rotrHi(eh, el, 18) ^ rotrLo(eh, el, 9)
-    const sigma1l = rotrLo(eh, el, 14) ^ rotrLo(eh, el, 18) ^ rotrHi(eh, el, 9)
-    const chooseH = (eh & fh) ^ (~eh & gh)
-    const chooseL = (el & fl) ^ (~el & gl)
+    /* Σ1: rotr 14, rotr 18, rotr 41. */
+    const sigma1h =
+      ((eh >>> 14) | (el << 18)) ^
+      ((eh >>> 18) | (el << 14)) ^
+      ((el >>> 9) | (eh << 23))
+    const sigma1l =
+      ((el >>> 14) | (eh << 18)) ^
+      ((el >>> 18) | (eh << 14)) ^
+      ((eh >>> 9) | (el << 23))
     const t1l =
       (hl >>> 0) +
       (sigma1l >>> 0) +
-      (chooseL >>> 0) +
+      (((el & fl) ^ (~el & gl)) >>> 0) +
       ((K_LO[i] as number) >>> 0) +
       ((wLo[i] as number) >>> 0)
     const t1h =
-      hh +
-      sigma1h +
-      chooseH +
-      (K_HI[i] as number) +
-      (wHi[i] as number) +
-      Math.floor(t1l / TWO_32)
+      (hh +
+        sigma1h +
+        ((eh & fh) ^ (~eh & gh)) +
+        (K_HI[i] as number) +
+        (wHi[i] as number) +
+        ((t1l / TWO_32) | 0)) |
+      0
 
-    /* rotr 34 and 39 = rotr 2 and 7 of the swapped halves. */
-    const sigma0h = rotrHi(ah, al, 28) ^ rotrLo(ah, al, 2) ^ rotrLo(ah, al, 7)
-    const sigma0l = rotrLo(ah, al, 28) ^ rotrHi(ah, al, 2) ^ rotrHi(ah, al, 7)
-    const majorityH = (ah & bh) ^ (ah & ch) ^ (bh & ch)
-    const majorityL = (al & bl) ^ (al & cl) ^ (bl & cl)
-    const t2l = (sigma0l >>> 0) + (majorityL >>> 0)
-    const t2h = sigma0h + majorityH + Math.floor(t2l / TWO_32)
+    /* Σ0: rotr 28, rotr 34, rotr 39. */
+    const sigma0h =
+      ((ah >>> 28) | (al << 4)) ^
+      ((al >>> 2) | (ah << 30)) ^
+      ((al >>> 7) | (ah << 25))
+    const sigma0l =
+      ((al >>> 28) | (ah << 4)) ^
+      ((ah >>> 2) | (al << 30)) ^
+      ((ah >>> 7) | (al << 25))
+    const t2l = (sigma0l >>> 0) + (((al & bl) ^ (al & cl) ^ (bl & cl)) >>> 0)
+    const t2h =
+      (sigma0h + ((ah & bh) ^ (ah & ch) ^ (bh & ch)) + ((t2l / TWO_32) | 0)) | 0
 
     hh = gh
     hl = gl
@@ -271,8 +290,8 @@ function compress(stateHi: Int32Array, stateLo: Int32Array) {
     gl = fl
     fh = eh
     fl = el
-    const newEl = (dl >>> 0) + ((t1l | 0) >>> 0)
-    eh = (dh + t1h + Math.floor(newEl / TWO_32)) | 0
+    const newEl = (dl >>> 0) + (t1l % TWO_32)
+    eh = (dh + t1h + ((newEl / TWO_32) | 0)) | 0
     el = newEl | 0
     dh = ch
     dl = cl
@@ -280,8 +299,8 @@ function compress(stateHi: Int32Array, stateLo: Int32Array) {
     cl = bl
     bh = ah
     bl = al
-    const newAl = ((t1l | 0) >>> 0) + ((t2l | 0) >>> 0)
-    ah = (t1h + t2h + Math.floor(newAl / TWO_32)) | 0
+    const newAl = (t1l % TWO_32) + (t2l % TWO_32)
+    ah = (t1h + t2h + ((newAl / TWO_32) | 0)) | 0
     al = newAl | 0
   }
 
@@ -304,7 +323,7 @@ function addInto(
   lo: number
 ) {
   const sum = ((stateLo[j] as number) >>> 0) + (lo >>> 0)
-  stateHi[j] = ((stateHi[j] as number) + hi + Math.floor(sum / TWO_32)) | 0
+  stateHi[j] = ((stateHi[j] as number) + hi + ((sum / TWO_32) | 0)) | 0
   stateLo[j] = sum | 0
 }
 
@@ -353,7 +372,7 @@ function hashInto(state: State, message: Uint8Array, prefixLength: number) {
   loadBlock(tail, 0)
   /* The length field is 128 bits; messages here are far below 2^53 bits. */
   const bits = (prefixLength + length) * 8
-  wHi[15] = Math.floor(bits / TWO_32)
+  wHi[15] = (bits / TWO_32) | 0
   wLo[15] = bits | 0
   compress(state.hi, state.lo)
 }
