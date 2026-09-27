@@ -35,10 +35,11 @@ import * as Styles from "zosLoader:./index.[pf].layout.js"
  * What to show lives in `./rowView`, `./changedRows` and `./pageStatus`; this
  * file is widget and ZML wiring only.
  *
- * Every Sync re-supplies the whole list (`UPDATE_DATA`), or re-creates it when
- * the color scheme or the enlarged view changed, since row colors and sizes are
- * fixed at creation. Ticks patch only the changed rows (`UPDATE_ITEM`): a
- * whole-list update scrolls back to the top (ADR-0005).
+ * A Sync that changes the Token count re-supplies the whole list
+ * (`UPDATE_DATA`), and one that changes the color scheme or the enlarged view
+ * re-creates it, since row colors and sizes are fixed at creation. Otherwise
+ * Syncs and ticks patch only the changed rows (`UPDATE_ITEM`): a whole-list
+ * update scrolls back to the top (ADR-0005).
  *
  * The ticker starts in `build` and `onResume` and stops in `onPause` and
  * `onDestroy`. `build` as well because the spike counted fewer `onResume`
@@ -166,9 +167,13 @@ function render() {
 
 function showList() {
   const look = `${state.settings.colorScheme} ${state.settings.shouldUseLargeTokenView}`
+  const previous = rows
   rows = currentRows()
   if (list !== undefined && look === listLook) {
-    untyped(list).setProperty(listProp.UPDATE_DATA, listData(rows))
+    /* A rename or reorder keeps the row count; patching keeps the scroll
+     * position, which `UPDATE_DATA` resets to the top. */
+    if (rows.length === previous.length) patchRows(list, previous, rows)
+    else untyped(list).setProperty(listProp.UPDATE_DATA, listData(rows))
     return
   }
   removeList()
@@ -179,6 +184,16 @@ function showList() {
     ...listData(rows)
   })
   listLook = look
+}
+
+/** `UPDATE_ITEM` for the rows that differ; the rest stay untouched. */
+function patchRows(target: Widget, previous: RowView[], next: RowView[]) {
+  for (const index of changedRows(previous, next)) {
+    untyped(target).setProperty(listProp.UPDATE_ITEM, {
+      index,
+      item_data: next[index]
+    })
+  }
 }
 
 function removeList() {
@@ -286,12 +301,7 @@ function tick() {
   if (list !== undefined) {
     const next = currentRows()
     const updatesStartedAt = Date.now()
-    for (const index of changedRows(rows, next)) {
-      untyped(list).setProperty(listProp.UPDATE_ITEM, {
-        index,
-        item_data: next[index]
-      })
-    }
+    patchRows(list, rows, next)
     rows = next
     maxUpdateMs = Math.max(maxUpdateMs, Date.now() - updatesStartedAt)
   }
