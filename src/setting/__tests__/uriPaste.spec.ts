@@ -51,6 +51,22 @@ describe("handleUriPaste", () => {
     expect(storage.items.has(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(false)
   })
 
+  it("clears the field 300 ms after the add by default", () => {
+    vi.useFakeTimers()
+    try {
+      const storage = fakeStorage()
+
+      handleUriPaste(storage, URI)
+
+      vi.advanceTimersByTime(299)
+      expect(storage.items.get(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(URI)
+      vi.advanceTimersByTime(1)
+      expect(storage.items.has(URI_PASTE_INPUT_SETTINGS_KEY)).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("keeps the text, shows the error and leaves the Tokens alone", () => {
     const storage = fakeStorage({ [TOKENS_SETTINGS_KEY]: "[]" })
 
