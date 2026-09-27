@@ -130,7 +130,7 @@ document.
 | `globalThis`                  | present                                                                                                   |
 | `new Function('return this')` | **returns an object that is _not_ `globalThis`** — it has `Math`, so it is global-ish, but identity fails |
 | **`BigInt`**                  | **absent.** `typeof BigInt === "undefined"`; `qjsc` rejects a `1n` literal outright                       |
-| `Object.hasOwn`               | absent (ES2022) — polyfilled                                                                              |
+| `Object.hasOwn`               | absent (ES2022) — polyfilled for `@noble/hashes`, dropped with it (ADR-0007 amendment)                    |
 | Global `setTimeout`           | present, fired at 506 ms for a 500 ms delay                                                               |
 | `@zos/timer` `setTimeout`     | present, fired at 578 ms                                                                                  |
 | `@zos/storage` `localStorage` | set/get/remove all work                                                                                   |

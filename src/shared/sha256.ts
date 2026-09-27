@@ -1,7 +1,7 @@
 /**
  * SHA-256 and HMAC-SHA256, hand-written like `./sha1` and for the same
  * reasons: `@noble/hashes` is slow on the watch's QuickJS, and dropping it
- * removes the workarounds it needed (`./enginePolyfills`, `bin/compile.mjs`).
+ * also dropped the `Object.hasOwn` polyfill it needed there.
  * 32-bit words in module-level typed arrays, plain loops, no closures in the
  * hot path; `hmacSha256Key` hashes the padded key blocks once.
  */

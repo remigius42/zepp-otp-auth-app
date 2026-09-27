@@ -17,7 +17,8 @@
 //   2. BUILT-INS -- `qjsc` compiles a call to a missing function perfectly
 //      happily, so syntax checking alone is not enough. Scan the bundles for
 //      built-ins this engine does not have. Caught `Object.hasOwn` (ES2022),
-//      called by `@noble/hashes` at module load.
+//      called by `@noble/hashes` at module load, back when the hashes were
+//      noble's.
 //
 // A real interpreter of the same vintage would subsume both, but is not
 // shipped; this gets most of the value from the binaries we already have.
@@ -38,20 +39,6 @@ const SRC = "src"
  * Built-ins absent from QuickJS 2020-07-05, with the specification that added
  * them.
  */
-/**
- * Built-ins we supply ourselves. Each entry names a marker that must appear in
- * any bundle using the built-in, so deleting the polyfill reopens the gap as a
- * build failure rather than as a crash on the watch.
- */
-const POLYFILLED_BUILTINS = [
-  {
-    pattern: /\bObject\.hasOwn\s*\(/g,
-    name: "Object.hasOwn",
-    since: "ES2022",
-    marker: "zeppPolyfillHasOwn"
-  }
-]
-
 const UNSUPPORTED_BUILTINS = [
   {
     pattern: /\bBigInt\s*\(/g,
@@ -71,6 +58,13 @@ const UNSUPPORTED_BUILTINS = [
     since: "ES2021"
   },
   { pattern: /\.at\s*\(/g, name: "Array/String.prototype.at", since: "ES2022" },
+  /* Polyfilled while `@noble/hashes` called it at module load; nothing on the
+   * watch uses it since the hashes are our own. */
+  {
+    pattern: /\bObject\.hasOwn\s*\(/g,
+    name: "Object.hasOwn",
+    since: "ES2022"
+  },
   {
     pattern: /\bstructuredClone\s*\(/g,
     name: "structuredClone",
@@ -149,7 +143,6 @@ try {
     bundle: true,
     format: "esm",
     target: "es2020",
-    inject: [`${SRC}/shared/enginePolyfills.ts`],
     plugins: [stubPlugin],
     logLevel: "silent"
   })
@@ -182,24 +175,14 @@ try {
         )
       }
     }
-    for (const { pattern, name, since, marker } of POLYFILLED_BUILTINS) {
-      pattern.lastIndex = 0
-      if (pattern.test(contents) && !contents.includes(marker)) {
-        failures.push(
-          `${label}: uses ${name} (${since}) but the polyfill is missing -- ` +
-            `expected "${marker}" from src/shared/enginePolyfills.ts`
-        )
-      }
-    }
   }
 
   if (failures.length > 0) {
     console.error("Device engine check failed:\n")
     for (const failure of failures) console.error(`  - ${failure}`)
     console.error(
-      "\nEither avoid the construct, or polyfill it in src/shared/enginePolyfills.ts\n" +
-        "and move it from UNSUPPORTED_BUILTINS to POLYFILLED_BUILTINS in\n" +
-        "bin/check-engine.mjs."
+      "\nAvoid the construct, or lower or polyfill it before it reaches the\n" +
+        "bundle (bin/compile.mjs)."
     )
     process.exitCode = 1
   } else {
