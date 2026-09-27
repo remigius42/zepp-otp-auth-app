@@ -1,0 +1,12 @@
+{
+  "cSpell.enabledFileTypes": { "*": true },
+  "editor.bracketPairColorization.enabled": true,
+  "editor.codeActionsOnSave": { "source.fixAll.oxc": "explicit" },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "editor.guides.bracketPairs": true,
+  "editor.rulers": [{ "column": 80 }],
+  "rewrap.reformat": true,
+  "rewrap.wrappingColumn": 80,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
