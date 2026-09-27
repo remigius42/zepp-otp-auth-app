@@ -38,7 +38,7 @@ function storageWith(tokens: unknown, items: Record<string, string> = {}) {
 
 describe("syncMessage", () => {
   it("carries the valid Tokens, the Settings and the phone's clock", () => {
-    const storage = storageWith([TOKEN, { ...TOKEN, algorithm: "SHA512" }], {
+    const storage = storageWith([TOKEN, { ...TOKEN, algorithm: "MD5" }], {
       [COLOR_SCHEME_SETTINGS_KEY]: JSON.stringify(ColorSchemeName.white)
     })
 

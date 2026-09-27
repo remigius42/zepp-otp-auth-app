@@ -49,10 +49,12 @@ describe("addTokenFromUri", () => {
     })
   })
 
-  it("rejects SHA-512 by name rather than as an invalid URI", () => {
+  it("accepts SHA-512", () => {
     const result = addTokenFromUri(undefined, uri({ algorithm: "SHA512" }))
 
-    expect(result).toEqual({ error: expect.stringContaining("SHA-512") })
+    expect(result).toEqual({
+      tokens: [expect.objectContaining({ algorithm: "SHA512" })]
+    })
   })
 
   it("accepts a lowercase algorithm and stores it canonically", () => {
@@ -110,7 +112,7 @@ describe("tokensForSync", () => {
     }
     const stored = JSON.stringify([
       valid,
-      { ...valid, label: "b", algorithm: "SHA512" }
+      { ...valid, label: "b", algorithm: "MD5" }
     ])
 
     expect(tokensForSync(stored)).toEqual([valid])

@@ -59,9 +59,6 @@ export function validateConfig(config: TotpConfig) {
   const supported: readonly string[] = SUPPORTED_ALGORITHMS
   if (!config.algorithm) {
     errors.set("algorithm", gettext("Error: Algorithm must be selected"))
-  } else if (config.algorithm === "SHA512") {
-    /* Named explicitly: the URI is valid, this app is the limitation (ADR-0007). */
-    errors.set("algorithm", gettext("Error: SHA-512 is not supported yet"))
   } else if (!supported.includes(config.algorithm)) {
     errors.set("algorithm", gettext("Error: Algorithm is not supported"))
   }

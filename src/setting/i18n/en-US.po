@@ -97,11 +97,8 @@ msgstr "Secret must not be empty"
 msgid "Error: Token with same label and issuer already exists"
 msgstr "Token with same label and issuer already exists. Delete the existing one first (@token_list_reference)."
 
-msgid "Error: SHA-512 is not supported yet"
-msgstr "SHA-512 is not supported yet. This app currently supports SHA-1 and SHA-256."
-
 msgid "Error: Algorithm is not supported"
-msgstr "Algorithm is not supported. This app supports SHA-1 and SHA-256."
+msgstr "Algorithm is not supported. This app supports SHA-1, SHA-256 and SHA-512."
 
 msgid "Error: Not an otpauth:// URI"
 msgstr "Not an otpauth:// URI."

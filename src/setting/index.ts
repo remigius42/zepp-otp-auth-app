@@ -228,7 +228,7 @@ function manualEntrySection(storage: SettingsStorage) {
     ...input("label", gettext("Label"), "SSH login"),
     ...input("issuer", gettext("Issuer"), "ACME co."),
     ...input("secret", gettext("Secret in Base32"), "MJUXILTMPEXTEWRWMNFEITY"),
-    ...select("algorithm", gettext("Algorithm"), ["SHA1", "SHA256"]),
+    ...select("algorithm", gettext("Algorithm"), ["SHA1", "SHA256", "SHA512"]),
     ...select("digits", gettext("Number of digits"), ["6", "8"]),
     ...input("period", gettext("Period in seconds"), "30"),
     View(BUTTONS_STYLE, [

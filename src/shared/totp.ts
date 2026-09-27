@@ -5,6 +5,7 @@ import { TotpConfig } from "./TotpConfig"
 import { base16decode } from "./base16codec"
 import { hmacSha1, hmacSha1Key } from "./sha1"
 import { hmacSha256, hmacSha256Key } from "./sha256"
+import { hmacSha512, hmacSha512Key } from "./sha512"
 
 /**
  * Calculate the current Time-based One-Time Password (TOTP) for a given TOTP
@@ -105,19 +106,12 @@ function dynamicTruncate(hash: Uint8Array) {
 }
 
 /**
- * The TOTP algorithms this app can compute.
- *
- * **SHA-512 is absent, and that is a regression against `fitbit-otp-auth-app`.**
- * Zepp OS runs QuickJS 2020-07-05 compiled **without BigInt** — its own `qjsc`
- * rejects even a `1n` literal — and `@noble/hashes` builds SHA-512's constant
- * table with `BigInt()` at module load, so merely importing it kills the page
- * during evaluation. SHA-1 and SHA-256 pull no BigInt at all.
- *
- * Restoring it is a packaging problem rather than a mathematical one: the
- * SHA-512 round arithmetic is already 32-bit, and BigInt is used only to build
- * the constants. See §3.10 and the TODO entry.
+ * The TOTP algorithms this app can compute: all three RFC 6238 names, as the
+ * Fitbit app did. SHA-512 was missing for a while (ADR-0007): the watch's
+ * QuickJS has no BigInt, and `@noble/hashes` builds SHA-512's constants with
+ * it. `./sha512` works in 32-bit halves instead.
  */
-export const SUPPORTED_ALGORITHMS = ["SHA1", "SHA256"] as const
+export const SUPPORTED_ALGORITHMS = ["SHA1", "SHA256", "SHA512"] as const
 
 /** An HMAC under one prepared key. */
 type PreparedHmac = (message: Uint8Array) => Uint8Array
@@ -134,6 +128,10 @@ const PREPARE_HMAC: Record<
   SHA256: key => {
     const prepared = hmacSha256Key(key)
     return message => hmacSha256(prepared, message)
+  },
+  SHA512: key => {
+    const prepared = hmacSha512Key(key)
+    return message => hmacSha512(prepared, message)
   }
 }
 
@@ -151,8 +149,8 @@ function decodeSecret(secret: string) {
 /**
  * Calculate the HMAC of the given message under the given Secret.
  *
- * The hashes are hand-written (`./sha1`, `./sha256`) because `@noble/hashes`
- * is too slow on the watch.
+ * The hashes are hand-written (`./sha1`, `./sha256`, `./sha512`) because
+ * `@noble/hashes` is too slow on the watch and cannot do SHA-512 there.
  *
  * Neither is `crypto-js`, which the Fitbit app used: it is a UMD bundle whose
  * wrapper resolves its global from module-scope `this`, which is `undefined`
@@ -173,7 +171,7 @@ function hmacDigest(
     const prepare = PREPARE_HMAC[algorithm]
     if (!prepare) {
       throw new Error(
-        `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(" and ")}.`
+        `Unsupported algorithm "${algorithm}". This app supports ${SUPPORTED_ALGORITHMS.join(", ")}.`
       )
     }
     prepared = prepare(decodeSecret(secret))
