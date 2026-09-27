@@ -36,6 +36,28 @@ describe("handleUriPaste", () => {
     expect(storage.items.has(URI_PASTE_ERROR_SETTINGS_KEY)).toBe(false)
   })
 
+  /* On hardware the field kept the pasted URI: its value went from "" to ""
+   * and the Settings App only resets a field whose value changes. */
+  it("changes the field's value before clearing it", () => {
+    const storage = fakeStorage()
+    const inputValues: (string | undefined)[] = []
+    const recording = {
+      ...storage,
+      setItem: (key: string, value: string) => {
+        storage.setItem(key, value)
+        if (key === URI_PASTE_INPUT_SETTINGS_KEY) inputValues.push(value)
+      },
+      removeItem: (key: string) => {
+        storage.removeItem(key)
+        if (key === URI_PASTE_INPUT_SETTINGS_KEY) inputValues.push(undefined)
+      }
+    }
+
+    handleUriPaste(recording, URI)
+
+    expect(inputValues).toEqual([URI, undefined])
+  })
+
   it("keeps the text, shows the error and leaves the Tokens alone", () => {
     const storage = fakeStorage({ [TOKENS_SETTINGS_KEY]: "[]" })
 
