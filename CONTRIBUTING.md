@@ -43,6 +43,8 @@ uphold this code.
 - `npm run build` compiles and produces an installable `.zab`
 - `npm run dev` compiles and starts the Zeus development server
 - `npm run compile:watch` recompiles on change, for running alongside `zeus dev`
+- `npm version <patch|minor|major>` starts a release; see
+  [docs/RELEASING.md](./docs/RELEASING.md)
 
 ## How the build works
 
