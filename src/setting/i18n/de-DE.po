@@ -16,7 +16,7 @@ msgid "Compensate clock drift"
 msgstr "Uhrenfehler kompensieren"
 
 msgid "Diagnostics"
-msgstr "Diagnostik"
+msgstr "Diagnose"
 
 msgid "Enlarge token information"
 msgstr "Vergrösserte Tokenansicht"
