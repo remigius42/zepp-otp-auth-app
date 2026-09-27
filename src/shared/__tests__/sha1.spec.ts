@@ -3,7 +3,9 @@ import { sha1 as nobleSha1 } from "@noble/hashes/legacy.js"
 import { base16encode } from "../base16codec"
 import { hmacSha1, hmacSha1Key, sha1 } from "../sha1"
 
-const text = (value: string) => new TextEncoder().encode(value)
+/* ASCII only; `TextEncoder` is not in this project's ES2020 lib. */
+const text = (value: string) =>
+  Uint8Array.from(value, character => character.charCodeAt(0))
 const repeated = (byte: number, length: number) =>
   new Uint8Array(length).fill(byte)
 const hex = (bytes: Uint8Array) => base16encode(bytes).toLowerCase()
