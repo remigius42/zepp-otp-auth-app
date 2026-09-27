@@ -34,7 +34,7 @@ describe("rowFromParams", () => {
 
 describe("afterSync", () => {
   it("stays on an unchanged row", () => {
-    expect(afterSync(TOKEN, 1, [OTHER, TOKEN], SETTINGS, SETTINGS)).toEqual({
+    expect(afterSync(TOKEN, [OTHER, TOKEN], SETTINGS, SETTINGS)).toEqual({
       kind: "show",
       row: 1
     })
@@ -43,31 +43,38 @@ describe("afterSync", () => {
   it("follows a renamed Token", () => {
     const renamed = { ...TOKEN, displayName: "Work" }
 
-    expect(afterSync(TOKEN, 0, [renamed], SETTINGS, SETTINGS)).toEqual({
+    expect(afterSync(TOKEN, [renamed], SETTINGS, SETTINGS)).toEqual({
       kind: "show",
       row: 0
     })
   })
 
   it("follows a Token to its new row", () => {
-    expect(afterSync(TOKEN, 0, [OTHER, TOKEN], SETTINGS, SETTINGS)).toEqual({
+    expect(afterSync(TOKEN, [OTHER, TOKEN], SETTINGS, SETTINGS)).toEqual({
       kind: "show",
       row: 1
     })
   })
 
-  it("prefers its own row among Tokens sharing the Secret", () => {
-    expect(afterSync(TOKEN, 1, [TOKEN, TOKEN], SETTINGS, SETTINGS)).toEqual({
+  /* On hardware the Test Tokens all shared one Secret, and a move or delete
+   * showed whichever Token then held the row. */
+  it("tells apart Tokens that share a Secret", () => {
+    const twin = { ...TOKEN, label: "jane" }
+
+    expect(afterSync(TOKEN, [twin, TOKEN], SETTINGS, SETTINGS)).toEqual({
       kind: "show",
       row: 1
+    })
+    expect(afterSync(TOKEN, [twin], SETTINGS, SETTINGS)).toEqual({
+      kind: "back"
     })
   })
 
   it("returns to the list when its Token is gone", () => {
-    expect(afterSync(TOKEN, 0, [OTHER], SETTINGS, SETTINGS)).toEqual({
+    expect(afterSync(TOKEN, [OTHER], SETTINGS, SETTINGS)).toEqual({
       kind: "back"
     })
-    expect(afterSync(TOKEN, 0, [], SETTINGS, SETTINGS)).toEqual({
+    expect(afterSync(TOKEN, [], SETTINGS, SETTINGS)).toEqual({
       kind: "back"
     })
   })
@@ -75,7 +82,7 @@ describe("afterSync", () => {
   it("re-launches on a new color scheme", () => {
     const white = { ...SETTINGS, colorScheme: ColorSchemeName.white }
 
-    expect(afterSync(TOKEN, 0, [OTHER, TOKEN], SETTINGS, white)).toEqual({
+    expect(afterSync(TOKEN, [OTHER, TOKEN], SETTINGS, white)).toEqual({
       kind: "relaunch",
       row: 1
     })
@@ -84,7 +91,7 @@ describe("afterSync", () => {
   it("ignores the enlarged view, which it does not use", () => {
     const large = { ...SETTINGS, shouldUseLargeTokenView: true }
 
-    expect(afterSync(TOKEN, 0, [TOKEN], SETTINGS, large)).toEqual({
+    expect(afterSync(TOKEN, [TOKEN], SETTINGS, large)).toEqual({
       kind: "show",
       row: 0
     })

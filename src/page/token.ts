@@ -123,7 +123,6 @@ function receive(message: PeerMessage) {
   }
   const next = afterSync(
     token,
-    row,
     state.tokens ?? [],
     previous.settings,
     state.settings

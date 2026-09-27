@@ -14,22 +14,21 @@ export type TokenPageUpdate =
   | { kind: "relaunch" | "show"; row: number }
 
 /**
- * What the Token page does after a Sync. It follows its Token by the Secret,
- * which a rename or reorder keeps: to its row if unchanged, else the first
- * with it. Gone, it returns to the list. A new color scheme re-launches it,
- * since colors are fixed at widget creation.
+ * What the Token page does after a Sync. It follows its Token by Issuer and
+ * Label, which a rename or reorder keeps and no two Tokens share (the
+ * duplicate check in `shared/tokens`); Secrets can repeat. Gone, it returns
+ * to the list. A new color scheme re-launches it, since colors are fixed at
+ * widget creation.
  */
 export function afterSync(
   shown: TotpConfig,
-  row: number,
   tokens: TotpConfig[],
   previous: AppSettings,
   next: AppSettings
 ): TokenPageUpdate {
-  const nextRow =
-    tokens[row]?.secret === shown.secret
-      ? row
-      : tokens.findIndex(token => token.secret === shown.secret)
+  const nextRow = tokens.findIndex(
+    token => token.issuer === shown.issuer && token.label === shown.label
+  )
   if (nextRow === -1) return { kind: "back" }
   return {
     kind: next.colorScheme === previous.colorScheme ? "show" : "relaunch",
