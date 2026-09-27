@@ -65,6 +65,11 @@ AppSettingsPage({
       introductionSection(),
       Section({}, [
         heading(gettext("Tokens")),
+        textLine(
+          gettext(
+            "Tap a Token to give it a name of your own. Empty the name to return to its Issuer and Label."
+          )
+        ),
         TextInput({
           label: gettext("Paste otpauth:// URI"),
           subStyle: VALUE_STYLE,

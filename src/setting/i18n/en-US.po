@@ -4,9 +4,6 @@ msgstr "Add token"
 msgid "Add token manually"
 msgstr "Add token manually"
 
-msgid "Add token via QR tag"
-msgstr "Add token via QR tag"
-
 msgid "Algorithm"
 msgstr "Algorithm"
 
@@ -16,20 +13,8 @@ msgstr "Color scheme"
 msgid "Compensate clock drift"
 msgstr "Compensate clock drift"
 
-msgid "Current QR tag image."
-msgstr "Current QR tag image."
-
-msgid "Display name"
-msgstr "Display name"
-
 msgid "Enlarge token information"
 msgstr "Enlarge token information"
-
-msgid "Import new QR tag"
-msgstr "Import new QR tag"
-
-msgid "Import QR tag from an image"
-msgstr "Import QR tag from an image"
 
 msgid "Introduction"
 msgstr "Introduction"
@@ -46,9 +31,6 @@ msgstr "License information"
 msgid "Licensed under GPL version 3.0 or later."
 msgstr "Licensed under GPL version 3.0 or later."
 
-msgid "No connection to device message"
-msgstr "The app on the smartwatch is currently not connected to your phone. The settings will by sent to the smartwatch as soon as the connection is reestablished. You could try to reestablish the connection by restarting the app on the smartwatch."
-
 msgid "Number of digits"
 msgstr "Number of digits"
 
@@ -64,17 +46,8 @@ msgstr "Reset to defaults"
 msgid "Secret in Base32"
 msgstr "Secret in Base32"
 
-msgid "Select number of digits"
-msgstr "Select number of digits"
-
-msgid "Select token algorithm"
-msgstr "Select token algorithm"
-
 msgid "Settings"
 msgstr "Settings"
-
-msgid "Store tokens on device"
-msgstr "Store tokens on smartwatch"
 
 msgid "Third-party licenses"
 msgstr "Third-party licenses"
@@ -82,8 +55,8 @@ msgstr "Third-party licenses"
 msgid "Tokens"
 msgstr "Tokens"
 
-msgid "Tokens section description"
-msgstr "You can set custom names for tokens by clicking on the list entries. To revert a token to the original label and issuer, click on the entry, delete the custom name and save."
+msgid "Tap a Token to give it a name of your own. Empty the name to return to its Issuer and Label."
+msgstr "Tap a Token to give it a name of your own. Empty the name to return to its Issuer and Label."
 
 msgid "User documentation"
 msgstr "User documentation"
