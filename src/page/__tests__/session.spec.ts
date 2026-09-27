@@ -10,7 +10,6 @@ describe("session", () => {
   it("starts empty", () => {
     expect(session({})).toEqual({
       sync: undefined,
-      listTop: undefined,
       tokenOpen: false
     })
   })
@@ -18,9 +17,9 @@ describe("session", () => {
   it("is one object per globalData, so both pages see the same", () => {
     const globalData = {}
 
-    session(globalData).listTop = 3
+    session(globalData).tokenOpen = true
 
-    expect(session(globalData).listTop).toBe(3)
+    expect(session(globalData).tokenOpen).toBe(true)
   })
 
   it("lives on the app's globalData by default", () => {

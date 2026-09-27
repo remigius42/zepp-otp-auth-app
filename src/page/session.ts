@@ -8,8 +8,6 @@ import type { SyncState } from "./syncState"
 export interface Session {
   /** The latest Sync; `undefined` until the first one arrives. */
   sync: SyncState | undefined
-  /** The row the list scrolls to when it is created again. */
-  listTop: number | undefined
   /** Whether the Token page is open, and so handles pushes. */
   tokenOpen: boolean
 }
@@ -24,7 +22,6 @@ export function session(
   if (globalData.session === undefined) {
     globalData.session = {
       sync: undefined,
-      listTop: undefined,
       tokenOpen: false
     }
   }

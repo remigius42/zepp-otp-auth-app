@@ -133,8 +133,6 @@ function receive(message: PeerMessage) {
   }
   row = next.row
   token = state.tokens?.[row]
-  /* So the list, if created anew, scrolls to where the Token is now. */
-  session().listTop = row
   if (next.kind === "relaunch") {
     replace({ url: "page/token", params: String(row) })
     return

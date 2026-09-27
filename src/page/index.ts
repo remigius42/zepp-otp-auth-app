@@ -79,11 +79,7 @@ const ROW_TYPE = 1
  * Runtime props the 4.0 typings lack (analysis §3.5.1), and `setProperty`
  * for props other than `MORE`, which the typings admit alone.
  */
-const listProp = prop as unknown as {
-  UPDATE_DATA: number
-  UPDATE_ITEM: number
-  LIST_TOP: number
-}
+const listProp = prop as unknown as { UPDATE_DATA: number; UPDATE_ITEM: number }
 type Widget = ReturnType<typeof createWidget>
 type UntypedWidget = {
   setProperty(property: number, value: unknown): boolean
@@ -160,17 +156,10 @@ function showList() {
     item_click_func: ((_list: unknown, index: number) =>
       openToken(index)) as unknown as () => void
   })
-  /* Back from the Token page, Zepp may have created this page anew; scroll to
-   * the row that was opened rather than to the top. */
-  const top = session().listTop
-  if (top !== undefined && top < rows.length) {
-    untyped(list).setProperty(listProp.LIST_TOP, { index: top })
-  }
 }
 
 /** Only the row index goes through the router: see `rowFromParams`. */
 function openToken(index: number) {
-  session().listTop = index
   push({ url: "page/token", params: String(index) })
 }
 
