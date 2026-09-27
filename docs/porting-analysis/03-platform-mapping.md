@@ -496,3 +496,8 @@ annotated with _why_, or they read later as sloppiness rather than as evidence.
 The substantive one: this is the same lesson as §3.2, §3.7 and §4.2, arriving
 from a fourth direction. **Prose, typings, library source and runtime are four
 different accounts of this platform, and only the last one is authoritative.**
+
+---
+
+← Previous: [1–2. Verdict and the current app](./README.md)\
+Next: [3.9–3.12 Build and hardware findings](./03-build-and-hardware-findings.md) →

@@ -140,3 +140,8 @@ Node 22, action bumps, Dependabot, the missing scripts and thresholds — is
 **+3–5 h** (down from the ESLint-migration path, which the oxlint route skips)
 and is worth doing in this repo first, so the port starts from a current
 baseline rather than inheriting three years of drift.
+
+---
+
+← Previous: [5. Effort estimate](./05-effort-estimate.md)\
+Next: [7. Market landscape](./07-market.md) →

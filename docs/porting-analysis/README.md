@@ -65,3 +65,7 @@ Notable Fitbit-specific constructs with no direct counterpart:
 - `ImagePicker` and `AdditiveList` settings components
 - `fs.readFileSync(path, "cbor")` — CBOR (de)serialization for free
 - `clock.ontick` with `granularity = "seconds"`
+
+---
+
+Next: [3.0–3.8 Target platform mapping](./03-platform-mapping.md) →

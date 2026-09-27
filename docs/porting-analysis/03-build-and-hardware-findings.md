@@ -169,3 +169,8 @@ Observed 2026-09-27 on an Active 2 with 10 Tokens. Fixes are unverified.
    rebuild both render as specified. A `Select`'s `title` renders as a line
    above its label, and a `TextInput`'s `placeholder` shows only in its edit
    dialog.
+
+---
+
+← Previous: [3.0–3.8 Target platform mapping](./03-platform-mapping.md)\
+Next: [4. The QR code workaround](./04-qr-workaround.md) →

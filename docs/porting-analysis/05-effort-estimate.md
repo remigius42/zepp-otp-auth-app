@@ -44,3 +44,8 @@ Revising the estimate was deferred until after Phase 2. Two phases now point
 in opposite directions — 1.5× over, then ~6× under — so no single factor
 applies. The pattern is that building is cheaper than estimated and hardware
 friction is the variable; the remaining numbers stay as the original baseline.
+
+---
+
+← Previous: [4. The QR code workaround](./04-qr-workaround.md)\
+Next: [6. Tooling assessment](./06-tooling.md) →

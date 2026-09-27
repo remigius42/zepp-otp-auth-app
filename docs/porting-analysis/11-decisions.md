@@ -41,3 +41,8 @@ Still open:
 3. Whether Zepp **developer mode** broadens on-watch file access. It does not
    affect ADR-0004's outcome, but it decides how strongly the docs should warn
    if Token storage is ever added back.
+
+---
+
+← Previous: [10. Suggested phasing](./10-phasing.md)\
+Next: [Sources](./sources.md) →

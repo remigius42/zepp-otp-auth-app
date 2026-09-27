@@ -48,3 +48,7 @@ Part of the [porting analysis](./README.md).
   [manujedi/Authenticator](https://github.com/manujedi/Authenticator) ·
   [Lisoveliy/TOTPFit](https://github.com/Lisoveliy/totpfit)
 - [Gadgetbridge: support for side-app code for Zepp OS](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/3266)
+
+---
+
+← Previous: [11. Decisions and remaining questions](./11-decisions.md)

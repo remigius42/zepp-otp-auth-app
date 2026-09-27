@@ -188,3 +188,8 @@ What users will actually do, and what the docs should recommend:
 - Copied `otpauth://` URIs are known to get percent-escaped by some share paths
   (`:`, `@`), which is why existing Zepp authenticators warn about hand-editing
   them. Validation messages should be explicit about this failure mode.
+
+---
+
+← Previous: [3.9–3.12 Build and hardware findings](./03-build-and-hardware-findings.md)\
+Next: [5. Effort estimate](./05-effort-estimate.md) →

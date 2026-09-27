@@ -153,3 +153,8 @@ than the two-with-traction §7.1 implied. That is a mild argument against the
 "the field is thin, so build" reasoning — though §8.4 rests the build decision on
 wanting the porting experience, not on market gap, so it does not change the
 conclusion.
+
+---
+
+← Previous: [6. Tooling assessment](./06-tooling.md)\
+Next: [8. Reach and maintenance cost](./08-reach-and-maintenance.md) →

@@ -25,3 +25,8 @@ Part of the [porting analysis](./README.md).
 5. **Optional, after parity** — `otpauth-migration://` Bulk Import, import-only
    (§7.3, +4–6 h).
 6. **Optional** — additional device targets.
+
+---
+
+← Previous: [9. Risks and unknowns](./09-risks.md)\
+Next: [11. Decisions and remaining questions](./11-decisions.md) →

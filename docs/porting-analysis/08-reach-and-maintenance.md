@@ -118,3 +118,8 @@ pure user value, contributing probably wins. TOTPFit already has
 in a field of six serves nobody who isn't already served. Building is the right
 call **because the goal is the experience, not the market** — and that is worth
 saying out loud instead of retrofitting a market rationale onto it.
+
+---
+
+← Previous: [7. Market landscape](./07-market.md)\
+Next: [9. Risks and unknowns](./09-risks.md) →

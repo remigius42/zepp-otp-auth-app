@@ -26,3 +26,8 @@ Part of the [porting analysis](./README.md).
   compensation, and UX are materially better than theirs, which argues for
   porting — but check whether contributing the core to TOTPFit gets users the
   same value faster.
+
+---
+
+← Previous: [8. Reach and maintenance cost](./08-reach-and-maintenance.md)\
+Next: [10. Suggested phasing](./10-phasing.md) →
