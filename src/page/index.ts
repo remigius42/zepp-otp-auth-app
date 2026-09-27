@@ -20,7 +20,9 @@ import {
   PEER_MESSAGE_METHOD,
   type PeerMessage
 } from "../shared/PeerMessage"
+import { appendDiag, parseDiag } from "../shared/diagTrail"
 import { parseStats, recordPull } from "../shared/syncStats"
+import { totp } from "../shared/totp"
 import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
 import { ARC_FALLBACK, rowView, type RowView } from "./rowView"
@@ -71,6 +73,9 @@ const SYNC_TIMEOUT_MS = 10_000
 
 /** `localStorage` key of the Sync Stats — diagnostics only (ADR-0004). */
 const SYNC_STATS_STORAGE_KEY = "syncStats"
+
+/** `localStorage` key of the diagnostic trail (`shared/diagTrail`). */
+const DIAG_STORAGE_KEY = "diag"
 
 /** The row layout's only `type_id`. */
 const ROW_TYPE = 1
@@ -288,12 +293,57 @@ function reconnect() {
   transport.connect()
 }
 
+/** Appends to the diagnostic trail, which the next launch pull reports. */
+function diag(entry: string) {
+  localStorage.setItem(
+    DIAG_STORAGE_KEY,
+    JSON.stringify(
+      appendDiag(parseDiag(readStorage(DIAG_STORAGE_KEY)), entry, Date.now())
+    )
+  )
+}
+
+let maxTickMs = 0
+
 /** One tick: patch the rows whose Code or arc moved on. */
 function tick() {
+  const startedAt = Date.now()
   if (list !== undefined) {
     const next = currentRows()
     patchRows(list, rows, next)
     rows = next
+  }
+  maxTickMs = Math.max(maxTickMs, Date.now() - startedAt)
+}
+
+/**
+ * Times the hand-written HMACs on the watch, per algorithm: the first Code,
+ * which prepares the key, then the average of five more. RFC 6238's test
+ * Secrets, never a real one.
+ */
+function timeHashes() {
+  const secrets: Record<string, string> = {
+    SHA1: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", // spellchecker:disable-line
+    SHA256: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA====", // spellchecker:disable-line
+    SHA512:
+      "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA=" // spellchecker:disable-line
+  }
+  for (const algorithm of Object.keys(secrets)) {
+    const config = {
+      label: "bench",
+      secret: secrets[algorithm] as string,
+      algorithm,
+      digits: "8",
+      period: "30"
+    }
+    let startedAt = Date.now()
+    totp(config)
+    const firstMs = Date.now() - startedAt
+    startedAt = Date.now()
+    for (let i = 0; i < 5; i++) totp(config, 0, i % 2 === 1)
+    diag(
+      `${algorithm}: first ${firstMs} ms, then ${(Date.now() - startedAt) / 5} ms each`
+    )
   }
 }
 
@@ -320,7 +370,10 @@ function pullTokens() {
       send(
         {
           method: GET_TOKENS_METHOD,
-          params: { syncStats: stats }
+          params: {
+            syncStats: stats,
+            diag: parseDiag(readStorage(DIAG_STORAGE_KEY))
+          }
         },
         { timeout: SYNC_TIMEOUT_MS }
       )
@@ -330,6 +383,9 @@ function pullTokens() {
     .then(result => {
       const elapsed = Date.now() - startedAt
       record("synced", elapsed)
+      /* The trail went out with this pull; start the next one afresh. */
+      localStorage.setItem(DIAG_STORAGE_KEY, "[]")
+      diag(`synced in ${elapsed} ms`)
       pull = "synced"
       receive(result as PeerMessage)
     })
@@ -402,6 +458,8 @@ function stopTicking() {
     clearTimeout(timer)
     timer = undefined
   }
+  if (maxTickMs > 0) diag(`slowest tick ${maxTickMs} ms, ${rows.length} rows`)
+  maxTickMs = 0
 }
 
 Page(
@@ -414,8 +472,11 @@ Page(
       /* Back from the Token page or re-launched, the Tokens are in memory
        * already, and a pull would count as a launch in the Sync Stats. */
       const synced = session().sync
-      if (synced === undefined) pullTokens()
-      else state = synced
+      if (synced === undefined) {
+        pullTokens()
+        /* While the pull waits for the phone. */
+        timeHashes()
+      } else state = synced
     },
 
     /* While the Token page is open, it takes the pushes: Zepp may have
