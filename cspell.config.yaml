@@ -54,6 +54,7 @@ words:
   - localStorage
   - manujedi
   - markdownlint
+  - misconfig
   - msgid
   - msgids
   - msgstr
