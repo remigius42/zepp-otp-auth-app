@@ -500,4 +500,4 @@ different accounts of this platform, and only the last one is authoritative.**
 ---
 
 ← Previous: [1–2. Verdict and the current app](./README.md)\
-Next: [3.9–3.13 Build and hardware findings](./03-build-and-hardware-findings.md) →
+Next: [3.9–3.14 Build and hardware findings](./03-build-and-hardware-findings.md) →

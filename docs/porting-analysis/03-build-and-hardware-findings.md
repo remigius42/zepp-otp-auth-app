@@ -195,6 +195,37 @@ the extra devices nor the package. Check which one you are about to upload.
 Notice's license grant gives Zepp nothing it could not already take.
 Pruning would mean a separate build for every device type, for no gain.
 
+## 3.14 Phase 4's second device session [device]
+
+Observed 2026-09-27 on an Active 2 with 12 Tokens. The fixes are unverified.
+
+1. **One HMAC takes about 300 ms on the watch.** With one Code computed
+   ahead per tick, the slowest tick in one visit was 321 ms, which is one
+   HMAC. In another visit it was **2910 ms**: opened late in a Period, most
+   next Codes were not ready at the boundary, and they were all computed in
+   one tick. `UPDATE_ITEM`s stayed at 13 ms. Computing ahead can't prevent this
+   at this HMAC cost. Scrolling sticks now and then, so the manual keeps its
+   note about more than about eight Tokens.
+2. **Toggling the enlarged view re-launched the page forever.** The color
+   scheme is stored on the watch and the enlarged view is not, so the
+   re-launched page started without it, saw a change again on its first Sync
+   and re-launched again. Now a size change re-launches only once the list
+   exists.
+3. **After Bluetooth returns, the Zepp app closes the Side Service.** Its
+   log shows `sideServiceClosed` right after `bleConnected`. From then on no
+   shake from the watch reached the phone. Our own timeout turned each retry
+   into "Phone not reachable…", but only re-opening the app recovered. A
+   tapped retry now closes and re-opens ZML's transport first.
+4. **The bridge-installed build carried a stale Settings App catalog.** The
+   `.zab` that `zeus bridge` installed had the new `gettext` call but an old
+   `de-DE` catalog, so the Tokens description showed in English. A fresh
+   `npm run build` embeds the current one. Where the stale catalog came from
+   is unknown.
+5. **Setting a Settings App value and removing it in one handler renders
+   only the final value.** The §3.11 fix for URI Paste therefore never
+   worked: the field went from `""` to `""` and kept the pasted URI. The
+   removal now waits 300 ms.
+
 ---
 
 ← Previous: [3.0–3.8 Target platform mapping](./03-platform-mapping.md)\
