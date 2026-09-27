@@ -142,6 +142,19 @@ const PREPARE_HMAC: Record<
  */
 const HMAC_BY_SECRET = new Map<string, PreparedHmac>()
 
+/**
+ * Forget the prepared keys of every Secret not in `tokens`, so a deleted
+ * Token's key material leaves memory with the Sync that removed it.
+ */
+export function retainSecrets(tokens: TotpConfig[]) {
+  const keep = new Set(
+    tokens.map(token => `${token.algorithm} ${token.secret}`)
+  )
+  for (const cacheKey of HMAC_BY_SECRET.keys()) {
+    if (!keep.has(cacheKey)) HMAC_BY_SECRET.delete(cacheKey)
+  }
+}
+
 function decodeSecret(secret: string) {
   return new Uint8Array(base32decode(secret.toUpperCase(), "RFC4648"))
 }

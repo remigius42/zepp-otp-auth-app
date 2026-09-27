@@ -1,6 +1,6 @@
 /* spell-checker:ignore GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ */
 
-import { tokenView } from "../tokenView"
+import { retainTokens, tokenView } from "../tokenView"
 
 /* RFC 6238 appendix B: SHA-1, 8 digits, T = 59 s → 94287082. */
 const RFC_TOKEN = {
@@ -19,6 +19,16 @@ describe("tokenView", () => {
       code: "9428 7082",
       secondsRemaining: 1
     })
+  })
+
+  /* Eviction itself is tested on the caches; this checks the wiring. */
+  it("keeps producing Codes for the Tokens a Sync retains", () => {
+    tokenView(RFC_TOKEN, 59_000, 0)
+
+    retainTokens([])
+    retainTokens([RFC_TOKEN])
+
+    expect(tokenView(RFC_TOKEN, 59_000, 0).code).toBe("9428 7082")
   })
 
   it("shifts Code and countdown by the clock drift", () => {

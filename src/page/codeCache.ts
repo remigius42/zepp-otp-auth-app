@@ -16,12 +16,8 @@ export function createCodeCache(compute = totp) {
   const cache = new Map<string, Record<number, string>>()
   let lastAheadSecond: number | undefined
 
-  return function code(
-    token: TotpConfig,
-    driftSeconds: number,
-    nowMs: number
-  ): string {
-    const key = [
+  const cacheKey = (token: TotpConfig) =>
+    [
       token.issuer,
       token.label,
       token.secret,
@@ -29,6 +25,13 @@ export function createCodeCache(compute = totp) {
       token.digits,
       token.period
     ].join("\n")
+
+  function code(
+    token: TotpConfig,
+    driftSeconds: number,
+    nowMs: number
+  ): string {
+    const key = cacheKey(token)
     const period = currentPeriod(Number(token.period), driftSeconds, nowMs)
     const cached = cache.get(key) ?? {}
     const wasCached = cached[period] !== undefined
@@ -48,4 +51,14 @@ export function createCodeCache(compute = totp) {
     )
     return current
   }
+
+  /** Forget the Codes of every Token not in `tokens`. */
+  function retain(tokens: TotpConfig[]) {
+    const keep = new Set(tokens.map(cacheKey))
+    for (const key of cache.keys()) {
+      if (!keep.has(key)) cache.delete(key)
+    }
+  }
+
+  return Object.assign(code, { retain })
 }

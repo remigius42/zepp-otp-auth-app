@@ -33,6 +33,7 @@ import {
   needsRelaunch
 } from "./syncState"
 import { msUntilNextTick } from "./tick"
+import { retainTokens } from "./tokenView"
 import { withTimeout } from "./withTimeout"
 import * as Styles from "zosLoader:./index.[pf].layout.js"
 
@@ -350,6 +351,7 @@ function receive(message: PeerMessage) {
   const previous = state.settings
   state = applySync(state, message, now)
   session().sync = state
+  retainTokens(message.tokens)
   /* A toast rather than our own text: the round screen is too narrow near
    * the top, and the message was cut off there. */
   if (state.showClockSync) {

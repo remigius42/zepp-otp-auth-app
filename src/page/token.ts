@@ -18,6 +18,7 @@ import {
 } from "./syncState"
 import { msUntilNextTick } from "./tick"
 import { afterSync, rowFromParams } from "./tokenPage"
+import { retainTokens } from "./tokenView"
 import * as Styles from "zosLoader:./token.[pf].layout.js"
 
 /**
@@ -120,6 +121,7 @@ function receive(message: PeerMessage) {
   const previous = state
   state = applySync(previous, message, Date.now())
   session().sync = state
+  retainTokens(message.tokens)
   if (state.showClockSync) {
     showToast({ content: getText("Synchronizing clock...") })
   }

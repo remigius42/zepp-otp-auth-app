@@ -86,6 +86,22 @@ describe("createCodeCache", () => {
     )
   })
 
+  it("forgets the Codes of Tokens no longer synced", () => {
+    const compute = vi.fn(totp)
+    const code = createCodeCache(compute)
+    const other = { ...RFC_TOKEN, label: "jane" }
+    code(RFC_TOKEN, 0, 31_000)
+    code(other, 0, 31_000)
+    compute.mockClear()
+
+    code.retain([other])
+    code(RFC_TOKEN, 0, 32_000)
+    code(other, 0, 32_000)
+
+    expect(compute).toHaveBeenCalledWith(RFC_TOKEN, 0, false, 32_000)
+    expect(compute).not.toHaveBeenCalledWith(other, 0, false, 32_000)
+  })
+
   it("tells Tokens apart that share Issuer and Label", () => {
     const code = createCodeCache(totp)
     const other = { ...RFC_TOKEN, secret: "JBSWY3DPEHPK3PXP" }

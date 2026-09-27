@@ -1,7 +1,7 @@
 /* spellchecker:ignore MJUXILTMPEXTEWRWMNFEITY */
 
 import { TotpConfig } from "../TotpConfig"
-import { currentPeriod, totp } from "../totp"
+import { currentPeriod, retainSecrets, totp } from "../totp"
 
 describe("totp", () => {
   const RFC4226_TEST_VECTORS = [
@@ -200,6 +200,26 @@ describe("totp", () => {
     vi.setSystemTime(SOME_SYSTEM_TIME + SOME_CLOCK_DRIFT_IN_SECONDS * 1000)
     expect(totpWithClockDrift).toBe(totp(totpConfig, 0))
     vi.useRealTimers()
+  })
+
+  describe("retainSecrets", () => {
+    /* The prepared keys are not observable; a forgotten one is prepared
+     * again, so the Code must not change. */
+    it("keeps Codes correct after forgetting a Secret's prepared key", () => {
+      const totpConfig: TotpConfig = {
+        label: "john",
+        secret: RFC4226_TEST_VECTORS_BASE32_SECRET,
+        algorithm: "SHA1",
+        digits: "8",
+        period: "30"
+      }
+      const before = totp(totpConfig, 0, false, 59_000)
+
+      retainSecrets([])
+
+      expect(totp(totpConfig, 0, false, 59_000)).toBe(before)
+      expect(before).toBe("94287082")
+    })
   })
 
   describe("currentPeriod", () => {
