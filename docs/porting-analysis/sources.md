@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays -->
+<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays Credelius stratumauth Lixxia BandBBS Gadgetbridge -->
 
 # Sources
 
@@ -48,6 +48,23 @@ Part of the [porting analysis](./README.md).
   [manujedi/Authenticator](https://github.com/manujedi/Authenticator) ·
   [Lisoveliy/TOTPFit](https://github.com/Lisoveliy/totpfit)
 - [Gadgetbridge: support for side-app code for Zepp OS](https://codeberg.org/Freeyourgadget/Gadgetbridge/issues/3266)
+
+Re-check of the market and the Store, 2026-09-27 (§7.5, §8.5):
+
+- [Zepp OS — Distribute](https://docs.zepp.com/docs/distribute/)
+- [Zepp OS — Zepp App](https://docs.zepp.com/docs/guides/tools/zepp-app/)
+- [Zepp OS — Icons](https://docs.zepp.com/docs/v2/designs/visual/icons/)
+- [zepp-health discussion #275](https://github.com/orgs/zepp-health/discussions/275)
+- [Zepp Health Q2 2026 results](https://www.prnewswire.com/news-releases/zepp-health-corporation-reports-second-quarter-of-2026-unaudited-financial-results-302866933.html)
+- [Credelius 2FA Hub](https://credelius.com/credelius/?p=567) ·
+  [Google Play listing](https://play.google.com/store/apps/details?id=info.gryb.gacw)
+- [BandBBS thread 4141](https://www.bandbbs.cn/threads/4141/)
+- [Home Assistant companion for Amazfit devices](https://community.home-assistant.io/t/home-assistant-companion-for-amazfit-devices/704586)
+- [Gadgetbridge on Zepp OS](https://gadgetbridge.org/basics/topics/zeppos/)
+- [ch1bo/garmin-otp-authenticator](https://github.com/ch1bo/garmin-otp-authenticator) ·
+  [OTP Auth 2.0 on Garmin Connect IQ](https://apps.garmin.com/en-US/apps/c601e351-9fa8-4303-aead-441251559064)
+- [stratumauth/app](https://github.com/stratumauth/app)
+- [Lixxia/fitbit-authenticator](https://github.com/Lixxia/fitbit-authenticator)
 
 ---
 

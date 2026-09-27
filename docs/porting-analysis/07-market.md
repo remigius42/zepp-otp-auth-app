@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays -->
+<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays Credelius Tachanka cubimon UniqueDroid BandBBS BandTOTP Wristkey Stratum Lixxia Vela Notebookcheck -->
 
 # 7. Market landscape: OTP apps on Zepp OS
 
@@ -153,6 +153,55 @@ than the two-with-traction §7.1 implied. That is a mild argument against the
 "the field is thin, so build" reasoning — though §8.4 rests the build decision on
 wanting the porting experience, not on market gap, so it does not change the
 conclusion.
+
+## 7.5 Re-check, 2026-09-27
+
+A second look at the field, eighteen days after §7.1–§7.4, from the web only:
+the store was not re-opened, so nothing below is **[store]**. **[press]** here
+also covers vendor pages and Google Play listings.
+
+**One competitor §7.1 missed: Credelius "2FA Hub".** It is paid ($1.99) and
+closed source, and it is the only Zepp OS authenticator with QR enrollment
+**[press]**:
+
+- An Android phone app plus a Zepp mini program. Tokens are added by QR scan or
+  typing in the phone app, then sent to the watch, which then works without the
+  phone.
+- It officially lists Active 2 (round and square), Balance 2, Bip 6 and T-Rex 3
+  Pro, on Zepp OS 3.0+.
+- Google Play: 3.8 stars, 85 reviews, "1K+" downloads, counted across all of
+  its watch platforms, not Zepp alone. Listing updated 2026-08-31.
+- Android only, so iOS users have no QR route on Zepp OS from anyone.
+- Whether it encrypts Secrets on the watch is **[unknown]**.
+
+Since it is paid and listed in the Store, either Credelius is a certified
+Mainland China developer (§7.2) or the payment is in the phone app, outside
+Zepp's channel. Which is **[unknown]**.
+
+**The field, recounted:** at least eleven Zepp OS authenticators — the five
+Store listings of §7.1, the six GitHub projects, 2FA Hub, and watch-face hacks
+for the Mi Band 7 on the BandBBS forum (BandTOTP, Mie Auth; Zepp OS 1, hand-
+edited configuration). TOTP apps for Xiaomi Vela and the Mi Band 9 are a
+different platform and out of scope. Traction is unchanged: the most-starred
+open-source project has 31 stars, and no ratings or install counts are public
+for any Store listing (§7.4).
+
+**Demand on comparable platforms [press]**, as a ceiling for what this niche
+returns:
+
+- Garmin: OTP Authenticator (4.6 stars, "1K+" downloads, 120 GitHub stars) and
+  OTP Auth 2.0 (3.7 stars, "1K+") lead a field of several smaller apps.
+- Wear OS: Google Authenticator dropped Wear OS around 2020; Wristkey, Stratum
+  and 2FA Hub fill the gap.
+- Fitbit: `fitbit-otp-auth-app` has 5 stars; `Lixxia/fitbit-authenticator` 47.
+
+The niche tops out at about a thousand downloads per app, spread across many
+small apps, on every platform that publishes numbers. Zepp publishes none.
+
+**Still open**, and answerable only from the Zepp app's Store on a paired
+phone: ratings, price, Active 2 availability and enrollment for the galulex,
+leen and Tachanka listings, and whether galulex's app is the press's "revamped
+Authenticator" with its claimed Google Authenticator, 2FAS and Aegis import.
 
 ---
 

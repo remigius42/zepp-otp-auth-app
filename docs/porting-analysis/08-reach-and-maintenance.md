@@ -1,4 +1,4 @@
-<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays -->
+<!-- spell-checker:ignore Zepp zeus zml nuintun qrcode Amazfit otpauth localStorage settingsStorage jsQR getUserMedia Lisoveliy ZoLArk manujedi typedarrays Gadgetbridge Kiezelpay Codeberg Notebookcheck delisting -->
 
 # 8. Reach and maintenance cost
 
@@ -118,6 +118,66 @@ pure user value, contributing probably wins. TOTPFit already has
 in a field of six serves nobody who isn't already served. Building is the right
 call **because the goal is the experience, not the market** — and that is worth
 saying out loud instead of retrofitting a market rationale onto it.
+
+## 8.5 What a Store Listing costs, and the alternatives
+
+Added 2026-09-27, from Zepp's distribution documentation **[docs]** and
+community reports **[press]**; nothing here was tried. The decision between a
+Store Listing, **Sideload** and a project page is §11 Q3.
+
+**Submission [docs].** Create the app in the Console, which assigns the
+`appId`; upload the `.zab`; add metadata and assets; submit. Updates go
+through "Version Upgrade". The developer account is free for individuals;
+whether there is an identity check is **[unknown]**. The Store shows the
+account nickname as the developer name, and the account's region, fixed at
+registration, decides which Store the app appears in.
+
+**Assets [docs]:**
+
+- Store icon: 240 × 240 PNG, round, transparent background, no margins,
+  uploaded in the Console rather than bundled. `resources/store-icon.png` in
+  this repo is our name for it, not Zepp's.
+- At least three screenshots, 360 × 360 PNG, transparent background.
+- Name, short profile and details; English is required for the global region.
+  A Persian-only app was rejected for lacking it **[press]**.
+- A privacy policy as text, a data-permissions declaration and an SDK
+  disclosure. For this app the policy has to say that Secrets are stored in
+  plaintext in the Zepp app's storage on the phone (ADR-0004).
+
+**Review [docs]:** one to five working days; rejection reasons appear in the
+Console only. Five authenticators are listed, so there is no policy against
+them.
+
+**Zepp may extend a listing to devices it was never tested on [docs]:** "If the
+platform subsequently detects that the developer's Mini Program has a new
+device that can be supported, the platform will take the initiative to adapt
+and distribute." That means bug reports from watches the developer does not
+own; the Home Assistant companion app collected cropping and "Download Failed"
+reports from other models this way **[press]**. It also makes §8.1's
+resolution classes a support commitment rather than a choice.
+
+**Undocumented [unknown]:** delisting, download statistics, and whether updates
+are ever forced. Monetization is as §7.2 says: no paid listing from outside
+Mainland China, Kiezelpay or QR-code donations only, declared at submission.
+
+**Reach, for scale [press]:** Zepp reports over 200 million units shipped and
+53 million users served, lifetime, and the Zepp app has about 38 million
+Android downloads. The Store holds "hundreds" of mini apps; Zepp's Discord
+posts a weekly Top 50 by rank only, and Notebookcheck covers batches of new
+third-party apps, which is free exposure.
+
+**The alternatives to the Store do not reach ordinary users:**
+
+- **Developer-mode preview [docs]:** each user needs Node, the Zeus CLI and an
+  email-and-password Zepp account (§3.9), builds the app, and scans a preview
+  QR code that expires. Fine for developers, nothing else.
+- **Gadgetbridge:** installs `.zab` files on the Active 2 but does not run the
+  Side Service, so the Settings App and Sync would not work (Codeberg issue
+  #3266, open since 2023), and it replaces the Zepp app. Not viable for this
+  app's design.
+
+So a project page reaches readers and tinkerers; the Store is the only route to
+users who do not build software. The upkeep estimate of §8.3 stands either way.
 
 ---
 
