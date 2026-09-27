@@ -274,7 +274,9 @@ function createStatusText() {
   })
   statusText.addEventListener(event.CLICK_UP, () => {
     diag(`tap while ${pull}`)
-    if (pull === "failed") guarded("pull", pullTokens)
+    if (pull !== "failed") return
+    guarded("reconnect", reconnect)
+    guarded("pull", pullTokens)
   })
 }
 
@@ -284,6 +286,28 @@ function applyColorScheme() {
   background?.setProperty(prop.MORE, {
     color: toZeppColor(colors.backgroundColor)
   })
+}
+
+/**
+ * Re-opens ZML's Bluetooth connection. When Bluetooth returns, the Zepp app
+ * closes the Side Service, and from then on nothing the page sent reached the
+ * phone: every retry timed out until the app was re-opened. The transport is
+ * the app-wide one `BaseApp` creates, so only it is re-created — the
+ * `messaging` wrapper's own `disConnect` also drops the response listener.
+ * Not public ZML API (0.0.43, `dist/zml-app.js`).
+ */
+function reconnect() {
+  const { transport } = (
+    getApp() as unknown as {
+      _options: {
+        globalData: {
+          messaging: { transport: { disConnect(): void; connect(): void } }
+        }
+      }
+    }
+  )._options.globalData.messaging
+  transport.disConnect()
+  transport.connect()
 }
 
 /** One tick: patch the rows whose Code or arc moved on. */
