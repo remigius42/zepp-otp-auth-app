@@ -12,6 +12,7 @@ ignorePaths:
   - "/coverage"
   - "/docs/.vitepress/cache"
   - "/docs/.vitepress/dist"
+  - "/results.sarif"
   - "/src/setting/licenses.js"
   - "/cspell.dictionary_swiss-german_project.txt"
 dictionaryDefinitions:
@@ -75,6 +76,7 @@ words:
   - remigius
   - retarget
   - rgba
+  - sarif
   - settingsStorage
   - sideload
   - sideloaded

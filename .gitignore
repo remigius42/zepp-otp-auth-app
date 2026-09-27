@@ -22,5 +22,6 @@ dist/
 # Claude Code: local settings and agent worktrees
 /.claude/
 
-# Test reports (CI)
+# Test reports and the gitleaks report (CI)
 /reports/
+/results.sarif

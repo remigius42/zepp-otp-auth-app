@@ -7,6 +7,12 @@ updates:
     commit-message:
       prefix: build
       include: scope
+    # packages that must move in lockstep, or npm ci fails on peer ranges
+    groups:
+      vitest:
+        patterns: ["vitest", "@vitest/*"]
+      commitlint:
+        patterns: ["@commitlint/*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
