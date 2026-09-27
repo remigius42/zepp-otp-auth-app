@@ -254,7 +254,7 @@ function licensesSection() {
     textLine(`zepp-otp-auth-app v${appJson.app.version.name}`),
     textLine("Copyright 2026 binary poetry gmbh."),
     textLine(gettext("Licensed under GPL version 3.0 or later.")),
-    textLine(gettext("Third-party licenses")),
+    textLine(gettext("Third-party licenses"), spaced()),
     ...Object.values(licenses).map(
       ({ name, version, licenses: license, copyright, repository }) =>
         textLine(
