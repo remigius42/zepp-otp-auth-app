@@ -1,6 +1,7 @@
 version: "0.2"
 ignorePaths:
   - "node_modules"
+  - "/.claude/worktrees"
   - "/.git"
   - "/.gitignore"
   - "/.husky"
@@ -90,6 +91,7 @@ words:
   - vitepress
   - vitest
   - watchfaces
+  - worktrees
   - zepp
   - zeppos
   - zeus

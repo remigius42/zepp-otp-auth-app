@@ -26,7 +26,7 @@
     "lint": "npm run lint:prettier && npm run lint:cspell && npm run lint:markdown && npm run lint:oxlint && npm run typecheck && npm run check:engine",
     "lint:prettier": "prettier --no-error-on-unmatched-pattern --ignore-unknown --list-different '**/*'",
     "lint:cspell": "cspell --dot --no-must-find-files --no-progress '**/*'",
-    "lint:markdown": "markdownlint-cli2 '**/*.md' '!node_modules/**'",
+    "lint:markdown": "markdownlint-cli2 '**/*.md' '!node_modules/**' '!.claude/worktrees/**'",
     "lint:oxlint": "oxlint --max-warnings=0",
     "lint:fix": "npm run lint:fix:prettier && npm run lint:fix:oxlint",
     "lint:fix:prettier": "prettier --write '**/*'",

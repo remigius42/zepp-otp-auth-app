@@ -6,6 +6,7 @@
     "suspicious": "error"
   },
   "ignorePatterns": [
+    ".claude/worktrees",
     "build",
     "coverage",
     "docs/.vitepress/cache",

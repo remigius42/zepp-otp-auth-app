@@ -19,5 +19,8 @@ dist/
 /docs/.vitepress/dist/
 /docs/.vitepress/cache/
 
+# Claude Code agent worktrees
+/.claude/worktrees/
+
 # Test reports (CI)
 /reports/
