@@ -133,8 +133,9 @@ const HASH_FUNCTIONS: Record<string, typeof sha1 | undefined> = {
  * wrapper resolves its global from module-scope `this`, which is `undefined`
  * under ESM. The Zeus bundler's CommonJS interop then initializes
  * `lib-typedarrays` before `core` has finished, and the library throws on the
- * device — see docs/ZEPP_OS_PORTING_ANALYSIS.md §3.10. It is also officially
- * discontinued, which this repo inherited from `fitbit-otp-auth-app`.
+ * device — see docs/porting-analysis/03-build-and-hardware-findings.md
+ * §3.10. It is also officially discontinued, which this repo inherited from
+ * `fitbit-otp-auth-app`.
  */
 function hmacDigest(
   message: Uint8Array,

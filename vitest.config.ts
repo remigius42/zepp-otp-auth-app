@@ -22,7 +22,7 @@ export default defineConfig({
         // Imperative @zos/ui widget construction and Settings App render
         // functions have no test seam on this platform. Excluded explicitly so
         // the untestable surface stays visible in review rather than being
-        // averaged away — see docs/ZEPP_OS_PORTING_ANALYSIS.md §6.3.
+        // averaged away — see docs/porting-analysis/06-tooling.md §6.3.
         "src/page/index.ts",
         "src/page/index.r.layout.ts",
         "src/setting/index.ts",

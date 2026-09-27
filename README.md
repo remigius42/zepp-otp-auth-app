@@ -42,7 +42,7 @@ These are deliberate and reasoned; each links to the decision record.
 ## Documentation
 
 - [User manual](./docs/manual/README.md) ([Deutsch](./docs/manual/de.md))
-- [Porting analysis](./docs/ZEPP_OS_PORTING_ANALYSIS.md) — what ports, what
+- [Porting analysis](./docs/porting-analysis/README.md) — what ports, what
   doesn't, and what the platform actually does as opposed to what its
   documentation says
 - [Glossary](./CONTEXT.md) — the vocabulary this project uses, and the
