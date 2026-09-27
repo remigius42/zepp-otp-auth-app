@@ -90,8 +90,11 @@ them from your phone, so the phone needs Bluetooth on and the Zepp app running.
 Tap a Token to show it alone, with a larger Code. Swipe back to return to the
 list.
 
-Each Code is computed on the watch. With many Tokens, more than about eight,
-the list may respond sluggishly.
+Each Code is computed on the watch, which takes a few hundredths of a second
+for SHA1 and SHA256 Tokens. **SHA-512 support is more of a proof of concept:**
+the watch needs almost half a second per SHA512 Code. Each SHA512 Token
+delays opening OTP Auth by about a second, and the list pauses briefly when
+its Code changes.
 
 ## Settings
 

@@ -284,11 +284,12 @@ Observed 2026-09-27 on the same watch with 12 Tokens.
 Measured 2026-09-27 on the same watch by timing `totp()` at launch: the first
 Code, which prepares the key, then the mean of five more.
 
-| Algorithm | First Code | Each after | Laptop QuickJS, per HMAC |
-| --------- | ---------- | ---------- | ------------------------ |
-| SHA1      | 25 ms      | 12.6 ms    | 69 µs                    |
-| SHA256    | 59 ms      | 29.4 ms    | 78 µs                    |
-| SHA512    | 1675 ms    | 821 ms     | 440 µs                   |
+| Algorithm       | First Code | Each after | Laptop QuickJS, per HMAC |
+| --------------- | ---------- | ---------- | ------------------------ |
+| SHA1            | 25 ms      | 12.6 ms    | 69 µs                    |
+| SHA256          | 59 ms      | 29.4 ms    | 78 µs                    |
+| SHA512          | 1675 ms    | 821 ms     | 440 µs                   |
+| SHA512, inlined | 803 ms     | 398 ms     | 290 µs                   |
 
 1. **SHA-1 is about 24 times faster than with noble** (~300 ms, §3.14).
    With 12 SHA-1 Tokens, a Period boundary now costs at most about 150 ms,
@@ -298,12 +299,15 @@ Code, which prepares the key, then the mean of five more.
    called helper functions about 2,000 times per block, for rotations and
    carries, and SHA-1 and SHA-256 call none. One SHA-512 Token alone made the
    slowest tick 882 ms, against 63 ms without a boundary. Inlining the
-   helpers made it 1.5 times faster on the laptop (440 → 290 µs). The
-   laptop's newer QuickJS understates call overhead, so the gain on the watch
-   may be larger; it is not yet measured.
-3. **The timing itself blocked the launch.** It ran about 6 s of hashing
-   before the first render, so that launch's Sync took 7.4 s. The start-up
-   stall seen in that session was mostly the measurement.
+   helpers made it 1.5 times faster on the laptop (440 → 290 µs) and 2.1
+   times faster on the watch (821 → 398 ms). The laptop's newer QuickJS
+   understates call overhead. Still 14 times SHA-256, likely because each 64-bit
+   addition in 32-bit halves leaves the engine's small-integer range.
+   The manual calls SHA-512 support a proof of concept.
+3. **The timing itself blocked the launch.** It ran 3 to 6 s of hashing
+   before the first render, so those launches' Syncs took 7.4 s. The start-up
+   stall seen in those sessions was mostly the measurement, which is removed
+   again. What remains is about 0.8 s per SHA-512 Token for its first Code.
 
 ---
 

@@ -103,8 +103,11 @@ laufende Zepp-App.
 Tippen Sie auf ein Token, um es allein und mit grösserem Code anzuzeigen. Mit
 der Zurück-Wischgeste kehren Sie zur Liste zurück.
 
-Jeder Code wird auf der Uhr berechnet. Mit vielen Tokens, mehr als etwa acht,
-reagiert die Liste womöglich träge.
+Jeder Code wird auf der Uhr berechnet, was für SHA1- und SHA256-Tokens wenige
+Hundertstelsekunden dauert. **Die SHA-512-Unterstützung ist eher ein
+Machbarkeitsnachweis:** Die Uhr braucht fast eine halbe Sekunde pro
+SHA512-Code. Jedes SHA512-Token verzögert das Öffnen von OTP Auth um etwa eine
+Sekunde, und die Liste stockt kurz, wenn sein Code wechselt.
 
 ## Einstellungen
 
