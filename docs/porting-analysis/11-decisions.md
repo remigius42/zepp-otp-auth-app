@@ -45,4 +45,4 @@ Still open:
 ---
 
 ← Previous: [10. Suggested phasing](./10-phasing.md)\
-Next: [Sources](./sources.md) →
+Next: [12. Dead ends and corrections](./12-dead-ends.md) →

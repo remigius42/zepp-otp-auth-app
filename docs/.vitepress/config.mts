@@ -21,6 +21,7 @@ const PORTING_ANALYSIS = [
   ["09-risks", "9. Risks and unknowns"],
   ["10-phasing", "10. Suggested phasing"],
   ["11-decisions", "11. Decisions and remaining questions"],
+  ["12-dead-ends", "12. Dead ends and corrections"],
   ["sources", "Sources"]
 ]
 

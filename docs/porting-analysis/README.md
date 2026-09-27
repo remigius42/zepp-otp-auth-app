@@ -18,6 +18,7 @@ Date: 2026-09-08 · Analyzed commit: `0e63cc5` (v1.0.1)
 - [9. Risks and unknowns](./09-risks.md)
 - [10. Suggested phasing](./10-phasing.md)
 - [11. Decisions and remaining questions](./11-decisions.md)
+- [12. Dead ends and corrections](./12-dead-ends.md)
 - [Sources](./sources.md)
 
 ## 1. Verdict
