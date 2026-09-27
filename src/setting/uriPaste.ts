@@ -4,11 +4,7 @@ import {
   URI_PASTE_ERROR_SETTINGS_KEY,
   URI_PASTE_INPUT_SETTINGS_KEY
 } from "../shared/settingsKeys"
-
-export type SettingsStorage = Pick<
-  SettingsProps["settingsStorage"],
-  "getItem" | "setItem" | "removeItem"
->
+import type { SettingsStorage } from "../shared/SettingsStorage"
 
 /**
  * How long the pasted URI stays in the field before it clears. Long enough

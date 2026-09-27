@@ -42,7 +42,8 @@ import {
   pendingDeleteIndex,
   requestDelete
 } from "./tokenList"
-import { handleUriPaste, type SettingsStorage } from "./uriPaste"
+import type { SettingsStorage } from "../shared/SettingsStorage"
+import { handleUriPaste } from "./uriPaste"
 
 /**
  * Settings App, in Fitbit's order: Introduction, Tokens (URI Paste and the

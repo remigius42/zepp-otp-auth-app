@@ -4,7 +4,7 @@ import {
   SYNC_STATS_SETTINGS_KEY
 } from "../shared/settingsKeys"
 import { EMPTY_SYNC_STATS, type SyncStats } from "../shared/syncStats"
-import type { SettingsStorage } from "./uriPaste"
+import type { SettingsStorage } from "../shared/SettingsStorage"
 
 /** One line for the Settings App: how reliably the watch Syncs. */
 export function summarizeStats({

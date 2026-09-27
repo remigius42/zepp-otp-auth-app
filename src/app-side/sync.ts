@@ -6,10 +6,9 @@ import {
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY
 } from "../shared/settingsKeys"
+import type { SettingsStorage } from "../shared/SettingsStorage"
 import { asSyncStats } from "../shared/syncStats"
 import { tokensForSync } from "../shared/tokens"
-
-type SettingsStorage = { getItem(key: string): string | undefined }
 
 /**
  * The Sync payload: every valid stored Token, the Settings and — with Clock
@@ -18,7 +17,7 @@ type SettingsStorage = { getItem(key: string): string | undefined }
  * (ADR-0002 amendment).
  */
 export function syncMessage(
-  storage: SettingsStorage,
+  storage: Pick<SettingsStorage, "getItem">,
   nowMs: number
 ): SyncMessage {
   const { compensateClockDrift, ...settings } = settingsFromStorage(storage)
@@ -45,7 +44,7 @@ const SYNCED_KEYS = [
  */
 export function messageForSettingsChange(
   key: string,
-  storage: SettingsStorage,
+  storage: Pick<SettingsStorage, "getItem">,
   nowMs: number
 ): SyncMessage | undefined {
   return SYNCED_KEYS.includes(key) ? syncMessage(storage, nowMs) : undefined

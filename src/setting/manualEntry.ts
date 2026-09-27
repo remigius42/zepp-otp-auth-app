@@ -3,7 +3,7 @@ import {
   TOKENS_SETTINGS_KEY
 } from "../shared/settingsKeys"
 import { addTokenManually, type TokenFields } from "../shared/tokens"
-import type { SettingsStorage } from "./uriPaste"
+import type { SettingsStorage } from "../shared/SettingsStorage"
 
 export type ManualEntryField = keyof typeof MANUAL_ENTRY_SETTINGS_KEYS
 

@@ -5,16 +5,17 @@ import {
   COMPENSATE_CLOCK_DRIFT_SETTINGS_KEY,
   LARGE_TOKEN_VIEW_SETTINGS_KEY
 } from "./settingsKeys"
+import type { SettingsStorage } from "./SettingsStorage"
 
 /** The Settings as the phone holds them; the drift toggle never reaches the watch. */
 export interface PhoneSettings extends AppSettings {
   compensateClockDrift: boolean
 }
 
-type SettingsStorage = { getItem(key: string): string | undefined }
-
 /** The stored Settings, with defaults for anything absent or malformed. */
-export function settingsFromStorage(storage: SettingsStorage): PhoneSettings {
+export function settingsFromStorage(
+  storage: Pick<SettingsStorage, "getItem">
+): PhoneSettings {
   const colorScheme = parse(storage.getItem(COLOR_SCHEME_SETTINGS_KEY))
   return {
     colorScheme: Object.values(ColorSchemeName).includes(

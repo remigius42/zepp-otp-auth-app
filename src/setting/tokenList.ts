@@ -9,7 +9,7 @@ import {
   parseTokens,
   renameToken
 } from "../shared/tokens"
-import type { SettingsStorage } from "./uriPaste"
+import type { SettingsStorage } from "../shared/SettingsStorage"
 
 /**
  * The Settings App's Token list: rename, reorder and a confirmed delete. Each

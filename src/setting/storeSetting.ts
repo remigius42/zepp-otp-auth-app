@@ -1,4 +1,4 @@
-import type { SettingsStorage } from "./uriPaste"
+import type { SettingsStorage } from "../shared/SettingsStorage"
 
 /**
  * A Settings control changed. JSON-encoded, as `settingsFromStorage` reads
