@@ -1,6 +1,8 @@
 import { formatTotp, getDisplayName } from "../shared/formatTokens"
 import type { TotpConfig } from "../shared/TotpConfig"
-import { totp } from "../shared/totp"
+import { createCodeCache } from "./codeCache"
+
+const code = createCodeCache()
 
 /**
  * What one Token row shows at the watch's time `nowMs`, corrected by the clock
@@ -15,7 +17,7 @@ export function tokenView(
   const seconds = nowMs / 1000 + driftSeconds
   return {
     name: getDisplayName(token),
-    code: formatTotp(totp(token, driftSeconds, false, nowMs)),
+    code: formatTotp(code(token, driftSeconds, nowMs)),
     secondsRemaining: period - (Math.floor(seconds) % period)
   }
 }
