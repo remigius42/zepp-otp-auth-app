@@ -123,4 +123,18 @@ describe("Token list handlers", () => {
       expect(storedTokens(storage)).toEqual([TOKEN_A, TOKEN_B])
     }
   )
+
+  /* On hardware a removed key reads back as `null`, and `Number(null)` is 0:
+   * the first row asked for confirmation forever. */
+  it.each([null, ""])("sees no pending delete when it reads %j", stored => {
+    const storage = {
+      ...withTokens(),
+      getItem: (key: string) =>
+        key === PENDING_DELETE_INDEX_SETTINGS_KEY
+          ? (stored as string)
+          : withTokens().items.get(key)
+    }
+
+    expect(pendingDeleteIndex(storage)).toBeUndefined()
+  })
 })

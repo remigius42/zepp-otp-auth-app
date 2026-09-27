@@ -61,10 +61,12 @@ export function cancelDelete(storage: SettingsStorage) {
 export function pendingDeleteIndex(
   storage: Pick<SettingsStorage, "getItem">
 ): number | undefined {
+  /* A removed key reads back as `null` on hardware, and `Number(null)` is 0. */
   const stored = storage.getItem(PENDING_DELETE_INDEX_SETTINGS_KEY)
   const index = Number(stored)
   const count = parseTokens(storage.getItem(TOKENS_SETTINGS_KEY)).length
-  return stored !== undefined &&
+  return typeof stored === "string" &&
+    stored !== "" &&
     Number.isInteger(index) &&
     index >= 0 &&
     index < count
