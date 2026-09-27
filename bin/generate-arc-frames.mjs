@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Writes the Token list's arc frames: 30 per color scheme, 64 px, to
+// Writes the Token list's arc frames: 60 per color scheme, 64 px, to
 // src/assets/default.r/arc/<scheme>/<n>.png. Output is generated, gitignored
 // and never committed (docs/adr/0005-progress-arc-as-prerendered-image-frames.md).
 

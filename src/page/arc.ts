@@ -1,11 +1,11 @@
 import type { ColorSchemeName } from "../shared/ColorSchemes"
 
 /** Pre-rendered arc frames per color scheme (ADR-0005). */
-export const ARC_FRAME_COUNT = 30
+export const ARC_FRAME_COUNT = 60
 
 /**
  * The arc frame for a Token at the watch's time `nowMs`, corrected by the
- * clock drift: `floor(elapsedFraction × 30)`, so 0 is a full ring. A fraction
+ * clock drift: `floor(elapsedFraction × 60)`, so 0 is a full ring. A fraction
  * rather than a second count, so one set of frames covers any Period.
  */
 export function arcFrame(

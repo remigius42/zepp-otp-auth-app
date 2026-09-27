@@ -6,13 +6,18 @@ describe("arcFrame", () => {
     expect(arcFrame(30, 60_000, 0)).toBe(0)
   })
 
-  it("advances one frame per thirtieth of the Period", () => {
-    expect(arcFrame(30, 60_000 + 15_000, 0)).toBe(15)
-    expect(arcFrame(60, 120_000 + 30_000, 0)).toBe(15)
+  it("advances one frame per sixtieth of the Period", () => {
+    expect(arcFrame(30, 60_000 + 15_000, 0)).toBe(30)
+    expect(arcFrame(60, 120_000 + 30_000, 0)).toBe(30)
+  })
+
+  it("moves a 60 s Token's arc every second, like a 30 s Token's", () => {
+    expect(arcFrame(60, 120_000 + 1_000, 0)).toBe(1)
+    expect(arcFrame(30, 60_000 + 1_000, 0)).toBe(2)
   })
 
   it("shows the last frame just before the Period ends", () => {
-    expect(arcFrame(30, 89_999, 0)).toBe(29)
+    expect(arcFrame(30, 89_999, 0)).toBe(59)
   })
 
   it("shifts by the clock drift", () => {

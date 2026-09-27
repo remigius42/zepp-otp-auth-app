@@ -18,7 +18,7 @@ describe("rowView", () => {
     expect(rowView(RFC_TOKEN, 59_000, 0, ColorSchemeName.default)).toEqual({
       name: "GitHub (john)",
       code: "9428 7082",
-      arc: "arc/default/29.png"
+      arc: "arc/default/58.png"
     })
   })
 
@@ -26,11 +26,11 @@ describe("rowView", () => {
     const now = 75_000
 
     expect(rowView(RFC_TOKEN, now, 0, ColorSchemeName.white)).toMatchObject({
-      arc: "arc/white/15.png"
+      arc: "arc/white/30.png"
     })
     expect(
       rowView({ ...RFC_TOKEN, period: "60" }, now, 0, ColorSchemeName.white)
-    ).toMatchObject({ arc: "arc/white/7.png" })
+    ).toMatchObject({ arc: "arc/white/15.png" })
   })
 
   it("shifts the arc by the clock drift", () => {

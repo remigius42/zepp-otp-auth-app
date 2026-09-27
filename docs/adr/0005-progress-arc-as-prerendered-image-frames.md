@@ -101,3 +101,15 @@ cheaper to design for than to retrofit.
 - **Fallback trigger**, any of: janky swapping at 1 Hz on hardware; frames not
   rendering; a tick over 250 ms with 12 Tokens; bundle still unacceptable at
   48 px. The fallback binds a text countdown to the same row slot.
+
+## Amendment, 2026-09-27: 60 frames, not 30
+
+On hardware, with 30 s and 60 s Tokens side by side, the 60 s arcs seemed to
+lag: 30 frames over 60 s step only every 2 s, while 30 s arcs step every
+second. **60 frames per scheme** give a 60 s Token one step a second and a 30 s
+Token two, so both move at the list's 1 Hz tick. Periods over 60 s still step
+less than once a second, which is acceptable since they are rare.
+
+The cost is small: 90 frames took 553 KB unpacked and 150 KB in the device
+`.zab`, far below the ~1.5 MB of uncompressed TGA feared above, because the
+flat-colored frames compress well.
