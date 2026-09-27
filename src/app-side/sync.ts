@@ -6,7 +6,6 @@ import {
   LARGE_TOKEN_VIEW_SETTINGS_KEY,
   TOKENS_SETTINGS_KEY
 } from "../shared/settingsKeys"
-import { asDiagTrail } from "../shared/diagTrail"
 import { asSyncStats } from "../shared/syncStats"
 import { tokensForSync } from "../shared/tokens"
 
@@ -62,15 +61,4 @@ export function syncStatsToStore(params: unknown): string | undefined {
     (params as { syncStats?: unknown } | undefined)?.syncStats
   )
   return syncStats === undefined ? undefined : JSON.stringify(syncStats)
-}
-
-/**
- * The value for the diagnostic-trail settings key, from the params of the
- * watch's launch pull, or `undefined` if the trail is absent or empty.
- */
-export function diagToStore(params: unknown): string | undefined {
-  const diag = asDiagTrail((params as { diag?: unknown } | undefined)?.diag)
-  return diag === undefined || diag.length === 0
-    ? undefined
-    : JSON.stringify(diag)
 }

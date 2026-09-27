@@ -19,7 +19,6 @@ import {
   PEER_MESSAGE_METHOD,
   type PeerMessage
 } from "../shared/PeerMessage"
-import { appendDiag, parseDiag } from "../shared/diagTrail"
 import { parseStats, recordPull } from "../shared/syncStats"
 import { changedRows } from "./changedRows"
 import { pageStatus, type PullState } from "./pageStatus"
@@ -66,9 +65,6 @@ const SYNC_STATS_STORAGE_KEY = "syncStats"
 /** `localStorage` key of the last Sync's color scheme (ADR-0004 amendment). */
 const COLOR_SCHEME_STORAGE_KEY = "colorScheme"
 
-/** `localStorage` key of the diagnostic trail (`shared/diagTrail`). */
-const DIAG_STORAGE_KEY = "diag"
-
 /** The row layout's only `type_id`. */
 const ROW_TYPE = 1
 
@@ -98,33 +94,10 @@ let statusText: Widget | undefined
 let list: Widget | undefined
 let rows: RowView[] = []
 let timer: ReturnType<typeof setTimeout> | undefined
-let lastStatusKind: string | undefined
-let maxTickMs = 0
-/** The `UPDATE_ITEM` share of the slowest tick, apart from computing rows. */
-let maxUpdateMs = 0
 
 /** `getItem` as it behaves; the typings claim it returns `void` (§3.8). */
 function readStorage(key: string) {
   return localStorage.getItem(key) as unknown as string | undefined
-}
-
-/** Appends to the diagnostic trail, which reaches the bridge log. */
-function diag(entry: string) {
-  localStorage.setItem(
-    DIAG_STORAGE_KEY,
-    JSON.stringify(
-      appendDiag(parseDiag(readStorage(DIAG_STORAGE_KEY)), entry, Date.now())
-    )
-  )
-}
-
-/** Runs `fn`, recording any throw in the trail instead of losing it. */
-function guarded(name: string, fn: () => void) {
-  try {
-    fn()
-  } catch (error) {
-    diag(`${name} threw ${String(error)}`)
-  }
 }
 
 function scheme() {
@@ -152,15 +125,6 @@ function render() {
     const text = getText(status.msgid)
     untyped(statusText as Widget).setProperty(prop.TEXT, text)
     untyped(statusText as Widget).setProperty(prop.VISIBLE, true)
-  }
-  if (status.kind !== lastStatusKind) {
-    lastStatusKind = status.kind
-    /* S1 set the status and nothing showed; the read-back tells why. */
-    const shown =
-      status.kind === "tokens"
-        ? `${rows.length} rows`
-        : JSON.stringify(untyped(statusText as Widget).getProperty(prop.TEXT))
-    diag(`status ${status.kind}: ${shown}`)
   }
 }
 
@@ -262,7 +226,6 @@ function rowConfig() {
  * `prop.MORE` on a wrapping `TEXT` and nothing showed.
  */
 function createStatusText() {
-  lastStatusKind = undefined
   statusText = createWidget(widget.TEXT, {
     ...Styles.STATUS_TEXT,
     /* Primary, not secondary: the darkened amber was too dim to read. */
@@ -273,10 +236,9 @@ function createStatusText() {
     text: ""
   })
   statusText.addEventListener(event.CLICK_UP, () => {
-    diag(`tap while ${pull}`)
     if (pull !== "failed") return
-    guarded("reconnect", reconnect)
-    guarded("pull", pullTokens)
+    reconnect()
+    pullTokens()
   })
 }
 
@@ -312,15 +274,11 @@ function reconnect() {
 
 /** One tick: patch the rows whose Code or arc moved on. */
 function tick() {
-  const startedAt = Date.now()
   if (list !== undefined) {
     const next = currentRows()
-    const updatesStartedAt = Date.now()
     patchRows(list, rows, next)
     rows = next
-    maxUpdateMs = Math.max(maxUpdateMs, Date.now() - updatesStartedAt)
   }
-  maxTickMs = Math.max(maxTickMs, Date.now() - startedAt)
 }
 
 /** The launch pull, also used to retry; records the outcome in Sync Stats. */
@@ -329,7 +287,6 @@ function pullTokens() {
   pull = "pending"
   render()
   const startedAt = Date.now()
-  diag("pull")
   const stats = parseStats(readStorage(SYNC_STATS_STORAGE_KEY))
   const record = (outcome: "synced" | "failed", ms: number) =>
     localStorage.setItem(
@@ -347,10 +304,7 @@ function pullTokens() {
       send(
         {
           method: GET_TOKENS_METHOD,
-          params: {
-            syncStats: stats,
-            diag: parseDiag(readStorage(DIAG_STORAGE_KEY))
-          }
+          params: { syncStats: stats }
         },
         { timeout: SYNC_TIMEOUT_MS }
       )
@@ -360,20 +314,14 @@ function pullTokens() {
     .then(result => {
       const elapsed = Date.now() - startedAt
       record("synced", elapsed)
-      /* The trail went out with this pull; start the next one afresh. */
-      localStorage.setItem(DIAG_STORAGE_KEY, "[]")
-      diag(`synced in ${elapsed} ms`)
       pull = "synced"
-      guarded("receive", () => receive(result as PeerMessage))
+      receive(result as PeerMessage)
     })
-    .catch((error: unknown) => {
+    .catch(() => {
       const elapsed = Date.now() - startedAt
       record("failed", elapsed)
-      diag(
-        `failed after ${elapsed} ms: ${JSON.stringify(error)} ${String(error)}`
-      )
       pull = "failed"
-      guarded("render", render)
+      render()
     })
 }
 
@@ -381,7 +329,6 @@ function receive(message: PeerMessage) {
   const now = Date.now()
   const previous = state.settings
   state = applySync(state, message, now)
-  diag(`drift ${state.driftSeconds} s`)
   /* A toast rather than our own text: the round screen is too narrow near
    * the top, and the message was cut off there. */
   if (state.showClockSync) {
@@ -396,7 +343,6 @@ function receive(message: PeerMessage) {
    * colors; a freshly opened page colors correctly, so re-launch it. It pulls
    * the new Settings itself. */
   if (needsRelaunch(previous, state.settings, list !== undefined)) {
-    diag("relaunch")
     replace({ url: "page/index" })
     return
   }
@@ -408,7 +354,7 @@ function startTicking() {
   const arm = () => {
     timer = setTimeout(
       () => {
-        guarded("tick", tick)
+        tick()
         arm()
       },
       msUntilNextTick(Date.now(), state.driftSeconds)
@@ -422,11 +368,6 @@ function stopTicking() {
     clearTimeout(timer)
     timer = undefined
   }
-  if (maxTickMs > 0) {
-    diag(`slowest tick ${maxTickMs} ms, slowest updates ${maxUpdateMs} ms`)
-  }
-  maxTickMs = 0
-  maxUpdateMs = 0
 }
 
 Page(
@@ -436,51 +377,43 @@ Page(
        * `(data, options)` and forwards `timeout` (dist/zml-page.js). */
       const pageRequest = this.request as NonNullable<typeof request>
       request = (data, options) => pageRequest.call(this, data, options)
-      diag("init")
-      guarded("pull", pullTokens)
+      pullTokens()
     },
 
     onCall(data: { method: string; params: unknown }) {
       if (data.method === PEER_MESSAGE_METHOD) {
-        diag("push")
-        guarded("receive", () => receive(data.params as PeerMessage))
+        receive(data.params as PeerMessage)
       }
     },
 
     build() {
-      diag("build")
-      guarded("build", () => {
-        setPageBrightTime({ brightTime: SCREEN_ON_MS })
+      setPageBrightTime({ brightTime: SCREEN_ON_MS })
 
-        background = createWidget(widget.FILL_RECT, {
-          x: 0,
-          y: 0,
-          w: Styles.SCREEN.width,
-          h: Styles.SCREEN.height,
-          angle: 0,
-          radius: 0,
-          color: 0
-        })
-
-        applyColorScheme()
-        createStatusText()
-        render()
-        startTicking()
+      background = createWidget(widget.FILL_RECT, {
+        x: 0,
+        y: 0,
+        w: Styles.SCREEN.width,
+        h: Styles.SCREEN.height,
+        angle: 0,
+        radius: 0,
+        color: 0
       })
+
+      applyColorScheme()
+      createStatusText()
+      render()
+      startTicking()
     },
 
     onResume() {
-      diag("resume")
-      guarded("resume", startTicking)
+      startTicking()
     },
 
     onPause() {
-      diag("pause")
       stopTicking()
     },
 
     onDestroy() {
-      diag("destroy")
       stopTicking()
       /* The page may be re-launched in this same module (`receive`). */
       background = undefined
