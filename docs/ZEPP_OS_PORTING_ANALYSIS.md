@@ -690,6 +690,27 @@ tests; each cost a device run.
 6. **Every Sync as `UPDATE_DATA` jumps the list to the top** — the same effect
    §3.5.1 found for ticks. Syncs that keep the row count now patch rows too.
 
+### 3.12 Phase 4's first device session [device]
+
+Observed 2026-09-27 on an Active 2 with 10 Tokens. Fixes are unverified.
+
+1. **ZML's `timeout` does not always fire.** A pull sent just after
+   Bluetooth returned neither resolved nor rejected for 45 s despite a 10 s
+   timeout. The page now races the pull against its own timer.
+2. **A re-created `SCROLL_LIST` keeps its old text colors.** Deleted and
+   created again with new `item_config` colors, the list showed the new arc
+   frames (they are data) in the old text colors. A freshly opened page
+   colors correctly, so a scheme change re-launches the page.
+3. **Random pre-computing still stacks HMACs.** With the cache from §3.11,
+   the slowest tick was 1331 ms while its `UPDATE_ITEM`s took 11 ms: several
+   Tokens rolled a pre-compute in the same tick. Now one Token per tick
+   computes ahead.
+4. **The Settings App's first render ignores some props.** On first view a
+   `Select`'s field is empty and a flex row of buttons stacks; after any
+   rebuild both render as specified. A `Select`'s `title` renders as a line
+   above its label, and a `TextInput`'s `placeholder` shows only in its edit
+   dialog.
+
 ## 4. The QR code workaround — the part that breaks
 
 ### 4.1 How it works today
