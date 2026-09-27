@@ -317,16 +317,24 @@ function pullTokens() {
       SYNC_STATS_STORAGE_KEY,
       JSON.stringify(recordPull(stats, outcome, ms))
     )
-  request(
-    {
-      method: GET_TOKENS_METHOD,
-      params: {
-        syncStats: stats,
-        diag: parseDiag(readStorage(DIAG_STORAGE_KEY))
-      }
-    },
-    { timeout: SYNC_TIMEOUT_MS }
-  )
+  const send = request
+  /* ZML's handshake can throw synchronously — `ble.send` failing just after
+   * Bluetooth returns — which left the pull pending for good: "waiting"
+   * forever, and taps retry only a failed pull. Inside `then`, the throw
+   * becomes a failed pull like any other. */
+  Promise.resolve()
+    .then(() =>
+      send(
+        {
+          method: GET_TOKENS_METHOD,
+          params: {
+            syncStats: stats,
+            diag: parseDiag(readStorage(DIAG_STORAGE_KEY))
+          }
+        },
+        { timeout: SYNC_TIMEOUT_MS }
+      )
+    )
     .then(result => {
       const elapsed = Date.now() - startedAt
       record("synced", elapsed)
